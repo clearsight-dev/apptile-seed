@@ -119,6 +119,10 @@ target 'ImageNotification' do
     puts "Installing clevertap in ImageNotification"
     pod 'CTNotificationService'
   end
+  if feature_flags.fetch('ENABLE_KLAVIYO', false)
+    puts "Installing klaviyo in ImageNotification"
+    pod 'KlaviyoSwiftExtension'
+  end
 end
 
 target 'NotificationContentExtension' do
@@ -139,6 +143,11 @@ target 'apptileSeed' do
   if feature_flags.fetch('ENABLE_CLEVERTAP', false)
     puts "Setting clevertap path in apptileSeed"
     pod 'clevertap-react-native', :path => '../node_modules/clevertap-react-native'
+  end
+
+  if feature_flags.fetch('ENABLE_KLAVIYO', false)
+    puts "Setting klaviyo path in apptileSeed"
+    pod 'react-native-klaviyo', :path => '../node_modules/react-native-klaviyo'
   end
 
   use_react_native!(

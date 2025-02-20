@@ -522,6 +522,18 @@ function removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNa
   addForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
 }
 
+function addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+  addService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService", { 'android:exported': false }, firebaseMessagingEventIntent);
+  addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  addForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
+}
+
+function removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+  deleteService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService");
+  removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  removeForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
+}
+
 async function main() {
   const analyticsTemplateRef = {current: analyticsTemplate};
   // Get location of ios folder in project
@@ -584,6 +596,13 @@ async function main() {
     addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
     removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
+  }
+
+  if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
+    addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig);
+  }
+  else {
+    removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
   }
 
   const updatedValuesXml = builder.buildObject(stringsObj);

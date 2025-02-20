@@ -118,6 +118,29 @@ async function removeMoengage(
   await addForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
 }
 
+async function addKlaviyo(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  apptileConfig,
+  parsedReactNativeConfig,
+  extraModules,
+) {
+  await addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
+}
+
+async function removeKlaviyo(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  extraModules,
+  parsedReactNativeConfig
+) {
+  await removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
+}
+
 async function addAppsflyer(
   infoPlist, 
   imageNotificationPlist,
@@ -295,6 +318,13 @@ async function main() {
       await addOnesignal(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
       await removeOnesignal(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
+    }
+
+    // For klaviyo notifications
+    if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
+      await addKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
+    } else {
+      await removeKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, parsedReactNativeConfig, extraModules);
     }
 
     const updatedPlist = plist.build(infoPlist);

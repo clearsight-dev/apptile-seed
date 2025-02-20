@@ -77,7 +77,7 @@
     "ENABLE_SEGMENT_ANALYTICS": false,
     "ENABLE_FBSDK": false,
     "ENABLE_CLEVERTAP": false,
-    "ENABLE_KALVIYO": false,
+    "ENABLE_KLAVIYO": false,
     "ENABLE_MOENGAGE": false,
     "ENABLE_APPSFLYER": false,
     "ENABLE_FIREBASE_ANALYTICS": true

@@ -81,6 +81,7 @@ def bundleId = "com.apptile.apptilepreviewdemo"
 def enable_onesignal = false
 def enable_moengage = false
 def enable_clevertap = false
+def enable_klaviyo = false
 
 if (configFile.exists()) {
     def json = new JsonSlurper().parseText(configFile.text)
@@ -98,6 +99,10 @@ if (configFile.exists()) {
 
     if (json.feature_flags.ENABLE_CLEVERTAP) {
       enable_clevertap = json.feature_flags.ENABLE_CLVERTAP
+    }
+
+    if (json.feature_flags.ENABLE_KLAVIYO) {
+      enable_klaviyo = json.feature_flags.ENABLE_KLAVIYO
     }
 }
 
@@ -153,6 +158,12 @@ android {
           java.srcDir 'src/clevertap/enabled/java'
         } else {
           java.srcDir 'src/clevertap/disabled/java'
+        }
+
+        if (enable_klaviyo) {
+          java.srcDir 'src/klaviyo/enabled/java'
+        } else {
+          java.srcDir 'src/klaviyo/disabled/java'
         }
       }
     }
