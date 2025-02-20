@@ -126,8 +126,8 @@ async function addKlaviyo(
   parsedReactNativeConfig,
   extraModules,
 ) {
-  await addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
-  await addForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
 }
 
 async function removeKlaviyo(
@@ -137,8 +137,8 @@ async function removeKlaviyo(
   extraModules,
   parsedReactNativeConfig
 ) {
-  await removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
-  await removeForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
 }
 
 async function addAppsflyer(
