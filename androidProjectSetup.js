@@ -523,12 +523,15 @@ function removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNa
 }
 
 function addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+  const klaviyoCompanyId = apptileConfig.integrations.klaviyo_company_id;
+  upsertInStringsXML(stringsObj, 'klaviyo_company_id', klaviyoCompanyId);
   addService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService", { 'android:exported': false }, firebaseMessagingEventIntent);
   removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
   removeForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
 }
 
 function removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+  removeFromStringsXML(stringsObj, 'klaviyo_company_id');
   deleteService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService");
   addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
   addForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
