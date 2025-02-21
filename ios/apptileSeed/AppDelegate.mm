@@ -32,6 +32,46 @@
 
 @implementation AppDelegate
 
+- (NSURL *)docsJSBundleUrl {
+  NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
+  NSURL *documentsDirectory = [documentDirectories firstObject];
+  NSURL *docBundlesDirectory = [documentsDirectory URLByAppendingPathComponent:@"bundles"];
+  NSURL *mainJSBundleURL = [docBundlesDirectory URLByAppendingPathComponent:@"main.jsbundle"];
+  if ([[NSFileManager defaultManager] fileExistsAtPath:[mainJSBundleURL path]]) {
+    return mainJSBundleURL;
+  } else {
+    return Nil;
+  }
+}
+
+- (void)addFloatingButton {
+  UIButton *floatingButton = [UIButton buttonWithType:UIButtonTypeSystem];
+  [floatingButton setTitle:@"R" forState:UIControlStateNormal];
+  [floatingButton setTitleColor:[UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+  floatingButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0];
+  
+  floatingButton.layer.cornerRadius = 25;
+  floatingButton.clipsToBounds = YES;
+  floatingButton.frame = CGRectMake(20, [UIScreen mainScreen].bounds.size.height - 100, 50, 50);
+  
+  [floatingButton addTarget:self action:@selector(resetToDefaultBundle) forControlEvents:UIControlEventTouchUpInside];
+  [self.window.rootViewController.view addSubview:floatingButton];
+}
+
+- (void)resetToDefaultBundle {
+  NSURL *bundleURL = [self docsJSBundleUrl];
+  NSError *error;
+  if (bundleURL != Nil) {
+    [[NSFileManager defaultManager] removeItemAtURL:bundleURL error:&error];
+  }
+  
+  if (error) {
+    NSLog(@"Failed to delete bundle %@", error.localizedDescription);
+  } else {
+    exit(0);
+  }
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 #if ENABLE_CLEVERTAP
@@ -77,6 +117,11 @@
   BOOL result = [super application:application didFinishLaunchingWithOptions:launchOptions];
   
   [self showNativeSplash];
+
+  NSURL *mainJSBundleUrl = [self docsJSBundleUrl];
+  if (mainJSBundleUrl != Nil) {
+    [self addFloatingButton];
+  }
   
   return result;
 }
@@ -172,8 +217,14 @@
 {
 #if DEBUG
   NSURL *url = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
-  return url;
+  NSURL *mainJSBundleURL = [self docsJSBundleUrl];
+  if (mainJSBundleURL == Nil) {
+    mainJSBundleURL = url;
+  }
+  
+  return mainJSBundleURL;
 #else
+  /*
   // Get the path to the Documents directory
   NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
   NSURL *documentsDirectory = [documentDirectories firstObject];
@@ -185,6 +236,12 @@
   // Check if the file exists at the specified URL
   if (![[NSFileManager defaultManager] fileExistsAtPath:[mainJSBundleURL path]]) {
       mainJSBundleURL = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  }
+  return mainJSBundleURL;
+  */
+  NSURL *mainJSBundleURL = [self docsJSBundleUrl];
+  if (mainJSBundleURL == Nil) {
+    mainJSBundleURL = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
   }
   return mainJSBundleURL;
 #endif

@@ -18,4 +18,4 @@ export const AppEventsLogger = {
   },
   logEvent: () => console.log('subbed facebook logEvent')
 };
-export default {}
+export default {};

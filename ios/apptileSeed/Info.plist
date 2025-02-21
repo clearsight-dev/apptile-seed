@@ -2,16 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <key>IS_PREVIEW_APP</key>
+    <string>YES</string>
     <key>APPTILE_API_ENDPOINT</key>
     <string>https://api.apptile.io</string>
     <key>APPTILE_UPDATE_ENDPOINT</key>
     <string>https://appconfigs.apptile.io</string>
+    <key>APPTILE_URL_SCHEME</key>
+    <string>apptilepreview://</string>
+    <key>APPTILE_APP_HOST</key>
+    <string>apptile.com</string>
+    <key>APPTILE_APP_HOST_2</key>
+    <string>apptile.io</string>
     <key>APP_ID</key>
-    <string></string>
+    <string/>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleDisplayName</key>
-    <string>Apptile Seed</string>
+    <string>apptilePreview</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -26,6 +34,21 @@
     <string>$(MARKETING_VERSION)</string>
     <key>CFBundleSignature</key>
     <string>????</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLIconFile</key>
+        <string>splash</string>
+        <key>CFBundleURLName</key>
+        <string>apptilepreview</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>apptilepreview</string>
+        </array>
+      </dict>
+    </array>
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>LSApplicationCategoryType</key>
@@ -47,8 +70,6 @@
     <string>Microphone for Live Streaming</string>
     <key>NSUserTrackingUsageDescription</key>
     <string>Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement</string>
-    <key>ONESIGNAL_APPID</key>
-    <string>2aaedb28-5b4a-4821-ac19-617bdd11221d</string>
     <key>UIAppFonts</key>
     <array>
       <string>AntDesign.ttf</string>

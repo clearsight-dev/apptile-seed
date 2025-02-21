@@ -1,11 +1,13 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react-native",
     "paths": {
-      "apptile-core": ["../ReactNativeTSProjeect/packages/apptile-core/sdk.ts"],
-      "apptile-plugins": ["../ReactNativeTSProjeect/packages/apptile-plugins/index.ts"],
-      "apptile-shopify": ["../ReactNativeTSProjeect/packages/apptile-shopify/index.ts"],
-      "apptile-datasource": ["../ReactNativeTSProjeect/packages/apptile-datasource/index.ts"]
+      "apptile-core": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-core/sdk.ts"],
+      "apptile-plugins": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-plugins/index.ts"],
+      "apptile-shopify": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-shopify/index.ts"],
+      "apptile-datasource": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-datasource/index.ts"]
     }
   }
 }

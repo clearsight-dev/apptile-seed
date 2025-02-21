@@ -97,12 +97,10 @@ feature_flags = apptile_config.fetch('feature_flags', {})
 bundle_id = apptile_config.dig('ios', 'bundle_id') || 'com.apptile.apptilepreviewdemo'
 FLAGS = feature_flags.select { |_key, value| [true,false].include?(value) }.keys
 
-pre_install do |installer|
-  print("running iosProjectSetup")
-  setupResult = Pod::Executable.execute_command('node', ['../iosProjectSetup.js'])
-  print(setupResult)
-  print("iosProjectSetup complete\n")
-end
+print("running iosProjectSetup")
+setupResult = Pod::Executable.execute_command('node', ['../iosProjectSetup.js'])
+print(setupResult)
+print("iosProjectSetup complete\n")
 
 target 'ImageNotification' do
   use_frameworks!
@@ -169,7 +167,7 @@ target 'apptileSeed' do
 
   permissions_path = '../node_modules/react-native-permissions/ios'
   # pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
-#  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
+  # pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   post_install do |installer|
     puts "trying to add preprocessor flag"

@@ -19,7 +19,7 @@ IS_EC2=${process.env.IS_EC2}
  * @type {import('metro-config').MetroConfig}
  */
 const defaultConfigs = getDefaultConfig(__dirname);
-let rootPath = path.resolve(__dirname, `../ReactNativeTSProjeect/packages`);
+let rootPath = path.resolve(`/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages`);
 
 let rawExtraModules;
 
