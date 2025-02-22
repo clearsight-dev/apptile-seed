@@ -48,11 +48,12 @@
 - (void)addFloatingButton {
   // floating window
    float screenHeight = [UIScreen mainScreen].bounds.size.height;
-//  UIView *container = [[UIView alloc] init];
-  UIView *container = [[UIView alloc] initWithFrame: CGRectMake(10, screenHeight * 0.25, 150, 100)];
+  UIView *container = [[UIView alloc] init];
+//  UIView *container = [[UIView alloc] initWithFrame: CGRectMake(10, screenHeight * 0.25, 150, 100)];
   container.backgroundColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.7];
   container.layer.cornerRadius = 16.0f;
   container.clipsToBounds = YES;
+  container.translatesAutoresizingMaskIntoConstraints = NO;
   
   UIButton *floatingButton = [UIButton buttonWithType:UIButtonTypeSystem];
   [floatingButton setTitle:@"R" forState:UIControlStateNormal];
@@ -68,15 +69,14 @@
   [container addSubview:floatingButton];
   [self.window.rootViewController.view addSubview:container];
   
-//  NSLayoutConstraint *width = [container.widthAnchor constraintEqualToConstant:150];
-//  NSLayoutConstraint *height = [container.heightAnchor constraintEqualToConstant: 100];
-//  NSLayoutConstraint *centerX = [container.centerXAnchor
-//                                 constraintEqualToAnchor:self.window.rootViewController.view.leadingAnchor
-//                                                constant: (0.5 * 150) + 20];
-//  NSLayoutConstraint *centerY = [container.centerYAnchor
-//                                 constraintEqualToAnchor:self.window.rootViewController.view.centerYAnchor
-//                                 constant:200];
-//  [NSLayoutConstraint activateConstraints:@[width, height, centerX, centerY]];
+  NSLayoutConstraint *width = [container.widthAnchor constraintEqualToConstant:150];
+  NSLayoutConstraint *height = [container.heightAnchor constraintEqualToConstant: 100];
+  NSLayoutConstraint *centerX = [container.centerXAnchor
+                                 constraintEqualToAnchor:self.window.rootViewController.view.leadingAnchor
+                                                constant: (0.5 * 150) + 20];
+  NSLayoutConstraint *centerY = [container.centerYAnchor
+                                 constraintEqualToAnchor:self.window.rootViewController.view.safeAreaLayoutGuide.centerYAnchor];
+  [NSLayoutConstraint activateConstraints:@[width, height, centerX, centerY]];
   
   [NSLayoutConstraint activateConstraints:@[
     [floatingButton.centerXAnchor constraintEqualToAnchor:container.centerXAnchor],
