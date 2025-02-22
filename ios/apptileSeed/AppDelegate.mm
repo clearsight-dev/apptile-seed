@@ -76,6 +76,10 @@
                                                 constant: (0.5 * 150) + 20];
   NSLayoutConstraint *centerY = [container.centerYAnchor
                                  constraintEqualToAnchor:self.window.rootViewController.view.safeAreaLayoutGuide.centerYAnchor];
+  
+  self.containerCenterX = centerX;
+  self.containerCenterY = centerY;
+  
   [NSLayoutConstraint activateConstraints:@[width, height, centerX, centerY]];
   
   [NSLayoutConstraint activateConstraints:@[
@@ -93,9 +97,27 @@
 - (void)handlePan:(UIPanGestureRecognizer *)gesture {
   UIView *container = [gesture view];
   CGPoint translation = [gesture translationInView:container.superview];
-  container.center = CGPointMake(container.center.x + translation.x,
-                                 container.center.y + translation.y);
+  self.containerCenterX.constant += translation.x;
+  self.containerCenterY.constant += translation.y;
+  
   [gesture setTranslation:CGPointZero inView:container.superview];
+  
+  if (gesture.state == UIGestureRecognizerStateEnded ||
+      gesture.state == UIGestureRecognizerStateCancelled) {
+    CGRect superBounds = container.superview.bounds;
+    CGFloat containerHalfWidth = container.bounds.size.width / 2;
+    CGFloat screenWidth = superBounds.size.width / 2;
+    
+    if (container.frame.origin.x < screenWidth * 0.5) {
+      self.containerCenterX.constant = -screenWidth / 2 + containerHalfWidth;
+    } else {
+      self.containerCenterX.constant = screenWidth / 2 - containerHalfWidth;
+    }
+    
+    [UIView animateWithDuration:0.3 animations:^{
+      [container.superview layoutIfNeeded];
+    }];
+  }
 }
 
 - (void)resetToDefaultBundle {
