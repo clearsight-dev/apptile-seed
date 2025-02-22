@@ -13,7 +13,6 @@
 @property BOOL minDurationPassed;
 @property BOOL jsLoaded;
 
-@property NSLayoutConstraint *containerCenterX;
-@property NSLayoutConstraint *containerCenterY;
+- (void)resetToDefaultBundle;
 
 @end

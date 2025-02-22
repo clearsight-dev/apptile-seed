@@ -31,6 +31,8 @@
 #import <CleverTap.h>
 #endif
 
+#import "FloatingPreviewControls.h"
+
 @implementation AppDelegate
 
 - (NSURL *)docsJSBundleUrl {
@@ -42,81 +44,6 @@
     return mainJSBundleURL;
   } else {
     return Nil;
-  }
-}
-
-- (void)addFloatingButton {
-  // floating window
-   float screenHeight = [UIScreen mainScreen].bounds.size.height;
-  UIView *container = [[UIView alloc] init];
-//  UIView *container = [[UIView alloc] initWithFrame: CGRectMake(10, screenHeight * 0.25, 150, 100)];
-  container.backgroundColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.7];
-  container.layer.cornerRadius = 16.0f;
-  container.clipsToBounds = YES;
-  container.translatesAutoresizingMaskIntoConstraints = NO;
-  
-  UIButton *floatingButton = [UIButton buttonWithType:UIButtonTypeSystem];
-  [floatingButton setTitle:@"R" forState:UIControlStateNormal];
-  [floatingButton setTitleColor:[UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
-  floatingButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0];
-  floatingButton.frame = CGRectMake(10, 10, 60, 60);
-  floatingButton.layer.cornerRadius = 25;
-  floatingButton.clipsToBounds = YES;
-  floatingButton.translatesAutoresizingMaskIntoConstraints = NO;
-  
-  [floatingButton addTarget:self action:@selector(resetToDefaultBundle) forControlEvents:UIControlEventTouchUpInside];
-  
-  [container addSubview:floatingButton];
-  [self.window.rootViewController.view addSubview:container];
-  
-  NSLayoutConstraint *width = [container.widthAnchor constraintEqualToConstant:150];
-  NSLayoutConstraint *height = [container.heightAnchor constraintEqualToConstant: 100];
-  NSLayoutConstraint *centerX = [container.centerXAnchor
-                                 constraintEqualToAnchor:self.window.rootViewController.view.leadingAnchor
-                                                constant: (0.5 * 150) + 20];
-  NSLayoutConstraint *centerY = [container.centerYAnchor
-                                 constraintEqualToAnchor:self.window.rootViewController.view.safeAreaLayoutGuide.centerYAnchor];
-  
-  self.containerCenterX = centerX;
-  self.containerCenterY = centerY;
-  
-  [NSLayoutConstraint activateConstraints:@[width, height, centerX, centerY]];
-  
-  [NSLayoutConstraint activateConstraints:@[
-    [floatingButton.centerXAnchor constraintEqualToAnchor:container.centerXAnchor],
-    [floatingButton.centerYAnchor constraintEqualToAnchor:container.centerYAnchor],
-    [floatingButton.widthAnchor constraintEqualToConstant:60],
-    [floatingButton.heightAnchor constraintEqualToConstant:60]
-  ]];
-
-  UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
-  panGesture.cancelsTouchesInView = YES;
-  [container addGestureRecognizer:panGesture];
-}
-
-- (void)handlePan:(UIPanGestureRecognizer *)gesture {
-  UIView *container = [gesture view];
-  CGPoint translation = [gesture translationInView:container.superview];
-  self.containerCenterX.constant += translation.x;
-  self.containerCenterY.constant += translation.y;
-  
-  [gesture setTranslation:CGPointZero inView:container.superview];
-  
-  if (gesture.state == UIGestureRecognizerStateEnded ||
-      gesture.state == UIGestureRecognizerStateCancelled) {
-    CGRect superBounds = container.superview.bounds;
-    CGFloat containerHalfWidth = container.bounds.size.width / 2;
-    CGFloat screenWidth = superBounds.size.width / 2;
-    
-    if (container.frame.origin.x < screenWidth * 0.5) {
-      self.containerCenterX.constant = -screenWidth / 2 + containerHalfWidth;
-    } else {
-      self.containerCenterX.constant = screenWidth / 2 - containerHalfWidth;
-    }
-    
-    [UIView animateWithDuration:0.3 animations:^{
-      [container.superview layoutIfNeeded];
-    }];
   }
 }
 
@@ -182,7 +109,8 @@
 
   NSURL *mainJSBundleUrl = [self docsJSBundleUrl];
   if (mainJSBundleUrl != Nil) {
-    [self addFloatingButton];
+    FloatingPreviewControls *previewControls = [[FloatingPreviewControls alloc] initWithParentView:self.window.rootViewController.view];
+    // [self addFloatingButton];
   }
   
   return result;

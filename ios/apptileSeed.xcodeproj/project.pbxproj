@@ -38,6 +38,7 @@
 		05AB70F32D59EF02007FE7AB /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05AB70DF2D59EDF9007FE7AB /* Octicons.ttf */; };
 		05AB70F42D59EF02007FE7AB /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05AB70E02D59EDF9007FE7AB /* SimpleLineIcons.ttf */; };
 		05AB70F52D59EF02007FE7AB /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05AB70E12D59EDF9007FE7AB /* Zocial.ttf */; };
+		05CD00FC2D699D28006082E3 /* FloatingPreviewControls.m in Sources */ = {isa = PBXBuildFile; fileRef = 05CD00FB2D699D28006082E3 /* FloatingPreviewControls.m */; };
 		05F9A8212C9175D9002032E2 /* localBundleTracker.json in Resources */ = {isa = PBXBuildFile; fileRef = 05F9A8202C9175D9002032E2 /* localBundleTracker.json */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -114,6 +115,8 @@
 		05AB70DF2D59EDF9007FE7AB /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
 		05AB70E02D59EDF9007FE7AB /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
 		05AB70E12D59EDF9007FE7AB /* Zocial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zocial.ttf; sourceTree = "<group>"; };
+		05CD00FB2D699D28006082E3 /* FloatingPreviewControls.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = FloatingPreviewControls.m; path = apptileSeed/FloatingPreviewControls.m; sourceTree = "<group>"; };
+		05CD00FD2D699D43006082E3 /* FloatingPreviewControls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FloatingPreviewControls.h; sourceTree = "<group>"; };
 		05F9A8202C9175D9002032E2 /* localBundleTracker.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = localBundleTracker.json; sourceTree = "<group>"; };
 		1066010970E94C2DC30C2249 /* Pods-NotificationContentExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationContentExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.release.xcconfig"; sourceTree = "<group>"; };
 		13073C5F6CDFAD3176D33ED3 /* Pods_apptileSeed.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_apptileSeed.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -245,6 +248,8 @@
 				05A846D82CF09CD600784D02 /* RNGetValues.h */,
 				057DB67B2D60965900CD76F4 /* RNApptile.m */,
 				057DB67D2D60968E00CD76F4 /* RNApptile.h */,
+				05CD00FB2D699D28006082E3 /* FloatingPreviewControls.m */,
+				05CD00FD2D699D43006082E3 /* FloatingPreviewControls.h */,
 			);
 			name = apptileSeed;
 			sourceTree = "<group>";
@@ -632,6 +637,7 @@
 				05A846D52CF09C9400784D02 /* RNGetValues.m in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				055C1EC32CB7C9C600EE8821 /* ShakeEventModule.m in Sources */,
+				05CD00FC2D699D28006082E3 /* FloatingPreviewControls.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -986,10 +992,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
@@ -1068,10 +1071,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
