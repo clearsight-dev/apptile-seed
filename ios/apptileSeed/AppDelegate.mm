@@ -4,6 +4,7 @@
 #import <React/RCTLinkingManager.h>
 #import <React/RCTI18nUtil.h>
 #import <React/RCTEventEmitter.h>
+#import <React/RCTReloadCommand.h>
 
 #if ENABLE_FIREBASE_ANALYTICS
 #import <Firebase.h>
@@ -45,17 +46,56 @@
 }
 
 - (void)addFloatingButton {
+  // floating window
+   float screenHeight = [UIScreen mainScreen].bounds.size.height;
+//  UIView *container = [[UIView alloc] init];
+  UIView *container = [[UIView alloc] initWithFrame: CGRectMake(10, screenHeight * 0.25, 150, 100)];
+  container.backgroundColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.7];
+  container.layer.cornerRadius = 16.0f;
+  container.clipsToBounds = YES;
+  
   UIButton *floatingButton = [UIButton buttonWithType:UIButtonTypeSystem];
   [floatingButton setTitle:@"R" forState:UIControlStateNormal];
   [floatingButton setTitleColor:[UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
   floatingButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0];
-  
+  floatingButton.frame = CGRectMake(10, 10, 60, 60);
   floatingButton.layer.cornerRadius = 25;
   floatingButton.clipsToBounds = YES;
-  floatingButton.frame = CGRectMake(20, [UIScreen mainScreen].bounds.size.height - 100, 50, 50);
+  floatingButton.translatesAutoresizingMaskIntoConstraints = NO;
   
   [floatingButton addTarget:self action:@selector(resetToDefaultBundle) forControlEvents:UIControlEventTouchUpInside];
-  [self.window.rootViewController.view addSubview:floatingButton];
+  
+  [container addSubview:floatingButton];
+  [self.window.rootViewController.view addSubview:container];
+  
+//  NSLayoutConstraint *width = [container.widthAnchor constraintEqualToConstant:150];
+//  NSLayoutConstraint *height = [container.heightAnchor constraintEqualToConstant: 100];
+//  NSLayoutConstraint *centerX = [container.centerXAnchor
+//                                 constraintEqualToAnchor:self.window.rootViewController.view.leadingAnchor
+//                                                constant: (0.5 * 150) + 20];
+//  NSLayoutConstraint *centerY = [container.centerYAnchor
+//                                 constraintEqualToAnchor:self.window.rootViewController.view.centerYAnchor
+//                                 constant:200];
+//  [NSLayoutConstraint activateConstraints:@[width, height, centerX, centerY]];
+  
+  [NSLayoutConstraint activateConstraints:@[
+    [floatingButton.centerXAnchor constraintEqualToAnchor:container.centerXAnchor],
+    [floatingButton.centerYAnchor constraintEqualToAnchor:container.centerYAnchor],
+    [floatingButton.widthAnchor constraintEqualToConstant:60],
+    [floatingButton.heightAnchor constraintEqualToConstant:60]
+  ]];
+
+  UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+  panGesture.cancelsTouchesInView = YES;
+  [container addGestureRecognizer:panGesture];
+}
+
+- (void)handlePan:(UIPanGestureRecognizer *)gesture {
+  UIView *container = [gesture view];
+  CGPoint translation = [gesture translationInView:container.superview];
+  container.center = CGPointMake(container.center.x + translation.x,
+                                 container.center.y + translation.y);
+  [gesture setTranslation:CGPointZero inView:container.superview];
 }
 
 - (void)resetToDefaultBundle {
@@ -68,7 +108,7 @@
   if (error) {
     NSLog(@"Failed to delete bundle %@", error.localizedDescription);
   } else {
-    exit(0);
+    RCTTriggerReloadCommandListeners(@"Preview App Unmount");
   }
 }
 
@@ -140,7 +180,6 @@
                                                  name:JSReadyNotification
                                                object:nil];
   RCTBridge *bridge = self.bridge;
-  
 
   // Load the splash image or first frame of gif from bundle
   NSURL *pngURL = [[NSBundle mainBundle] URLForResource:@"splash" withExtension:@"png"];
