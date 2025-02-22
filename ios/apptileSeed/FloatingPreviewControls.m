@@ -37,8 +37,10 @@
          forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:homeButton];
     
+    float containerWidth = 150;
+    
     [NSLayoutConstraint activateConstraints:@[
-      [self.widthAnchor constraintEqualToConstant:150],
+      [self.widthAnchor constraintEqualToConstant:containerWidth],
       [self.heightAnchor constraintEqualToConstant:100],
       [homeButton.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
       [homeButton.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
@@ -52,7 +54,7 @@
     
     [parentView addSubview:self];
     
-    centerX = [self.centerXAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.leadingAnchor constant: 20];
+    centerX = [self.centerXAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.leadingAnchor constant: -(0.5 * containerWidth) + 10];
     centerY = [self.centerYAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.centerYAnchor];
     
     [NSLayoutConstraint activateConstraints:@[centerX, centerY]];
@@ -74,16 +76,35 @@
   if (gesture.state == UIGestureRecognizerStateEnded ||
       gesture.state == UIGestureRecognizerStateCancelled) {
     CGRect superBounds = self.superview.bounds;
-    CGFloat containerHalfWidth = self.bounds.size.width / 2;
-    CGFloat screenWidth = superBounds.size.width / 2;
+    CGFloat screenWidth = superBounds.size.width;
     
-    if (self.frame.origin.x < screenWidth * 0.5) {
-      centerX.constant = -screenWidth / 2 + containerHalfWidth;
+    // Distance of left edge of floating view from left edge of screen
+    CGFloat distFromLeft = self.frame.origin.x;
+    // Distance of right edge of floating view from right edge of screen
+    CGFloat distFromRight = screenWidth - (self.frame.origin.x + self.frame.size.width);
+    CGFloat distFromTop = self.frame.origin.y;
+    
+    if (distFromLeft < -10) {
+      // tuck on left
+      centerX.constant = -(0.5 * self.bounds.size.width) + 10;
+    } else if (distFromLeft <= distFromRight) {
+      centerX.constant = (self.bounds.size.width * 0.5) + 10;
+    } else if (distFromRight < -10) {
+      // tuck on right
+      centerX.constant = screenWidth + (0.5 * self.bounds.size.width * 0.5) + 25;
     } else {
-      centerX.constant = screenWidth / 2 - containerHalfWidth;
+      centerX.constant = screenWidth - (0.5 * self.bounds.size.width) - 10;
     }
     
-    [UIView animateWithDuration:0.4 animations:^{
+    // Do not tuck on top edge because view will become inaccessible
+    // due to system menu
+    if (distFromTop < (self.bounds.size.height + 10)) {
+      // The centerY anchor for the container is bound to the the parentview's center.
+      // So distance has to be calcualted from the center upwards
+      centerY.constant = -(0.5 * self.superview.bounds.size.height) + (0.5 * self.bounds.size.height) + 10;
+    }
+    
+    [UIView animateWithDuration:0.3 animations:^{
       [self.superview layoutIfNeeded];
     }];
   }
