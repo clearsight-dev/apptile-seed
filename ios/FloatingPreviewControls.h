@@ -10,8 +10,15 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol FloatingPrviewControlsDelegate <NSObject>
+- (void)resetToDefaultBundle;
+@end
+
 @interface FloatingPreviewControls: UIView
+
+@property (nonatomic, weak) id<FloatingPrviewControlsDelegate> delegate;
 - (instancetype)initWithParentView:(UIView *)parentView;
+
 @end
 
 #endif /* FloatingPreviewControls_h */

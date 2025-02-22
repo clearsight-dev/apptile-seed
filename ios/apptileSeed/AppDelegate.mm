@@ -31,8 +31,6 @@
 #import <CleverTap.h>
 #endif
 
-#import "FloatingPreviewControls.h"
-
 @implementation AppDelegate
 
 - (NSURL *)docsJSBundleUrl {
@@ -110,6 +108,7 @@
   NSURL *mainJSBundleUrl = [self docsJSBundleUrl];
   if (mainJSBundleUrl != Nil) {
     FloatingPreviewControls *previewControls = [[FloatingPreviewControls alloc] initWithParentView:self.window.rootViewController.view];
+    previewControls.delegate = self;
     // [self addFloatingButton];
   }
   

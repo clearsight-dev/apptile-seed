@@ -4,10 +4,11 @@
 #import <React/RCTImageView.h>
 #import <React/RCTImageSource.h>
 #import <React/RCTImageLoader.h>
+#import "FloatingPreviewControls.h"
 
 @class RCTRootView;
 
-@interface AppDelegate : RCTAppDelegate <UNUserNotificationCenterDelegate>
+@interface AppDelegate : RCTAppDelegate <UNUserNotificationCenterDelegate, FloatingPrviewControlsDelegate>
 
 @property (nonatomic, strong) RCTImageView *splash;
 @property BOOL minDurationPassed;

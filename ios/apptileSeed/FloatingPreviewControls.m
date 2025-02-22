@@ -8,7 +8,6 @@
 #import <Foundation/Foundation.h>
 
 #import "FloatingPreviewControls.h"
-#import "AppDelegate.h"
 
 @implementation FloatingPreviewControls {
   UIButton *homeButton;
@@ -62,8 +61,7 @@
 }
 
 - (void)goHome {
-  AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-  [appDelegate resetToDefaultBundle];
+  [self.delegate resetToDefaultBundle];
 }
 
 - (void)handlePan:(UIPanGestureRecognizer *)gesture {
