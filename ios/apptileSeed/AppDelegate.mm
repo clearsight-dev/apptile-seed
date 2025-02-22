@@ -105,7 +105,6 @@
   
   [self showNativeSplash];
 
-  NSURL *mainJSBundleUrl = [self docsJSBundleUrl];
   FloatingPreviewControls *previewControls = [[FloatingPreviewControls alloc] initWithParentView:self.window.rootViewController.view];
   previewControls.delegate = self;
   

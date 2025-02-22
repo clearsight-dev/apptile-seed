@@ -14,10 +14,12 @@
   UIPanGestureRecognizer *panGesture;
   NSLayoutConstraint *centerX;
   NSLayoutConstraint *centerY;
+  CGFloat containerOpacity;
 }
 
 - (instancetype)initWithParentView:(UIView *)parentView {
   self = [super init];
+  containerOpacity = 1;
   if (self) {
     self.translatesAutoresizingMaskIntoConstraints = NO;
     self.backgroundColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.7];
@@ -25,11 +27,11 @@
     self.clipsToBounds = YES;
     
     homeButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [homeButton setTitle:@"R" forState:UIControlStateNormal];
-    [homeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    homeButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0];
-    homeButton.layer.cornerRadius = 25;
-    homeButton.clipsToBounds = YES;
+    [homeButton setTitle:@"Clear Downloads" forState:UIControlStateNormal];
+    [homeButton setTitleColor:[UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+//    homeButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0];
+//    homeButton.layer.cornerRadius = 5;
+//    homeButton.clipsToBounds = YES;
     homeButton.translatesAutoresizingMaskIntoConstraints = NO;
     
     [homeButton addTarget:self
@@ -44,8 +46,6 @@
       [self.heightAnchor constraintEqualToConstant:100],
       [homeButton.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
       [homeButton.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-      [homeButton.widthAnchor constraintEqualToConstant:60],
-      [homeButton.widthAnchor constraintEqualToConstant:60]
     ]];
     
     panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
@@ -54,7 +54,7 @@
     
     [parentView addSubview:self];
     
-    centerX = [self.centerXAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.leadingAnchor constant: -(0.5 * containerWidth) + 10];
+    centerX = [self.centerXAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.leadingAnchor constant: -(0.5 * containerWidth) + 15];
     centerY = [self.centerYAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.centerYAnchor];
     
     [NSLayoutConstraint activateConstraints:@[centerX, centerY]];
@@ -77,31 +77,38 @@
       gesture.state == UIGestureRecognizerStateCancelled) {
     CGRect superBounds = self.superview.bounds;
     CGFloat screenWidth = superBounds.size.width;
+    CGFloat screenHeight = superBounds.size.height;
     
     // Distance of left edge of floating view from left edge of screen
     CGFloat distFromLeft = self.frame.origin.x;
     // Distance of right edge of floating view from right edge of screen
     CGFloat distFromRight = screenWidth - (self.frame.origin.x + self.frame.size.width);
     CGFloat distFromTop = self.frame.origin.y;
+    CGFloat distFromBottom = screenHeight - (self.frame.origin.y + self.frame.size.height);
     
+    // snap or tuck when interacting with left or right edge
     if (distFromLeft < -10) {
       // tuck on left
-      centerX.constant = -(0.5 * self.bounds.size.width) + 10;
+      centerX.constant = -(0.5 * self.bounds.size.width) + 15;
     } else if (distFromLeft <= distFromRight) {
+      // snap to left
       centerX.constant = (self.bounds.size.width * 0.5) + 10;
     } else if (distFromRight < -10) {
       // tuck on right
-      centerX.constant = screenWidth + (0.5 * self.bounds.size.width * 0.5) + 25;
+      centerX.constant = screenWidth + (0.5 * self.bounds.size.width) - 15;
     } else {
+      // snap to right
       centerX.constant = screenWidth - (0.5 * self.bounds.size.width) - 10;
     }
     
-    // Do not tuck on top edge because view will become inaccessible
-    // due to system menu
-    if (distFromTop < (self.bounds.size.height + 10)) {
+    // pull outside the view and hide if interacting with top or bottom edge
+    if (distFromTop < -20) {
       // The centerY anchor for the container is bound to the the parentview's center.
       // So distance has to be calcualted from the center upwards
-      centerY.constant = -(0.5 * self.superview.bounds.size.height) + (0.5 * self.bounds.size.height) + 10;
+      // centerY.constant = -(0.5 * self.superview.bounds.size.height) + (0.5 * self.bounds.size.height) + 10;
+      centerY.constant = -(0.5 * self.superview.bounds.size.height) - (0.5 * self.bounds.size.height) - 15;
+    } else if (distFromBottom < -20) {
+      centerY.constant = (0.5 * self.superview.bounds.size.height) + (0.5 * self.bounds.size.height) + 15;
     }
     
     [UIView animateWithDuration:0.3 animations:^{
