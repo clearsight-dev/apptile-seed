@@ -14,12 +14,10 @@
   UIPanGestureRecognizer *panGesture;
   NSLayoutConstraint *centerX;
   NSLayoutConstraint *centerY;
-  CGFloat containerOpacity;
 }
 
 - (instancetype)initWithParentView:(UIView *)parentView {
   self = [super init];
-  containerOpacity = 1;
   if (self) {
     self.translatesAutoresizingMaskIntoConstraints = NO;
     self.backgroundColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.7];
@@ -29,9 +27,6 @@
     homeButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [homeButton setTitle:@"Clear Downloads" forState:UIControlStateNormal];
     [homeButton setTitleColor:[UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
-//    homeButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0];
-//    homeButton.layer.cornerRadius = 5;
-//    homeButton.clipsToBounds = YES;
     homeButton.translatesAutoresizingMaskIntoConstraints = NO;
     
     [homeButton addTarget:self
@@ -54,10 +49,22 @@
     
     [parentView addSubview:self];
     
-    centerX = [self.centerXAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.leadingAnchor constant: -(0.5 * containerWidth) + 15];
+    centerX = [self.centerXAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.leadingAnchor constant: (0.5 * containerWidth) + 10];
     centerY = [self.centerYAnchor constraintEqualToAnchor:parentView.safeAreaLayoutGuide.centerYAnchor];
     
     [NSLayoutConstraint activateConstraints:@[centerX, centerY]];
+    
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) return;
+      strongSelf->centerX.constant = -(0.5 * containerWidth) + 10;
+      
+      // tuck the controls with a delay
+      [UIView animateWithDuration:0.3 animations:^{
+        [strongSelf.superview layoutIfNeeded];
+      }];
+    });
   }
   return self;
 }
