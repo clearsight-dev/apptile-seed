@@ -2,16 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <key>IS_PREVIEW_APP</key>
+    <string>NO</string>
     <key>APPTILE_API_ENDPOINT</key>
     <string>https://api.apptile.io</string>
     <key>APPTILE_UPDATE_ENDPOINT</key>
     <string>https://appconfigs.apptile.io</string>
     <key>APPTILE_URL_SCHEME</key>
-    <string>apptilepreview://</string>
+    <string></string>
     <key>APPTILE_APP_HOST</key>
-    <string>apptile.com</string>
+    <string></string>
     <key>APPTILE_APP_HOST_2</key>
-    <string>apptile.io</string>
+    <string></string>
     <key>APP_ID</key>
     <string></string>
     <key>CFBundleDevelopmentRegion</key>
