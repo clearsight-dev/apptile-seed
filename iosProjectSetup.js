@@ -56,6 +56,7 @@ async function addCleverTap(
   infoPlist.CleverTapToken = cleverTapIntegration.cleverTap_token;
   infoPlist.CleverTapRegion = cleverTapIntegration.cleverTap_region;
   imageNotificationPlist.NSExtension.NSExtensionPrincipalClass = 'CTNotificationServiceExtension';
+  await removeForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
 }
 
 async function removeCleverTap(
@@ -65,12 +66,13 @@ async function removeCleverTap(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.CleverTapAccountID;
-  delete infoPlist.CleverTapToken;
-  delete infoPlist.CleverTapRegion;
+  infoPlist.CleverTapAccountID = 'xxx';
+  infoPlist.CleverTapToken = 'xxx';
+  infoPlist.CleverTapRegion = 'xxx';
   if (imageNotificationPlist.NSExtension.NSExtensionPrincipalClass === 'CTNotificationServiceExtension') {
     imageNotificationPlist.NSExtension.NSExtensionPrincipalClass = 'NotificationService';
   }
+  await addForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
 }
 
 async function addMoengage(
@@ -106,16 +108,39 @@ async function removeMoengage(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.MOENGAGE_APPID;
-  delete infoPlist.MOENGAGE_DATACENTER;
-  delete infoPlist.MoEngageAppDelegateProxyEnabled;
-  delete infoPlist.MoEngage;
+  infoPlist.MOENGAGE_APPID = 'xxx';
+  infoPlist.MOENGAGE_DATACENTER = 'xxx';
+  infoPlist.MoEngageAppDelegateProxyEnabled = 'xxx';
+  infoPlist.MoEngage = 'xxx';
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionCategory;
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionInitialContentSizeRatio;
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionUserInteractionEnabled;
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionDefaultContentHidden;
 
   await addForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
+}
+
+async function addKlaviyo(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  apptileConfig,
+  parsedReactNativeConfig,
+  extraModules,
+) {
+  await removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
+}
+
+async function removeKlaviyo(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  extraModules,
+  parsedReactNativeConfig
+) {
+  await addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
 }
 
 async function addAppsflyer(
@@ -140,8 +165,8 @@ async function removeAppsflyer(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.APPSFLYER_DEVKEY;
-  delete infoPlist.APPSFLYER_APPID;
+  infoPlist.APPSFLYER_DEVKEY = 'xxx';
+  infoPlist.APPSFLYER_APPID = 'xxx';
 
   await addForceUnlinkForNativePackage('react-native-appsflyer', extraModules, parsedReactNativeConfig);
 }
@@ -170,11 +195,11 @@ async function removeFacebook(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.FacebookAppID;
-  delete infoPlist.FacebookClientToken;
-  delete infoPlist.FacebookDisplayName;
-  delete infoPlist.FacebookAutoLogAppEventsEnabled;
-  delete infoPlist.FacebookAdvertiserIDCollectionEnabled;
+  infoPlist.FacebookAppID = 'xxx';
+  infoPlist.FacebookClientToken = 'xxx';
+  infoPlist.FacebookDisplayName = 'xxx';
+  infoPlist.FacebookAutoLogAppEventsEnabled = 'xxx';
+  infoPlist.FacebookAdvertiserIDCollectionEnabled = 'xxx';
   addForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
 }
 
@@ -196,7 +221,7 @@ async function removeOnesignal(
   notificationContentInfoPlist,
   extraModules,
   parsedReactNativeConfig) {
-  delete infoPlist.ONESIGNAL_APPID;
+  infoPlist.ONESIGNAL_APPID = 'xxx';
   addForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
 }
 
@@ -297,6 +322,13 @@ async function main() {
       await removeOnesignal(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
+    // For klaviyo notifications
+    if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
+      await addKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
+    } else {
+      await removeKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
+    }
+
     const updatedPlist = plist.build(infoPlist);
     await writeFile(infoPlistLocation, updatedPlist);
 
@@ -316,37 +348,16 @@ async function main() {
     await writeFile(notificationContentEntitlementsLocation, updatedNotifContentEntitlements);
     
 
-    /*
-     * Remove for preview app
-     *
     // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json 
     // TODO(gaurav): use the cdn here as well
     const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
     console.log('Downloading manifest from ' + manifestUrl);
-    const {data: manifest} = await axios.get(manifestUrl);
-    // console.log('manifest: ', manifest);
-    const publishedCommit = manifest.forks[0].publishedCommitId;
-    const iosBundle = manifest.codeArtefacts.find((it) => it.type === 'ios-jsbundle');
-
-    const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
-    console.log('Downloading appConfig from: ' + appConfigUrl);
-    if (publishedCommit) {
-      const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
-      await downloadFile(appConfigUrl, appConfigPath);
-      console.log('appConfig downloaded');
-      const bundleTrackerPath = path.resolve(__dirname, 'ios/localBundleTracker.json');
-      await writeFile(bundleTrackerPath, `{"publishedCommitId": ${publishedCommit}, "iosBundleId": ${iosBundle?.id ?? "null"}}`)
-      console.log('bundleTrackerPath updated: ', bundleTrackerPath);
-    } else {
-      console.error("Published appconfig not found! Stopping build.")
-      process.exit(1);
-    }
+    
     await generateAnalytics(analyticsTemplateRef, apptileConfig.integrations, apptileConfig.feature_flags);
-    */
     await writeReactNativeConfigJs(parsedReactNativeConfig);
     await writeFile(path.resolve(__dirname, 'extra_modules.json'), JSON.stringify(extraModules.current, null, 2));
   } catch (err) {
-    console.error("Uncaught exception in iosProjectSetup");
+    console.error("Uncaught exception in iosProjectSetup: ", err);
     process.exit(1);
   }
 }

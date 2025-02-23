@@ -44,7 +44,7 @@
   "assets": [],
   "secrets": [],
   "feature_flags": {
-    "ENABLE_ONESIGNAL": false,
+    "ENABLE_ONESIGNAL": true,
     "ENABLE_SEGMENT_ANALYTICS": false,
     "ENABLE_FBSDK": false,
     "ENABLE_CLEVERTAP": false,

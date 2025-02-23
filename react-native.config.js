@@ -24,7 +24,19 @@ module.exports = {
         "ios": null
       }
     },
-    "react-native-onesignal": {
+    "clevertap-react-native": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "react-native-klaviyo": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "@react-native-community/push-notification-ios": {
       "platforms": {
         "android": null,
         "ios": null

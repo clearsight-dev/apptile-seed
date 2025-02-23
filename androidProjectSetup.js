@@ -445,8 +445,7 @@ const firebaseMessagingEventIntent = {
   ] 
 };
 
-function addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
-  debugger
+async function addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
   const cleverTapIntegration = apptileConfig.integrations.cleverTap;
   addMetadata(androidManifest, 'CLEVERTAP_ACCOUNT_ID', cleverTapIntegration.cleverTap_id);
   addMetadata(androidManifest, 'CLEVERTAP_TOKEN', cleverTapIntegration.cleverTap_token);
@@ -458,17 +457,19 @@ function addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, 
     firebaseMessagingEventIntent
   );
   addPermission(androidManifest, 'ACCESS_NETWORK_STATE');
+  await removeForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
 }
 
-function removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
   deleteMetadata(androidManifest, 'CLEVERTAP_ACCOUNT_ID');
   deleteMetadata(androidManifest, 'CLEVERTAP_TOKEN');
   deleteMetadata(androidManifest, 'CLEVERTAP_REGION');
   deleteService(androidManifest, "com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService");
   deletePermission(androidManifest, 'ACCESS_NETWORK_STATE');
+  await addForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
 }
 
-function addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
   const facebookIntegration = apptileConfig.integrations.metaAds;
   upsertInStringsXML(stringsObj, 'facebook_app_id', facebookIntegration.FacebookAppID);
   addMetadata(androidManifest, 'com.facebook.sdk.ApplicationId', '@string/facebook_app_id');
@@ -476,31 +477,31 @@ function addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, p
   upsertInStringsXML(stringsObj, 'facebook_client_token', facebookIntegration.FacebookClientToken);
   addMetadata(androidManifest, 'com.facebook.sdk.ClientToken', '@string/facebook_client_token');
 
-  removeForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
 }
 
-function removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
   removeFromStringsXML(stringsObj, 'facebook_app_id');
   deleteMetadata(androidManifest, 'com.facebook.sdk.ApplicationId');
 
   removeFromStringsXML(stringsObj, 'facebook_client_token');
   deleteMetadata(androidManifest, 'com.facebook.sdk.ClientToken');
 
-  addForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
 }
 
-function addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
   const onesignalIntegration = apptileConfig.integrations.oneSignal;
   upsertInStringsXML(stringsObj, 'ONESIGNAL_APPID', onesignalIntegration.onesignal_app_id);
-  removeForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
 }
 
-function removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
   removeFromStringsXML(stringsObj, 'ONESIGNAL_APPID');
-  addForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
 }
 
-function addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
   const moengageIntegration = apptileConfig.integrations.moengage;
   upsertInStringsXML(stringsObj, 'moengage_app_id', moengageIntegration.appId);
   upsertInStringsXML(stringsObj, 'moengage_datacenter', moengageIntegration.datacenter);
@@ -511,15 +512,30 @@ function addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, p
     firebaseMessagingEventIntent
   );
   addPermission(androidManifest, 'SCHEDULE_EXACT_ALARM');
-  removeForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
 }
 
-function removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
   removeFromStringsXML(stringsObj, 'moengage_app_id');
   removeFromStringsXML(stringsObj, 'moengage_datacenter');
   deleteService(androidManifest, "com.moengage.firebase.MoEFireBaseMessagingService");
   deletePermission(androidManifest, 'SCHEDULE_EXACT_ALARM');
-  addForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
+}
+
+async function addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+  const klaviyoCompanyId = apptileConfig.integrations.klaviyo_company_id;
+  upsertInStringsXML(stringsObj, 'klaviyo_company_id', klaviyoCompanyId);
+  addService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService", { 'android:exported': false }, firebaseMessagingEventIntent);
+  removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
+}
+
+async function removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+  removeFromStringsXML(stringsObj, 'klaviyo_company_id');
+  deleteService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService");
+  addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
 }
 
 async function main() {
@@ -564,26 +580,33 @@ async function main() {
   const parsedReactNativeConfig = await readReactNativeConfigJs();
 
   if (apptileConfig.feature_flags.ENABLE_CLEVERTAP) {
-    addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+    await addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
-    removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
+    await removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
   }
   if (apptileConfig.feature_flags.ENABLE_FBSDK) {
-    addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+    await addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
-    removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
+    await removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
   }
 
   if (apptileConfig.feature_flags.ENABLE_ONESIGNAL) {
-    addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+    await addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
-    removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
+    await removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
   }
 
   if (apptileConfig.feature_flags.ENABLE_MOENGAGE) {
-    addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+    await addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
-    removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
+    await removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
+  }
+
+  if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
+    await addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig);
+  }
+  else {
+    await removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
   }
 
   const updatedValuesXml = builder.buildObject(stringsObj);
