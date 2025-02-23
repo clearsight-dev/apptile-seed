@@ -66,9 +66,9 @@ async function removeCleverTap(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.CleverTapAccountID;
-  delete infoPlist.CleverTapToken;
-  delete infoPlist.CleverTapRegion;
+  infoPlist.CleverTapAccountID = 'xxx';
+  infoPlist.CleverTapToken = 'xxx';
+  infoPlist.CleverTapRegion = 'xxx';
   if (imageNotificationPlist.NSExtension.NSExtensionPrincipalClass === 'CTNotificationServiceExtension') {
     imageNotificationPlist.NSExtension.NSExtensionPrincipalClass = 'NotificationService';
   }
@@ -108,10 +108,10 @@ async function removeMoengage(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.MOENGAGE_APPID;
-  delete infoPlist.MOENGAGE_DATACENTER;
-  delete infoPlist.MoEngageAppDelegateProxyEnabled;
-  delete infoPlist.MoEngage;
+  infoPlist.MOENGAGE_APPID = 'xxx';
+  infoPlist.MOENGAGE_DATACENTER = 'xxx';
+  infoPlist.MoEngageAppDelegateProxyEnabled = 'xxx';
+  infoPlist.MoEngage = 'xxx';
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionCategory;
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionInitialContentSizeRatio;
   delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionUserInteractionEnabled;
@@ -165,8 +165,8 @@ async function removeAppsflyer(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.APPSFLYER_DEVKEY;
-  delete infoPlist.APPSFLYER_APPID;
+  infoPlist.APPSFLYER_DEVKEY = 'xxx';
+  infoPlist.APPSFLYER_APPID = 'xxx';
 
   await addForceUnlinkForNativePackage('react-native-appsflyer', extraModules, parsedReactNativeConfig);
 }
@@ -195,11 +195,11 @@ async function removeFacebook(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete infoPlist.FacebookAppID;
-  delete infoPlist.FacebookClientToken;
-  delete infoPlist.FacebookDisplayName;
-  delete infoPlist.FacebookAutoLogAppEventsEnabled;
-  delete infoPlist.FacebookAdvertiserIDCollectionEnabled;
+  infoPlist.FacebookAppID = 'xxx';
+  infoPlist.FacebookClientToken = 'xxx';
+  infoPlist.FacebookDisplayName = 'xxx';
+  infoPlist.FacebookAutoLogAppEventsEnabled = 'xxx';
+  infoPlist.FacebookAdvertiserIDCollectionEnabled = 'xxx';
   addForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
 }
 
@@ -221,7 +221,7 @@ async function removeOnesignal(
   notificationContentInfoPlist,
   extraModules,
   parsedReactNativeConfig) {
-  delete infoPlist.ONESIGNAL_APPID;
+  infoPlist.ONESIGNAL_APPID = 'xxx';
   addForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
 }
 
