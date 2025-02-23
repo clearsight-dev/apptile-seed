@@ -22,6 +22,7 @@ async function downloadFile(url, destination) {
     });
   } catch(err) {
     console.error("Failed to download asset to: ", destination);
+    throw err;
   }
 }
 
