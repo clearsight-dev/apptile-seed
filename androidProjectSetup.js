@@ -466,7 +466,7 @@ async function removeCleverTap(androidManifest, stringsObj, extraModules, parsed
   deleteMetadata(androidManifest, 'CLEVERTAP_REGION');
   deleteService(androidManifest, "com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService");
   deletePermission(androidManifest, 'ACCESS_NETWORK_STATE');
-  await addForceUnlinkForNativePackage('clevertap-native-moengage', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
 }
 
 async function addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
