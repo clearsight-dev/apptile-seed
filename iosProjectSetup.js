@@ -56,6 +56,7 @@ async function addCleverTap(
   infoPlist.CleverTapToken = cleverTapIntegration.cleverTap_token;
   infoPlist.CleverTapRegion = cleverTapIntegration.cleverTap_region;
   imageNotificationPlist.NSExtension.NSExtensionPrincipalClass = 'CTNotificationServiceExtension';
+  await removeForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
 }
 
 async function removeCleverTap(
@@ -71,6 +72,7 @@ async function removeCleverTap(
   if (imageNotificationPlist.NSExtension.NSExtensionPrincipalClass === 'CTNotificationServiceExtension') {
     imageNotificationPlist.NSExtension.NSExtensionPrincipalClass = 'NotificationService';
   }
+  await addForceUnlinkForNativePackage('clevertap-native-moengage', extraModules, parsedReactNativeConfig);
 }
 
 async function addMoengage(
