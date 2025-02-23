@@ -175,7 +175,8 @@ onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
 };`,
   'react-native-onesignal': `export default {};`,
   'clevertap-react-native': `export default {}`,
-  'react-native-klaviyo': `export default {};`
+  'react-native-klaviyo': `export default {};`,
+  '@react-native-community/push-notification-ios': 'export default {}'
 };
 
 async function addForceUnlinkForNativePackage(packageName, extraModules, parsedReactNativeConfig) {
