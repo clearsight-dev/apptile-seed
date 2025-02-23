@@ -324,7 +324,7 @@ async function main() {
     if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
       await addKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
-      await removeKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, parsedReactNativeConfig, extraModules);
+      await removeKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
     const updatedPlist = plist.build(infoPlist);
