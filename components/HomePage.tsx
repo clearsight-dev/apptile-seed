@@ -1,5 +1,5 @@
 import React, { useEffect, useReducer } from 'react';
-import { View, Text, Linking, Button, Pressable, ScrollView, Platform, Modal, ActivityIndicator, Image } from 'react-native';
+import { View, Text, Linking, Button, Pressable, ScrollView, Platform, Modal, ActivityIndicator, Image, SafeAreaView } from 'react-native';
 import { 
   getConfigValue,
   getLocalStorageItem as getItem,
@@ -748,7 +748,7 @@ type HomeCardProps = {
 function HomeCard({ state, onDownload, onNonCacheDownload, onModalDismiss, onRefresh, onScan }: HomeCardProps) {
   if (state.appId) {
     return (
-      <View>
+      <SafeAreaView>
         <ScrollView style={[layout.flexCol, layout.p2]}>
           <View style={[layout.flexRow, layout.justifyBetween]}>
             <Text style={[text.secondary]}>{state.appId}</Text>
@@ -771,11 +771,11 @@ function HomeCard({ state, onDownload, onNonCacheDownload, onModalDismiss, onRef
           state={state}
           onModalDismiss={onModalDismiss}
         />
-      </View>
+      </SafeAreaView>
     );
   } else {
     return (
-      <View
+      <SafeAreaView
         style={[
           layout.flexCol,
           layout.alignCenter,
@@ -812,7 +812,7 @@ function HomeCard({ state, onDownload, onNonCacheDownload, onModalDismiss, onRef
             Scan
           </Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 }

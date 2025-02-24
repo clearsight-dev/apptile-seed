@@ -27,7 +27,7 @@ function App(): React.JSX.Element {
       }}
     >
       <Stack.Navigator>
-        <Stack.Screen name="PreviewHome" component={HomePage} />
+        <Stack.Screen name="PreviewHome" component={HomePage} options={{headerShown: false}} />
         <Stack.Screen name="Scanner" component={Scanner} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>

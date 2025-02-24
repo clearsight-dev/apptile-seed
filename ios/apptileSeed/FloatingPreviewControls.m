@@ -58,7 +58,7 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
       __strong typeof(weakSelf) strongSelf = weakSelf;
       if (!strongSelf) return;
-      strongSelf->centerX.constant = -(0.5 * containerWidth) + 10;
+      strongSelf->centerX.constant = -(0.5 * containerWidth) + 15;
       
       // tuck the controls with a delay
       [UIView animateWithDuration:0.3 animations:^{
