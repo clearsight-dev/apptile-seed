@@ -140,7 +140,7 @@ async function removeKlaviyo(
   extraModules,
   parsedReactNativeConfig
 ) {
-  delete imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE;
+  imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE = 'Apptile';
   await addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
   await addForceUnlinkForNativePackage('@react-native-community/push-notification-ios', extraModules, parsedReactNativeConfig);
 }
