@@ -45,8 +45,7 @@
 
     if (self.bestAttemptContent) {
       // Modify the notification content here...
-      self.bestAttemptContent.title =
-          [NSString stringWithFormat:@"%@", self.bestAttemptContent.title];
+      self.bestAttemptContent.title = [NSString stringWithFormat:@"%@", self.bestAttemptContent.title ?: [NSBundle mainBundle].infoDictionary[@"APPTILE_DEFAULT_NOTIFICATION_TITLE"]];
 
       // Check for image attachment
       NSString *imageUrlString = request.content.userInfo[@"rich-media"];
