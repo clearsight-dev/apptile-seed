@@ -1,8 +1,8 @@
 package com.apptileseed
 
-import android.content.Context
+import android.content.Intent
 
 interface CleverTapIntegrationInterface {
-  fun initialize()
-  fun startup()
+  fun initialize(intent: Intent)
+  fun startup(intent: Intent, app: MainApplication)
 }

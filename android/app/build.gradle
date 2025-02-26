@@ -80,7 +80,7 @@ def bundleId = "com.apptile.apptilepreviewdemo"
 
 def enable_onesignal = false
 def enable_moengage = false
-def enable_clevertap = false
+// def enable_clevertap = false
 def enable_klaviyo = false
 
 if (configFile.exists()) {
@@ -97,9 +97,9 @@ if (configFile.exists()) {
       enable_moengage = json.feature_flags.ENABLE_ONESIGNAL
     }
 
-    if (json.feature_flags.ENABLE_CLEVERTAP) {
-      enable_clevertap = json.feature_flags.ENABLE_CLVERTAP
-    }
+    // if (json.feature_flags.ENABLE_CLEVERTAP) {
+    //   enable_clevertap = json.feature_flags.ENABLE_CLVERTAP
+    // }
 
     if (json.feature_flags.ENABLE_KLAVIYO) {
       enable_klaviyo = json.feature_flags.ENABLE_KLAVIYO
@@ -154,11 +154,11 @@ android {
           java.srcDir 'src/moengage/disabled/java'
         }
 
-        if (enable_clevertap) {
-          java.srcDir 'src/clevertap/enabled/java'
-        } else {
-          java.srcDir 'src/clevertap/disabled/java'
-        }
+        // if (enable_clevertap) {
+        //   java.srcDir 'src/clevertap/enabled/java'
+        // } else {
+        //   java.srcDir 'src/clevertap/disabled/java'
+        // }
 
         if (enable_klaviyo) {
           java.srcDir 'src/klaviyo/enabled/java'
