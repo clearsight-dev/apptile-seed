@@ -1,5 +1,5 @@
 package com.apptileseed
 
-interface MoengageIntegrationInterface {
+interface KlaviyoIntegrationInterface {
   fun initialize()
 }

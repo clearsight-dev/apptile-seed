@@ -14,6 +14,7 @@ import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.react.modules.systeminfo.AndroidInfoHelpers
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.soloader.SoLoader
+import android.content.Intent
 
 import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory;
 import java.io.File
@@ -65,7 +66,7 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-    createCleverTapIntegration(this).initialize(intent);
+    // createCleverTapIntegration(this).initialize(intent)
     SoLoader.init(this, false)
     // disable RTL
     val sharedI18nUtilInstance = I18nUtil.getInstance()
@@ -83,11 +84,11 @@ class MainApplication : Application(), ReactApplication {
     ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
   }
 
-  override fun onNewIntent(intent: Intent) {
-    super.onNewIntent(intent)
+  // override fun onNewIntent(intent: Intent) {
+  //   super.onNewIntent(intent)
 
-    val app = applicationContext as MainApplication
+  //   val app = applicationContext as MainApplication
 
-    createCleverTapIntegration(this).startup(intent, app);
-  }
+  //   createCleverTapIntegration(this).startup(intent, app);
+  // }
 }
