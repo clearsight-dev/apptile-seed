@@ -350,8 +350,8 @@ async function main() {
 
     // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json 
     // TODO(gaurav): use the cdn here as well
-    const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
-    console.log('Downloading manifest from ' + manifestUrl);
+    // const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
+    // console.log('Downloading manifest from ' + manifestUrl);
     
     await generateAnalytics(analyticsTemplateRef, apptileConfig.integrations, apptileConfig.feature_flags);
     await writeReactNativeConfigJs(parsedReactNativeConfig);

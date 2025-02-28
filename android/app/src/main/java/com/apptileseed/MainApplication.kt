@@ -1,6 +1,7 @@
 package com.apptileseed
 
 import android.app.Application
+import android.util.Log
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -52,9 +53,13 @@ class MainApplication : Application(), ReactApplication {
 
             // Check if the JS bundle file exists
             val url = if (jsBundleFile.exists()) {
-                jsBundleFile.absolutePath
+                jsBundleFile.absolutePath.also { path ->
+                    Log.d("APPTILE", "APPTILE returning bundles: $path")
+                }
             } else {
-                super.getJSBundleFile() // Fallback to default if the file does not exist
+                super.getJSBundleFile().also { path ->
+                    Log.d("APPTILE", "APPTILE returning fallback: $path")
+                } // Fallback to default if the file does not exist
             }
             return url;
         }

@@ -4,11 +4,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
 import android.widget.FrameLayout
 import android.widget.ImageView
+import java.io.File
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -16,12 +18,13 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.bumptech.glide.Glide
 
-class MainActivity : ReactActivity() {
+class MainActivity : ReactActivity(), FloatingButton.FloatingButtonDelegate {
     private var isJSLoaded = false;
     private var isMinSplashDurationPlayed = false;
     val minSplashDuration = 2.0f;
     val maxSplashduration = 20.0f;
     private var nativeSplashView: ImageView? = null;
+    private lateinit var floatingButton: FloatingButton
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
@@ -42,7 +45,7 @@ class MainActivity : ReactActivity() {
     val image: ImageView = ImageView(this.applicationContext);
 
     this.nativeSplashView = image;
-       Glide.with(this)
+      Glide.with(this)
        .load(R.drawable.splash)
        .centerCrop()
        .into(image);
@@ -98,5 +101,48 @@ class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(null)
     showNativeSplash();
+
+    window.decorView.post {
+      addFloatingButton()
+    }
+  }
+
+  private fun addFloatingButton() {
+    // Get the main content view
+    val rootView = findViewById<ViewGroup>(android.R.id.content)
+    
+    // Create floating button
+    floatingButton = FloatingButton(this).apply {
+        setDelegate(this@MainActivity)
+    }
+    
+    // Add floating button to the root view
+    rootView.addView(floatingButton)
+    
+    // Position the button initially
+    floatingButton.post {
+      val layoutParams = floatingButton.layoutParams as FrameLayout.LayoutParams
+      layoutParams.leftMargin = 10
+      layoutParams.topMargin = resources.displayMetrics.heightPixels / 2 - floatingButton.height / 2
+      floatingButton.layoutParams = layoutParams
+      
+      // Auto-tuck the button after a delay
+      floatingButton.autoTuck()
+    }
+  }
+
+  override fun resetToDefaultBundle() {
+    val documentsDir = applicationContext.filesDir.absolutePath
+    val bundlesDir = "$documentsDir/bundles"
+    val jsBundleFile = File("$bundlesDir/index.android.bundle")
+    
+    try {
+        if (jsBundleFile.exists()) {
+            jsBundleFile.delete()
+        }
+        reactNativeHost.reactInstanceManager.recreateReactContextInBackground()
+    } catch (e: Exception) {
+        Log.e("MainActivity", "Failed to delete bundle: ${e.localizedMessage}")
+    }
   }
 }

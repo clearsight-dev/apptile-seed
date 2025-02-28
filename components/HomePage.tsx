@@ -620,6 +620,8 @@ async function downloadForPreview(
             }
           ]
         });
+        const inBundles = await RNFetchBlob.fs.ls(bundlesPath);
+        console.log('contents of bundles: ', inBundles);
       } catch (err) {
         logger.error("Failed to unzip files", err)
         dispatch({
