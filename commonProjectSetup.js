@@ -32,6 +32,7 @@ async function downloadFileToAssets(url, fileName) {
 
 const analyticsTemplate = 
 `// This file is generated at build time based on the integrations added to the app
+import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
   Firebase as FirebaseAnalytics, 
@@ -62,8 +63,15 @@ initNavs();
 // __EXTRA_LEGACY_INITIALIZERS__
 
 export async function init() {
+  if (Platform.OS === 'ios') {
+    try {
+      await checkATTPermission();
+    } catch (err) {
+      console.log('Failure in att check', err);
+    } 
+  }
+
   try {
-    await checkATTPermission();
     await ApptileAnalytics.initialize([
       FirebaseAnalytics, 
       // __ENABLED_ANALYTICS__
