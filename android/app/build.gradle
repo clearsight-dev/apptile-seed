@@ -208,10 +208,10 @@ dependencies {
       implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
     }
 
-    if (enable_clevertap) {
-      implementation 'com.clevertap.android:clevertap-android-sdk:5.0.0'
-      implementation 'com.android.installreferrer:installreferrer:2.2'
-    }
+    // if (enable_clevertap) {
+    //   implementation 'com.clevertap.android:clevertap-android-sdk:5.0.0'
+    //   implementation 'com.android.installreferrer:installreferrer:2.2'
+    // }
 }
 
 apply from: "./apptile.gradle"
