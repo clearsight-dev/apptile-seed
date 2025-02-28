@@ -65,7 +65,7 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-    createCleverTapIntegration(this).initialize(intent);
+    // createCleverTapIntegration(this).initialize(intent);
     SoLoader.init(this, false)
     // disable RTL
     val sharedI18nUtilInstance = I18nUtil.getInstance()
@@ -81,11 +81,11 @@ class MainApplication : Application(), ReactApplication {
     ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
   }
 
-  override fun onNewIntent(intent: Intent) {
-    super.onNewIntent(intent)
+  // override fun onNewIntent(intent: Intent) {
+  //   super.onNewIntent(intent)
 
-    val app = applicationContext as MainApplication
+  //   val app = applicationContext as MainApplication
 
-    createCleverTapIntegration(this).startup(intent, app);
-  }
+  //   createCleverTapIntegration(this).startup(intent, app);
+  // }
 }

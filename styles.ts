@@ -101,35 +101,37 @@ export const text = StyleSheet.create({
     fontSize: 16
   },
   primary: {
-    color: 'black'
+    color: '#000000',
   },
   secondary: {
-    color: 'gray'
+    color: '#808080',
   },
   danger: {
-    color: 'red'
+    color: '#ff0000',
   },
   safe: {
-    color: 'green'
+    color: '#008000',
   },
   accent: {
     color: '#0373fc'
   }
+    color: '#0373fc',
 });
 
 export const bgColor = StyleSheet.create({
   primary: {
-    backgroundColor: 'black'
+    backgroundColor: '#000000',
   },
   secondary: {
-    backgroundColor: 'gray'
+    backgroundColor: '#808080',
   },
   danger: {
-    backgroundColor: 'red'
+    backgroundColor: '#ff0000',
   },
   safe: {
     backgroundColor: 'green'
   }
+    backgroundColor: '#008000',
 });
 
 export const border = StyleSheet.create({

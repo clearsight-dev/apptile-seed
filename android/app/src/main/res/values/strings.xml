@@ -1,6 +1,8 @@
 <resources>
-  <string name="app_name">gauravs app</string>
+  <string name="app_name">apptilePreview</string>
   <string name="APPTILE_API_ENDPOINT">https://api.apptile.io</string>
   <string name="APPTILE_UPDATE_ENDPOINT">https://appconfigs.apptile.io</string>
-  <string name="APP_ID">3863104d-d3d2-475a-9dec-fe761a90bfec</string>
+  <string name="APP_ID"/>
+  <string name="ONESIGNAL_APPID">xxx</string>
+  <string name="IS_PREVIEW_APP">YES</string>
 </resources>
