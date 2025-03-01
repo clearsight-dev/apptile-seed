@@ -50,6 +50,10 @@
   NSError *error;
   if (bundleURL != Nil) {
     [[NSFileManager defaultManager] removeItemAtURL:bundleURL error:&error];
+    NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
+    NSURL *documentsDirectory = [documentDirectories firstObject];
+    NSURL *docBundlesDirectory = [documentsDirectory URLByAppendingPathComponent:@"bundles"];
+    [[NSFileManager defaultManager] removeItemAtURL:docBundlesDirectory error:&error];
   }
   
   if (error) {

@@ -598,6 +598,9 @@ async function downloadForPreview(
       try {
         const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
         logger.info("bundlesPath: ", bundlesPath);
+        const inBundles = await RNFetchBlob.fs.ls(bundlesPath);
+        console.log('contents of bundles: ', inBundles);
+
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
@@ -620,8 +623,7 @@ async function downloadForPreview(
             }
           ]
         });
-        const inBundles = await RNFetchBlob.fs.ls(bundlesPath);
-        console.log('contents of bundles: ', inBundles);
+        
       } catch (err) {
         logger.error("Failed to unzip files", err)
         dispatch({
