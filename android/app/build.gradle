@@ -149,11 +149,11 @@ android {
           java.srcDir 'src/moengage/disabled/java'
         }
 
-        if (enable_clevertap) {
-          java.srcDir 'src/clevertap/enabled/java'
-        } else {
-          java.srcDir 'src/clevertap/disabled/java'
-        }
+        // if (enable_clevertap) {
+        //   java.srcDir 'src/clevertap/enabled/java'
+        // } else {
+        //   java.srcDir 'src/clevertap/disabled/java'
+        // }
       }
     }
 

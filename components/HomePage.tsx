@@ -281,7 +281,14 @@ async function downloadForPreviewNonCache(
     }
   });
 
-  const jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
+  let jsBundlePath;
+  if (Platform.OS === 'ios') {
+    jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
+  } else {
+    jsBundlePath =
+      RNFetchBlob.fs.dirs.DocumentDir + '/bundles/index.android.bundle';
+  }
+
   const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
     if (exists) {
       return RNFetchBlob.fs.unlink(jsBundlePath);
@@ -476,7 +483,14 @@ async function downloadForPreview(
     }
   });
 
-  const jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
+  let jsBundlePath;
+  if (Platform.OS === 'ios') {
+    jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
+  } else {
+    jsBundlePath =
+      RNFetchBlob.fs.dirs.DocumentDir + '/bundles/index.android.bundle';
+  }
+
   const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
     if (exists) {
       return RNFetchBlob.fs.unlink(jsBundlePath);
@@ -606,6 +620,8 @@ async function downloadForPreview(
             }
           ]
         });
+        const inBundles = await RNFetchBlob.fs.ls(bundlesPath);
+        console.log('contents of bundles: ', inBundles);
       } catch (err) {
         logger.error("Failed to unzip files", err)
         dispatch({

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { Dimensions, View, Alert, ActivityIndicator, Text } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,10 +11,29 @@ import {getConfigValue, setLocalStorageItem} from 'apptile-core';
 import { ScreenParams } from '../screenParams';
 import { download, downloadTransient } from '../utils/download';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
+=======
+import React, {useState} from 'react';
+import {Dimensions, View, Alert, ActivityIndicator, Text} from 'react-native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import QRCodeScanner from 'react-native-qrcode-scanner';
+import {RNCamera} from 'react-native-camera';
+// import AsyncStorage from '../utils/MetaData';
+import RNFetchBlob from 'rn-fetch-blob';
+import axios from 'axios';
+
+import {ScreenParams} from '../App';
+import {download, downloadTransient} from '../utils/download';
+import {setLocalStorageItem} from '../../../apptile-cli-home/ReactNativeTSProjeect/packages/apptile-core/sdkComponents';
+type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewScanner'>;
+>>>>>>> fix/android-build-issues
 
 export function Scanner(props: ScreenProps) {
   const {navigation} = props;
   const [isDownloading, setIsDownloading] = useState(false);
+<<<<<<< HEAD
+=======
+  const useTransientStorage = props.route.params?.useTransientStorage || null;
+>>>>>>> fix/android-build-issues
   const onScan = (e: {data: string}) => {
     // console.log("Camera scan result: ", e);
     // console.log(e.data.match(/appId=(.*)&appName/));
@@ -25,26 +45,17 @@ export function Scanner(props: ScreenProps) {
     const appId = e.data.match(/APP_ID=(.*)&appName/)[1];
     // const forkId = parseInt(e.data.match(/forkId=(.*)&branchName/)[1]);
     // const orgName = e.data.match(/orgName=(.*)&appApi/)[1];
-    setIsDownloading(true)
-    console.log("Received: ", appId);
-    setLocalStorageItem("appId", appId).then(() => {
-      setIsDownloading(false)
+    setIsDownloading(true);
+    console.log('Received: ', appId);
+    console.log('setting local storage item');
+    setLocalStorageItem('appId', appId).then(() => {
       navigation.goBack();
+      console.log('going back');
     });
+  };
 
-    // setApps(apps => {
-    //   console.log("Setting apps");
-    //   if (!apps.find(entry => entry.id == appId)) {
-    //     const newEntry = {name: appName, id: appId, fork: forkId};
-    //     apps = apps.concat(newEntry);
-    //   }
-    //   console.log("pushing apps: ", apps);
-    //   return apps;
-    // });
-  }
-
-  const screenWidth = Dimensions.get("screen").width;
-  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get('screen').width;
+  const screenHeight = Dimensions.get('screen').height;
   const qrBoxWidth = Math.min(screenWidth * 0.8, 400);
 
   const qrBoxTop = (screenHeight - qrBoxWidth) * 0.5;
@@ -55,39 +66,40 @@ export function Scanner(props: ScreenProps) {
       style={{
         width: '100%',
         height: '100%',
-        ...(isDownloading ? {
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          flexDirection: 'column',
-          backgroundColor: 'white'
-          } : {})
-      }}
-    >
-      {isDownloading && 
+        ...(isDownloading
+          ? {
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+              backgroundColor: 'white',
+            }
+          : {}),
+      }}>
+      {isDownloading && (
         <>
           <ActivityIndicator size="large" />
           <Text style={{color: 'black'}}>Downloading latest appsave...</Text>
         </>
-      }
-      {!isDownloading && 
+      )}
+      {!isDownloading && (
         <>
           <QRCodeScanner
             containerStyle={{
-              backgroundColor: "black",
-              justifyContent: "center",
-              alignItems: "center",
+              backgroundColor: 'black',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
             cameraContainerStyle={{
               width: '100%',
               height: '100%',
-              overflow: "hidden",
+              overflow: 'hidden',
             }}
             cameraStyle={{
               width: '100%',
               height: '100%',
             }}
-            topViewStyle={{ height: 0 }}
-            bottomViewStyle={{ height: 0 }}
+            topViewStyle={{height: 0}}
+            bottomViewStyle={{height: 0}}
             onRead={onScan}
             flashMode={RNCamera.Constants.FlashMode.off}
             reactivate={true}
@@ -102,8 +114,7 @@ export function Scanner(props: ScreenProps) {
               position: 'absolute',
               top: qrBoxTop,
               left: qrBoxLeft,
-            }}
-          >
+            }}>
             <View
               style={{
                 borderWidth: 3,
@@ -117,9 +128,7 @@ export function Scanner(props: ScreenProps) {
                 borderLeftColor: '#1060e0',
                 borderBottomColor: '#ff000001',
                 borderRightColor: '#ff000001',
-              }}
-            >
-            </View>
+              }}></View>
 
             <View
               style={{
@@ -134,9 +143,7 @@ export function Scanner(props: ScreenProps) {
                 borderRightColor: '#1060e0',
                 borderBottomColor: '#ff000001',
                 borderLeftColor: '#ff000001',
-              }}
-            >
-            </View>
+              }}></View>
 
             <View
               style={{
@@ -151,9 +158,7 @@ export function Scanner(props: ScreenProps) {
                 borderLeftColor: '#1060e0',
                 borderTopColor: '#ff000001',
                 borderRightColor: '#ff000001',
-              }}
-            >
-            </View>
+              }}></View>
 
             <View
               style={{
@@ -168,13 +173,10 @@ export function Scanner(props: ScreenProps) {
                 borderRightColor: '#1060e0',
                 borderLeftColor: '#ff000001',
                 borderTopColor: '#ff000001',
-              }}
-            >
-            </View>
+              }}></View>
           </View>
         </>
-      }
+      )}
     </View>
   );
 }
-
