@@ -115,7 +115,6 @@ export const text = StyleSheet.create({
   accent: {
     color: '#0373fc'
   }
-    color: '#0373fc',
 });
 
 export const bgColor = StyleSheet.create({
@@ -131,7 +130,6 @@ export const bgColor = StyleSheet.create({
   safe: {
     backgroundColor: 'green'
   }
-    backgroundColor: '#008000',
 });
 
 export const border = StyleSheet.create({
