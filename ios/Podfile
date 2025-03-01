@@ -31,44 +31,44 @@ def swap_package_json_for_appclip
 end
 
 # Resolve react_native_pods.rb with node to allow for hoisting
-def node_require(script)
-  # Resolve script with node to allow for hoisting
-  require Pod::Executable.execute_command('node', ['-p',
-    "require.resolve(
-      '#{script}',
-      {paths: [process.argv[1]]},
-    )", __dir__]).strip
-end
-node_require('react-native/scripts/react_native_pods.rb')
-node_require('react-native-permissions/scripts/setup.rb')
-setup_permissions([
-  'AppTrackingTransparency',
-  # 'Bluetooth',
-  # 'Calendars',
-  # 'CalendarsWriteOnly',
-  'Camera',
-  # 'Contacts',
-  # 'FaceID',
-  # 'LocationAccuracy',
-  # 'LocationAlways',
-  'LocationWhenInUse',
-  # 'MediaLibrary',
-  'Microphone',
-  # 'Motion',
-  'Notifications',
-  # 'PhotoLibrary',
-  # 'PhotoLibraryAddOnly',
-  # 'Reminders',
-  # 'Siri',
-  # 'SpeechRecognition',
-  # 'StoreKit',
-])
-# require Pod::Executable.execute_command('node', ['-p',
-#   'require.resolve(
-#     "react-native/scripts/react_native_pods.rb",
-#     {paths: [process.argv[1]]},
-#   )', __dir__]).strip
+# def node_require(script)
+#   # Resolve script with node to allow for hoisting
+#   require Pod::Executable.execute_command('node', ['-p',
+#     "require.resolve(
+#       '#{script}',
+#       {paths: [process.argv[1]]},
+#     )", __dir__]).strip
+# end
+# node_require('react-native/scripts/react_native_pods.rb')
+# node_require('react-native-permissions/scripts/setup.rb')
+# setup_permissions([
+#   'AppTrackingTransparency',
+#   # 'Bluetooth',
+#   # 'Calendars',
+#   # 'CalendarsWriteOnly',
+#   'Camera',
+#   # 'Contacts',
+#   # 'FaceID',
+#   # 'LocationAccuracy',
+#   # 'LocationAlways',
+#   'LocationWhenInUse',
+#   # 'MediaLibrary',
+#   'Microphone',
+#   # 'Motion',
+#   'Notifications',
+#   # 'PhotoLibrary',
+#   # 'PhotoLibraryAddOnly',
+#   # 'Reminders',
+#   # 'Siri',
+#   # 'SpeechRecognition',
+#   # 'StoreKit',
+# ])
 
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
 platform :ios, 15.6
 prepare_react_native_project!
 
@@ -83,7 +83,7 @@ prepare_react_native_project!
 #   dependencies: {
 #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
 # ```
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+flipper_config = FlipperConfiguration.disabled 
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -165,9 +165,21 @@ target 'apptileSeed' do
   $RNFirebaseAsStaticFramework = true
   #END to avoid GoogleUtilities version conflict since firebase analytics and firebase Messaging can have different version of GoogleUtilities
 
+  pre_install do |installer|
+    Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
+    installer.pod_targets.each do |pod|
+      if pod.name.eql?('RNPermissions') || pod.name.start_with?('Permission-') || pod.name.eql?('RNReanimated') || pod.name.eql?('RNScreens')
+        def pod.build_type;
+          # Uncomment the line corresponding to your CocoaPods version
+          Pod::BuildType.static_library # >= 1.9
+          # Pod::Target::BuildType.static_library # < 1.9
+        end
+      end
+    end
+  end
   permissions_path = '../node_modules/react-native-permissions/ios'
   # pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
-  # pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
+  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   post_install do |installer|
     puts "trying to add preprocessor flag"

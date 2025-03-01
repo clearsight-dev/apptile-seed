@@ -207,6 +207,8 @@ PODS:
     - OneSignalXCFramework/OneSignalNotifications
     - OneSignalXCFramework/OneSignalOSCore
     - OneSignalXCFramework/OneSignalOutcomes
+  - Permission-Camera (3.3.1):
+    - RNPermissions
   - PromisesObjC (2.4.0)
   - RCT-Folly (2022.05.16.00):
     - boost
@@ -1259,7 +1261,7 @@ PODS:
     - React-Core
   - RNFastImage (8.6.3):
     - React-Core
-    - SDWebImage (~> 5.11.1)
+    - SDWebImage (~> 5.18.7)
     - SDWebImageWebPCoder (~> 0.8.4)
   - RNFBAnalytics (20.1.0):
     - Firebase/Analytics (= 10.27.0)
@@ -1281,7 +1283,7 @@ PODS:
     - React-Core
   - RNInAppBrowser (3.7.0):
     - React-Core
-  - RNPermissions (5.2.5):
+  - RNPermissions (3.3.1):
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
@@ -1309,9 +1311,9 @@ PODS:
   - RNZipArchive/Core (7.0.1):
     - React-Core
     - SSZipArchive (~> 2.5.5)
-  - SDWebImage (5.11.1):
-    - SDWebImage/Core (= 5.11.1)
-  - SDWebImage/Core (5.11.1)
+  - SDWebImage (5.18.12):
+    - SDWebImage/Core (= 5.18.12)
+  - SDWebImage/Core (5.18.12)
   - SDWebImageWebPCoder (0.8.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
@@ -1321,12 +1323,6 @@ PODS:
   - sovran-react-native (1.1.2):
     - React-Core
   - SSZipArchive (2.5.5)
-  - VisionCamera (4.6.4):
-    - VisionCamera/Core (= 4.6.4)
-    - VisionCamera/React (= 4.6.4)
-  - VisionCamera/Core (4.6.4)
-  - VisionCamera/React (4.6.4):
-    - React-Core
   - Yoga (1.14.0)
   - ZegoExpressEngine (3.14.5)
 
@@ -1345,6 +1341,7 @@ DEPENDENCIES:
   - GoogleUtilities
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - OneSignalXCFramework (< 6.0, >= 5.0.0)
+  - Permission-Camera (from `../node_modules/react-native-permissions/ios/Camera`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -1421,7 +1418,6 @@ DEPENDENCIES:
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNZipArchive (from `../node_modules/react-native-zip-archive`)
   - "sovran-react-native (from `../node_modules/@segment/sovran-react-native`)"
-  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1469,6 +1465,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  Permission-Camera:
+    :path: "../node_modules/react-native-permissions/ios/Camera"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -1617,8 +1615,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-zip-archive"
   sovran-react-native:
     :path: "../node_modules/@segment/sovran-react-native"
-  VisionCamera:
-    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1648,6 +1644,7 @@ SPEC CHECKSUMS:
   lottie-react-native: b93662f3d987843ff3a4286274f89b3a7d6093e6
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OneSignalXCFramework: bdf74fdc06888f9466dc21e826fe1549ed143095
+  Permission-Camera: bae27a8503530770c35aadfecbb97ec71823382a
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 0c7f03a41ee32dec802c74c341e317a4165973d5
@@ -1707,14 +1704,14 @@ SPEC CHECKSUMS:
   RNCClipboard: 0a720adef5ec193aa0e3de24c3977222c7e52a37
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
   RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
-  RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
+  RNFastImage: 2c0b5e588f129839b576669a4e429181ec39c61e
   RNFBAnalytics: 3f336502732e51de9f5a5be8b5e3df879bf2eca7
   RNFBApp: 9acbe359ef3559d6f8ca5c350db471f2b352f98a
   RNFBMessaging: b82ef70d252500d3ad104284c0c7f8e1cd22b51e
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8ff45d9b814f3ceceb1e9f92e5c73c92ab98e4a2
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
-  RNPermissions: 52561bc1ae73dc5f4ffd2ff7e4db6187fb0e8bf3
+  RNPermissions: 34d678157c800b25b22a488e4d8babb57456e796
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNScreens: 01ab149b5dd5c27f5ff26741b1d2bdf2cee1af35
   RNSentry: 40cd7823a79bb34d30839bc7c690ae42ba76fab8
@@ -1722,17 +1719,16 @@ SPEC CHECKSUMS:
   RNSVG: a48668fd382115bc89761ce291a81c4ca5f2fd2e
   RNVectorIcons: b307b181c8e98d633d416d36421d515cf2fe9e31
   RNZipArchive: 7bb4c70d6aa2dd235212c0a4a3de0a4e237e2569
-  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
+  SDWebImage: 2d6d229046fea284d62e36bfb8ebe8287dfc5b10
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   Sentry: ee060c09b2f7ec1240e95c766ab44c04c7bdb052
   ShopifyCheckoutSheetKit: 5ae02dbed0047689b94c977bdcf6287752d17ce4
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: 5f02bd2d111ffe226d00c7b0435290eae6f10934
   SSZipArchive: c69881e8ac5521f0e622291387add5f60f30f3c4
-  VisionCamera: b5c2b3c45e641102902a5194af11dc532805221e
   Yoga: 428500217b7b2dba1074041bd3ccf0cad3555925
   ZegoExpressEngine: 68629fb936bc779260ce7d5cb3eea5b467dffa18
 
-PODFILE CHECKSUM: 4e9831b301fda61bba9801bebcaa818eaeb2f476
+PODFILE CHECKSUM: 8c7c50584e48e3c116041cad11ac66ddfa6d4233
 
 COCOAPODS: 1.16.2
