@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { Dimensions, View, Alert, ActivityIndicator, Text } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import QRCodeScanner from "react-native-qrcode-scanner";
-import { RNCamera } from "react-native-camera";
-import RNFetchBlob from 'rn-fetch-blob';
-import axios from 'axios';
-import {getConfigValue, setLocalStorageItem} from 'apptile-core';
-
-import { ScreenParams } from '../screenParams';
-import { download, downloadTransient } from '../utils/download';
-type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
-=======
 import React, {useState} from 'react';
 import {Dimensions, View, Alert, ActivityIndicator, Text} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -21,19 +7,14 @@ import {RNCamera} from 'react-native-camera';
 import RNFetchBlob from 'rn-fetch-blob';
 import axios from 'axios';
 
-import {ScreenParams} from '../App';
+import {ScreenParams} from '../screenParams';
 import {download, downloadTransient} from '../utils/download';
 import {setLocalStorageItem} from '../../../apptile-cli-home/ReactNativeTSProjeect/packages/apptile-core/sdkComponents';
-type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewScanner'>;
->>>>>>> fix/android-build-issues
+type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
 
 export function Scanner(props: ScreenProps) {
   const {navigation} = props;
   const [isDownloading, setIsDownloading] = useState(false);
-<<<<<<< HEAD
-=======
-  const useTransientStorage = props.route.params?.useTransientStorage || null;
->>>>>>> fix/android-build-issues
   const onScan = (e: {data: string}) => {
     // console.log("Camera scan result: ", e);
     // console.log(e.data.match(/appId=(.*)&appName/));
