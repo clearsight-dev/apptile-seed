@@ -14,6 +14,7 @@
 
 // const xcode = require('xcode');
 const plist = require('plist');
+const os = require('os');
 const path = require('path');
 const axios = require('axios');
 const util = require('util');
@@ -242,7 +243,7 @@ async function main() {
     );
     const apptileConfig = JSON.parse(apptileConfigRaw);
     const success = await downloadIconAndSplash(apptileConfig);
-    if (success) {
+    if (success && os.platform() === 'darwin') {
       await generateIconSet(path.resolve(apptileConfig.SDK_PATH, 'packages/apptile-app/devops/scripts/ios/iconset-generator.sh'));
     }
 

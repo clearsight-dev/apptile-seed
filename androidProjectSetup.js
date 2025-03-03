@@ -15,6 +15,7 @@
 const chalk = require('chalk');
 const xml2js = require('xml2js');
 const path = require('path');
+const os = require('os');
 const axios = require('axios');
 const util = require('util');
 const {exec: exec_} = require('child_process');
@@ -552,7 +553,7 @@ async function main() {
   const apptileConfig = JSON.parse(apptileConfigRaw);
   try {
     const success = await downloadIconAndSplash(apptileConfig);
-    if (success) {
+    if (success && os.platform() === 'darwin') {
       await generateIconSet(path.resolve(apptileConfig.SDK_PATH, 'packages/apptile-app/devops/scripts/android/iconset-generator.sh'));
     }
   } catch(err) {
