@@ -1,88 +1,43 @@
-import React, { useEffect, useReducer } from 'react';
-import { View, Text, Linking, Button, Pressable, ScrollView, Platform, Modal, ActivityIndicator, Image, SafeAreaView } from 'react-native';
-import { 
+import { useIsFocused } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
   getConfigValue,
-  getLocalStorageItem as getItem,
   setLocalStorageItem as setItem
 } from 'apptile-core';
-import RNFetchBlob from 'rn-fetch-blob';
+import React, { useEffect, useReducer } from 'react';
+import { Linking, Platform } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useIsFocused } from '@react-navigation/native';
-import RNRestart from 'react-native-restart';
+import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
-// import { getItem, setItem } from '../utils/AsyncStorage';
-import { layout, text, bgColor, border, buttons } from '../styles';
+import { HomeState } from '../types/type';
+import HomeCard from './HomeCard';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
-type HomeState = {
-  appId: null | string;
-  hasError: boolean;
-  errorMessage: string;
-  pushLogs: {
-    logs: Array<{
-      androidBundleId: null | number;
-      appId: string;
-      comment: string;
-      createdAt: string;
-      id: number;
-      iosBundleId: null | number;
-      navigatorsBundleId: null | number;
-      pluginsBundleId: null | number;
-      publishedCommitId: null | number;
-      updatedAt: string;
-    }>;
-    artefacts: Array<{
-      id: number;
-      type: "ios-jsbundle" | "android-jsbundle" | "navigator-bundle" | "plugin-bundle";
-      cdnlink: string;
-    }>;
-  };
-  manifest: {
-    name: string;
-    published: boolean;
-    androidBundleId: null | number;
-    iosBundleId: null | number;
-    forks: Array<{
-      id: string|number;
-      title: string;
-      publishedCommitId: number | null;
-      mainBranchLatestSave: {
-        commitId: number;
-        cdnlink: string;
-      };
-    }>;
-  };
-  launchSequence: Array<{ label: string; status: "notstarted" | "inprogress" | "error" | "success" }>;
-  showLaunchSequence: boolean;
-};
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
 type HomeAction = { type: 'SET_APP_ID'; payload: string | null; } |
 { type: 'SET_ERROR'; payload: string; } |
 { type: 'SET_PUSHLOGS'; payload: HomeState['pushLogs']; } |
 { type: 'SET_MANIFEST'; payload: HomeState['manifest']; } |
 { type: 'SET_LAUNCH_SEQUENCE'; payload: HomeState['launchSequence']; } |
-{ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY'; payload: HomeState['showLaunchSequence'];} |
-{ 
-  type: 'UPDATE_FORK_IN_MANIFEST'; 
-  payload: { 
-    forkId: number|string; 
+{ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY'; payload: HomeState['showLaunchSequence']; } |
+{
+  type: 'UPDATE_FORK_IN_MANIFEST';
+  payload: {
+    forkId: number | string;
     mainBranchLatestSave: {
-      commitId: number; 
+      commitId: number;
       cdnlink: string;
-    } 
+    }
   }
 }
-;
 type DispatchFcn = (action: HomeAction) => void;
-type DownloadCodepushCb = (publishedCommitId: number | null, iosBundleId: number | null, androidBundleId: number | null) => Promise<void>;
-type DownloadNonCacheCodepushCb = (cdnlink: string, iosBundleId: number | null, androidBundleId: number | null) => Promise<void>;
 
 
 async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | string> {
+  const tempAppId = '62cebfb8-4f21-47d0-a19b-539022b1b83b';
   let appId: string | null = null;
   try {
-    appId = await getItem('appId');
+    appId = tempAppId;
     let initialUrl = url || null;
     if (!initialUrl) {
       initialUrl = await Linking.getInitialURL();
@@ -90,9 +45,9 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
 
     if (!appId) {
       if (initialUrl && initialUrl.startsWith('apptilepreview://locktoapp/')) {
-        appId = initialUrl.slice('apptilepreview://locktoapp/'.length);
+        appId = tempAppId;
         try {
-          await setItem("appId", appId);
+          await setItem("appId", tempAppId);
         } catch (err) {
           dispatch({
             type: 'SET_ERROR',
@@ -102,8 +57,8 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
       }
     } else {
       if (initialUrl && initialUrl.startsWith('apptilepreview://unlock')) {
-        appId = null;
-        await setItem('appId', null);
+        appId = tempAppId;
+        await setItem('appId', tempAppId);
       }
     }
   } catch (err) {
@@ -116,9 +71,9 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
   console.log('setting appId to: ', appId);
   dispatch({
     type: 'SET_APP_ID',
-    payload: appId
+    payload: tempAppId
   });
-  return appId;
+  return tempAppId;
 }
 
 async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
@@ -187,7 +142,7 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   }
 }
 
-async function fetchLastSavedConfig(appId: string, forkId: number|string) {
+async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   const result = {
     commitId: -1,
     cdnlink: ''
@@ -195,13 +150,13 @@ async function fetchLastSavedConfig(appId: string, forkId: number|string) {
 
   try {
     const apiEndpoint = await getConfigValue('APPTILE_API_ENDPOINT');
-    const {url} = await fetch(`${apiEndpoint}/api/v2/app/${appId}/${forkId}/main/noRedirect`).then(res => res.json())
+    const { url } = await fetch(`${apiEndpoint}/api/v2/app/${appId}/${forkId}/main/noRedirect`).then(res => res.json())
     const commitId = url.match(/\/([0-9]+)\.json$/);
     if (commitId && commitId[1]) {
       result.cdnlink = url;
       result.commitId = parseInt(commitId[1]);
     }
-  } catch(err) {
+  } catch (err) {
     console.error("Failed to get the lastest save");
   }
   return result;
@@ -233,33 +188,33 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
       result = { ...state, manifest: action.payload };
       break;
     case 'SET_LAUNCH_SEQUENCE':
-      result = {...state, launchSequence: action.payload};
+      result = { ...state, launchSequence: action.payload };
       break;
     case 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY':
-      result = {...state, showLaunchSequence: action.payload};
+      result = { ...state, showLaunchSequence: action.payload };
       break;
     case 'UPDATE_FORK_IN_MANIFEST':
-    {
-      // TODO(gaurav): add immer
-      const existingForkIndex = state.manifest.forks.findIndex(fork => fork.id === action.payload.forkId);
-      if (existingForkIndex >= 0) {
-        let forks = state.manifest.forks;
-        forks[existingForkIndex] = {
-          ...forks[existingForkIndex],
-          mainBranchLatestSave: action.payload.mainBranchLatestSave
-        }
-        result = {
-          ...state,
-          manifest: {
-            ...state.manifest,
-            forks 
+      {
+        // TODO(gaurav): add immer
+        const existingForkIndex = state.manifest.forks.findIndex(fork => fork.id === action.payload.forkId);
+        if (existingForkIndex >= 0) {
+          let forks = state.manifest.forks;
+          forks[existingForkIndex] = {
+            ...forks[existingForkIndex],
+            mainBranchLatestSave: action.payload.mainBranchLatestSave
           }
-        };
-      } else {
-        result = state;
+          result = {
+            ...state,
+            manifest: {
+              ...state.manifest,
+              forks
+            }
+          };
+        } else {
+          result = state;
+        }
+        break;
       }
-      break;
-    }
     default:
       result = state;
   }
@@ -267,13 +222,13 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
 }
 
 async function downloadForPreviewNonCache(
-  store: HomeState, 
-  dispatch: DispatchFcn, 
+  store: HomeState,
+  dispatch: DispatchFcn,
   cdnlink: string,
-  iosBundleId: number | null, 
+  iosBundleId: number | null,
   androidBundleId: number | null) {
   // check for existing bundle and config and delete them
-  dispatch({type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true});
+  dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
   const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
   const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
     if (exists) {
@@ -441,7 +396,7 @@ async function downloadForPreviewNonCache(
         ]
       });
     }
-    
+
   } catch (err) {
     logger.error("Failed for some reason: ", err);
     dispatch({
@@ -471,11 +426,11 @@ async function downloadForPreviewNonCache(
 async function downloadForPreview(
   store: HomeState,
   dispatch: DispatchFcn,
-  publishedCommitId: number|null,
+  publishedCommitId: number | null,
   iosBundleId: number | null,
   androidBundleId: number | null) {
   // check for existing bundle and config and delete them
-  dispatch({type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true});
+  dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
   const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
   const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
     if (exists) {
@@ -698,7 +653,7 @@ async function downloadForPreview(
   }
 }
 export function HomePage(props: ScreenProps) {
-  const {navigation, route} = props;
+  const { navigation, route } = props;
   const [state, dispatch] = useReducer(
     reducer,
     {
@@ -724,12 +679,12 @@ export function HomePage(props: ScreenProps) {
 
   useEffect(() => {
     initialize(dispatch);
-    const linkingHandler = Linking.addEventListener('url', ({url}) => {
+    const linkingHandler = Linking.addEventListener('url', ({ url }) => {
       fetchAppId(dispatch, url);
     });
 
     return () => {
-      linkingHandler.remove(); 
+      linkingHandler.remove();
     };
   }, [state.appId, isFocussed]);
 
@@ -744,9 +699,9 @@ export function HomePage(props: ScreenProps) {
   };
 
   return (
-    <HomeCard 
-      state={state} 
-      onDownload={downloadCached} 
+    <HomeCard
+      state={state}
+      onDownload={downloadCached}
       onNonCacheDownload={downloadUnCached}
       onModalDismiss={hideLaunchSequence}
       onRefresh={() => initialize(dispatch)}
@@ -754,294 +709,3 @@ export function HomePage(props: ScreenProps) {
     />
   );
 }
-
-type HomeCardProps = { 
-  state: HomeState; 
-  onNonCacheDownload: DownloadNonCacheCodepushCb;
-  onDownload: DownloadCodepushCb; 
-  onModalDismiss: () => void;
-  onRefresh: () => void;
-  onScan: () => void;
-};
-function HomeCard({ state, onDownload, onNonCacheDownload, onModalDismiss, onRefresh, onScan }: HomeCardProps) {
-  if (state.appId) {
-    return (
-      <SafeAreaView>
-        <ScrollView style={[layout.flexCol, layout.p2]}>
-          <View style={[layout.flexRow, layout.justifyBetween]}>
-            <Text style={[text.secondary]}>{state.appId}</Text>
-            <Pressable
-              onPress={onRefresh}
-              style={[buttons.primary]}
-            >
-              <Text style={[text.accent, text.large]}>Refresh</Text>
-            </Pressable>
-          </View>
-          <LiveApp 
-            manifest={state.manifest} 
-            onDownload={onDownload}
-            onNonCacheDownload={onNonCacheDownload}
-          />
-          <Versions manifest={state.manifest} />
-          <PushLogs logs={state.pushLogs} onDownload={onDownload} />
-        </ScrollView>
-        <LauncSequenceModal 
-          state={state}
-          onModalDismiss={onModalDismiss}
-        />
-      </SafeAreaView>
-    );
-  } else {
-    return (
-      <SafeAreaView
-        style={[
-          layout.flexCol,
-          layout.alignCenter,
-          layout.p2
-        ]}
-      >
-        <Image 
-          style={{
-            height: 100
-          }}
-          resizeMode={'contain'}
-          source={require('../assets/logo.png')}
-        />
-        <View
-          style={[layout.mTopBottom]}
-        >
-          <Text>Scan your QR code to see your app's versions</Text>
-        </View>
-        <Pressable
-          style={{
-            borderRadius: 16,
-            backgroundColor: '#1060E0',
-            minWidth: 80,
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 8,
-            marginTop: 40
-          }}
-        >
-          <Text
-            style={[text.large, {color: 'white'}]}
-            onPress={onScan}
-          >
-            Scan
-          </Text>
-        </Pressable>
-      </SafeAreaView>
-    );
-  }
-}
-
-function LauncSequenceModal(props: {state: HomeState, onModalDismiss: () => void}) {
-  
-  const {state, onModalDismiss} = props;
-  const actionItems = state.launchSequence.map(item => {
-    let statusIndicator = null;
-    if (item.status === 'inprogress') {
-      statusIndicator = <ActivityIndicator size="small" />
-    } else if (item.status === 'success') {
-      statusIndicator = <Text style={[text.safe, text.large]}>✓</Text>;
-    } else if (item.status === 'error') {
-      statusIndicator = <Text style={[text.danger, text.title]}>˟</Text>;
-    } else {
-      statusIndicator = <Text style={[text.danger, text.safe]}>䷄</Text>
-    }
-      return (
-        <View 
-          key={item.label} 
-          style={[layout.flexRow, layout.alignCenter]}
-        >
-          {statusIndicator}
-          <Text style={[text.body, layout.mLeftRight]}>{item.label}</Text>
-        </View>
-      );
-  });
-
-  let sequenceComplete = true;
-  for ( let i = 0; i < state.launchSequence.length; ++i)  {
-    sequenceComplete = sequenceComplete && state.launchSequence[i].status === 'success';
-  }
-
-  let restartButton = null;
-  if (sequenceComplete) {
-    restartButton = (
-      <View 
-        style={[layout.p1, layout.fullWidth, layout.flexRow, layout.justifyCenter]}
-      >
-        <Pressable style={[buttons.primary]} onPress={() => RNRestart.Restart()}>
-          <Text style={[text.accent]}>Restart</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  return (
-    <Modal 
-      visible={state.showLaunchSequence}
-      animationType={'slide'}
-      presentationStyle={'pageSheet'}
-      onRequestClose={onModalDismiss}
-    >
-      <View style={[layout.fullWidth, layout.fullHeight, layout.flexCol]}>
-        <View style={[layout.flexRow, layout.justifyEnd, layout.fullWidth, layout.p1]}>
-          <Pressable 
-            style={[buttons.primary]}
-            onPress={onModalDismiss}
-          >
-            <Text style={[text.large, text.accent]}>Close</Text>
-          </Pressable>
-        </View>
-        <View style={[layout.p1]}>
-          {actionItems}
-        </View>
-        {restartButton}     
-      </View>
-    </Modal>
-  );
-}
-
-function LiveApp(props: { manifest: HomeState['manifest'], onDownload: DownloadCodepushCb, onNonCacheDownload: DownloadNonCacheCodepushCb }) {
-  const manifest = props.manifest;
-
-  let publishedState;
-  if (manifest.published) {
-    publishedState = <Text style={[text.danger]}>PUBLISHED</Text>
-  } else {
-    publishedState = <Text style={[text.safe]}>IN DEVELOPMENT</Text>
-  }
-
-  let renderedForks = [];
-  for (let i = 0; i < manifest.forks.length; ++i) {
-    const fork = manifest.forks[i];
-    renderedForks.push(
-      <View
-        key={fork.title}
-        style={[layout.flexRow, layout.alignCenter, layout.justifyBetween]}
-      >
-        <Text>{fork.title}</Text>
-        <View style={[layout.flexCol, layout.grow]}>
-          <View style={[layout.flexRow, layout.grow, layout.justifySpaceEvenly]}>
-            <Text>{manifest.androidBundleId || "-"}</Text>
-            <Text>{manifest.iosBundleId || "-"}</Text>
-            <Text>{fork.publishedCommitId}</Text>
-            <Pressable 
-              style={[buttons.primary]}
-              onPress={() => props.onDownload(fork.publishedCommitId, manifest.iosBundleId, manifest.androidBundleId)}
-            >
-              <Text style={[text.accent, text.large]}>Download</Text>
-            </Pressable>
-          </View>
-          <View style={[layout.flexRow, layout.grow, layout.justifySpaceEvenly]}>
-            <Text>{manifest.androidBundleId || "-"}</Text>
-            <Text>{manifest.iosBundleId || "-"}</Text>
-            <Text>{fork.mainBranchLatestSave.commitId}</Text>
-            <Pressable 
-              style={[buttons.primary]}
-              onPress={() => props.onNonCacheDownload(fork.mainBranchLatestSave.cdnlink, manifest.iosBundleId, manifest.androidBundleId)}
-            >
-              <Text style={[text.danger, text.large]}>Download</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View
-      style={[layout.flexCol, border.solid, border.round1, layout.p1, layout.mTopBottom]}
-    >
-      <Text style={[text.title]}>{manifest.name}</Text>
-      {publishedState}
-      <View style={[layout.flexRow, layout.alignBaseline]}>
-        <Text style={[text.subtitle]}>Forks</Text>
-      </View>
-      {renderedForks}
-    </View>
-  );
-}
-
-function Versions(props: { manifest: HomeState['manifest'] }) {
-  const manifest = props.manifest;
-
-  let renderedVersions = (
-    <View>
-      <Text>No versions yet!</Text>
-    </View>
-  );
-
-  return (
-    <View
-      style={[layout.flexCol, border.solid, border.round1, layout.p1, layout.mTopBottom]}
-    >
-      <Text style={[text.subtitle]}>Versions</Text>
-      {renderedVersions}
-    </View>
-  );
-}
-
-const formatter = Intl.DateTimeFormat("en-us", { dateStyle: 'long' })
-
-function PushLogs(props: { logs: HomeState['pushLogs'], onDownload: DownloadCodepushCb }) {
-  const pushLogs = props.logs;
-  let renderedLogs;
-  if (pushLogs.logs.length === 0) {
-    renderedLogs = (<Text>No pushLogs found</Text>);
-  } else {
-    const prefix = 'Update due to OTA at';
-    renderedLogs = (
-      <>
-        {pushLogs.logs.map((entry, i) => {
-          let comment;
-          if (entry.comment.startsWith(prefix)) {
-            const dateString = entry.comment.slice(prefix.length);
-            const formattedDate = formatter.format(new Date(dateString));
-            comment = formattedDate;
-          } else {
-            comment = entry.comment;
-          }
-
-          return (
-            <View
-              key={'pushlog-' + i}
-              style={[layout.flexRow, layout.alignCenter, layout.justifyBetween, { borderBottomWidth: 1 }]}
-            >
-              <Text style={[layout.minW25, layout.maxW25]}>
-                {comment}
-              </Text>
-              <View style={[layout.p1, layout.mLeftRight]}>
-                <Text>{entry.androidBundleId || "-"}</Text>
-              </View>
-              <View style={[layout.p1, layout.mLeftRight]}>
-                <Text>{entry.iosBundleId || "-"}</Text>
-              </View>
-              <View style={[layout.p1, layout.mLeftRight]}>
-                <Text>{entry.publishedCommitId || "-"}</Text>
-              </View>
-              <Button 
-                title="Download" 
-                onPress={() => props.onDownload(
-                  entry.publishedCommitId,
-                  entry.iosBundleId,
-                  entry.androidBundleId
-                )}
-              />
-            </View>
-          );
-      })
-        }
-      </>
-    );
-  }
-  return (
-    <View style={[border.solid, border.round1, layout.p1, layout.mTopBottom]}>
-      <Text style={[text.subtitle]}>History</Text>
-      {renderedLogs}
-    </View>
-  );
-}
-
-
