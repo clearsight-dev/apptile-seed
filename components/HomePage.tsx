@@ -1,7 +1,8 @@
-import { useIsFocused } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   getConfigValue,
+  getLocalStorageItem as getItem,
   setLocalStorageItem as setItem
 } from 'apptile-core';
 import React, { useEffect, useReducer } from 'react';
@@ -9,32 +10,17 @@ import { Linking, Platform } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
-import { HomeState } from '../types/type';
+import { HomeState, IAppForksResponse, IAppFork, DispatchFcn, HomeAction, IManifestResponse } from '../types/type';
 import HomeCard from './HomeCard';
+import { setLaunchSequenceSetupFileError, setLaunchSequenceSuccess } from '../constants/constant';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
-type HomeAction = { type: 'SET_APP_ID'; payload: string | null; } |
-{ type: 'SET_ERROR'; payload: string; } |
-{ type: 'SET_PUSHLOGS'; payload: HomeState['pushLogs']; } |
-{ type: 'SET_MANIFEST'; payload: HomeState['manifest']; } |
-{ type: 'SET_LAUNCH_SEQUENCE'; payload: HomeState['launchSequence']; } |
-{ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY'; payload: HomeState['showLaunchSequence']; } |
-{
-  type: 'UPDATE_FORK_IN_MANIFEST';
-  payload: {
-    forkId: number | string;
-    mainBranchLatestSave: {
-      commitId: number;
-      cdnlink: string;
-    }
-  }
-}
-type DispatchFcn = (action: HomeAction) => void;
 
+type NavigationProp = NativeStackNavigationProp<ScreenParams, 'PreviewHome'>;
 
 async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | string> {
-  const tempAppId = '62cebfb8-4f21-47d0-a19b-539022b1b83b';
+  const tempAppId = 'cda38d9c-403f-4a47-a8ce-a81dd5da9eb3';
   let appId: string | null = null;
   try {
     appId = tempAppId;
@@ -78,7 +64,8 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
 
 async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
   try {
-    const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+    const APPTILE_API_ENDPOINT = 'https://api.apptile.local';
     const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
     let pushLogs = await fetch(url).then(res => res.json())
     dispatch({
@@ -96,9 +83,10 @@ async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
 
 async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   try {
-    const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+    const APPTILE_API_ENDPOINT = 'https://api.apptile.local';
     const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/manifest`;
-    const manifestData: any = await fetch(url).then(res => res.json());
+    const manifestData: IManifestResponse = await fetch(url).then(res => res.json());
 
     let manifest: HomeState['manifest'] = {
       name: manifestData.name,
@@ -142,6 +130,34 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   }
 }
 
+async function fetchForks(appId: string, dispatch: DispatchFcn, navigation: NavigationProp) {
+  try {
+    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+    const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+    console.log('Fetching forks for appId:', appId,`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
+    const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
+    console.log('Response:', response);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data: IAppForksResponse = await response.json();
+    
+    if (data.forks.length > 1) {
+      navigation.navigate('Fork', {
+        appId: appId,
+        forks: data.forks
+      });
+    } else {
+      navigation.navigate('AppDetail', {
+        appId: appId,
+        forkId: data.forks[0].id
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching forks:', error);
+  }
+}
+
 async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   const result = {
     commitId: -1,
@@ -149,8 +165,9 @@ async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   };
 
   try {
-    const apiEndpoint = await getConfigValue('APPTILE_API_ENDPOINT');
-    const { url } = await fetch(`${apiEndpoint}/api/v2/app/${appId}/${forkId}/main/noRedirect`).then(res => res.json())
+    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+    const APPTILE_API_ENDPOINT = 'https://api.apptile.local';
+    const { url } = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`).then(res => res.json())
     const commitId = url.match(/\/([0-9]+)\.json$/);
     if (commitId && commitId[1]) {
       result.cdnlink = url;
@@ -162,12 +179,13 @@ async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   return result;
 }
 
-async function initialize(dispatch: DispatchFcn) {
+async function initialize(dispatch: DispatchFcn, navigation: NavigationProp) {
   const appId = await fetchAppId(dispatch);
   if (appId) {
     await Promise.all([
       fetchPushLogs(appId, dispatch),
-      fetchManifest(appId, dispatch)
+      fetchManifest(appId, dispatch),
+      fetchForks(appId, dispatch, navigation)
     ]);
   }
 }
@@ -557,51 +575,10 @@ async function downloadForPreview(
         console.log('contents of bundles: ', inBundles);
 
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
-        dispatch({
-          type: 'SET_LAUNCH_SEQUENCE',
-          payload: [
-            {
-              label: 'Clear old files',
-              status: 'success'
-            },
-            {
-              label: 'Download appconfig',
-              status: 'success'
-            },
-            {
-              label: 'Download javascript bundle',
-              status: 'success'
-            },
-            {
-              label: 'Setup new files',
-              status: 'success'
-            }
-          ]
-        });
-        
+        dispatch(setLaunchSequenceSuccess);
       } catch (err) {
         logger.error("Failed to unzip files", err)
-        dispatch({
-          type: 'SET_LAUNCH_SEQUENCE',
-          payload: [
-            {
-              label: 'Clear old files',
-              status: 'success'
-            },
-            {
-              label: 'Download appconfig',
-              status: 'success'
-            },
-            {
-              label: 'Download javascript bundle',
-              status: 'success'
-            },
-            {
-              label: 'Setup new files',
-              status: 'error'
-            }
-          ]
-        });
+        dispatch(setLaunchSequenceSetupFileError);
       }
     } else {
       console.error('AppId not found. stopping')
@@ -678,7 +655,7 @@ export function HomePage(props: ScreenProps) {
   const isFocussed = useIsFocused();
 
   useEffect(() => {
-    initialize(dispatch);
+    initialize(dispatch, navigation);
     const linkingHandler = Linking.addEventListener('url', ({ url }) => {
       fetchAppId(dispatch, url);
     });
@@ -704,7 +681,7 @@ export function HomePage(props: ScreenProps) {
       onDownload={downloadCached}
       onNonCacheDownload={downloadUnCached}
       onModalDismiss={hideLaunchSequence}
-      onRefresh={() => initialize(dispatch)}
+      onRefresh={() => initialize(dispatch, navigation)}
       onScan={() => navigation.push("Scanner")}
     />
   );

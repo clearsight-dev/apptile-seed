@@ -50,7 +50,7 @@ export default function AdminPage({route}) {
   const fetchPushlogs = (appId: string) => {
     // https://api.apptile.local/api/v2/app/4de62a28-c347-4628-b41a-9c88b4b54326/pushLogs
     getConfigValue('APPTILE_API_ENDPOINT')
-      .then(APPTILE_API_ENDPOINT => {
+      .then((APPTILE_API_ENDPOINT:string) => {
         const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
         console.log("Getting pushLogs from: ", url);
         return url;
