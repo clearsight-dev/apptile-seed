@@ -7,6 +7,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
 import { HomeAction, HomeState, IAppDraftResponse, IFork, IManifestResponse } from '../types/type';
 import AppInfo from './AppInfo';
+import StyledButton from './StyledButton';
 
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
@@ -119,11 +120,11 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       const response = await fetch(
         `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branch/${branchId}/PreviewAppDraft`
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data: IAppDraftResponse = await response.json();
       setAppDraft(data.appDraft);
     } catch (err) {
@@ -139,7 +140,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       commitId: -1,
       cdnlink: ''
     };
-  
+
     try {
       // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
       const APPTILE_API_ENDPOINT = 'http://localhost:3000';
@@ -166,7 +167,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       console.log('fetching manifest', url);
       const manifestData: IManifestResponse = await fetch(url).then(res => res.json());
       console.log('manifestData', manifestData);
-  
+
       let manifest: HomeState['manifest'] = {
         name: manifestData.name,
         published: manifestData.published,
@@ -184,12 +185,12 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           };
         })
       };
-  
+
       dispatch({
         type: 'SET_MANIFEST',
         payload: manifest
       });
-  
+
       for (let i = 0; i < manifest.forks.length; ++i) {
         const fork = manifest.forks[i];
         const mainBranchLatestSave = await fetchLastSavedConfig(appId, fork.id);
@@ -641,6 +642,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   return (
     <>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+        <AppInfo />
         <View style={styles.container}>
 
           {/* <Text style={styles.title}>{state.manifest.name}</Text>
@@ -694,24 +696,32 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
             </>
           )} */}
 
-          <AppInfo />
 
           <View style={figmaVersionStyles.sectionContainer}>
             <Text style={figmaVersionStyles.sectionTitle}>Latest</Text>
             <View style={figmaVersionStyles.versionCard}>
               <Text style={figmaVersionStyles.versionLabel}>Version</Text>
               <Text style={figmaVersionStyles.versionDate}>13 Apr, 2025</Text>
-              <Pressable style={figmaVersionStyles.previewButtonFilled}>
-                <Text style={figmaVersionStyles.previewButtonFilledText}>Preview</Text>
-              </Pressable>
+              <StyledButton
+                title="Preview"
+                onPress={() => {
+
+                }}
+                style={styles.selectButton}
+              />
             </View>
             <Text style={figmaVersionStyles.sectionTitle}>Draft</Text>
             <View style={figmaVersionStyles.versionCard}>
               <Text style={figmaVersionStyles.versionLabel}>Version</Text>
               <Text style={figmaVersionStyles.versionDate}>10 Mar, 2025</Text>
-              <Pressable style={figmaVersionStyles.previewButtonOutline}>
-                <Text style={figmaVersionStyles.previewButtonOutlineText}>Preview</Text>
-              </Pressable>
+              <StyledButton
+                variant="outline"
+                title="Preview"
+                onPress={() => {
+
+                }}
+                style={styles.selectButton}
+              />
             </View>
           </View>
 
@@ -760,6 +770,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
   },
+  selectButton: {
+    width: '100%',
+    marginTop: 0,
+    marginBottom: 0,
+    alignSelf: 'center',
+  }
 });
 
 const figmaVersionStyles = StyleSheet.create({
@@ -768,11 +784,13 @@ const figmaVersionStyles = StyleSheet.create({
     marginHorizontal: 16,
   },
   sectionTitle: {
+    color: '#2D2D2D',
+    fontFamily: "Circular Std",
     fontSize: 16,
-    fontWeight: '600',
-    color: '#222',
+    fontStyle: "normal",
+    fontWeight: "400",
     marginBottom: 8,
-    marginTop: 16,
+    marginLeft: 6,
   },
   versionCard: {
     backgroundColor: '#F7F7F7',
