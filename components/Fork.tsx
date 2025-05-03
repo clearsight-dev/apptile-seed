@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useState } from 'react';
+import { ActivityIndicator, Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenParams } from '../screenParams';
-import { IAppFork, IForkWithBranches, IBranch } from '../types/type';
+import { IForkWithBranches } from '../types/type';
+import LanguageOption from './LanguageOption';
+import StyledButton from './StyledButton';
 // import {getConfigValue} from 'apptile-core';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Fork'>;
+
+const { width } = Dimensions.get('window');
 
 const Fork: React.FC<Props> = ({ navigation, route }) => {
   const { appId, forks } = route.params;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedForkId, setSelectedForkId] = useState<number | null>(forks && forks.length > 0 ? forks[0].id : null);
 
   const fetchBranches = async (forkId: number) => {
     try {
@@ -23,7 +28,7 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data: IForkWithBranches = await response.json();
-      
+
       if (data.branches.length > 1) {
         // Navigate to Branch screen if there are multiple branches
         navigation.navigate('Branch', {
@@ -48,26 +53,6 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const renderForkItem = ({ item }: { item: IAppFork }) => (
-    <TouchableOpacity 
-      style={styles.item}
-      onPress={() => fetchBranches(item.id)}
-    >
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>Version: {item.frameworkVersion}</Text>
-      <Text style={styles.subtitle}>Commit ID: {item.publishedCommitId}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderBranchItem = ({ item }: { item: IBranch }) => (
-    <TouchableOpacity style={styles.item}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>Branch: {item.branchName}</Text>
-      <Text style={styles.subtitle}>Commit ID: {item.headCommitId}</Text>
-      {item.isDefault && <Text style={styles.defaultBadge}>Default</Text>}
-    </TouchableOpacity>
-  );
-
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -85,52 +70,180 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={forks}
-        renderItem={renderForkItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <ScrollView contentContainerStyle={styles.onboardingContainer} showsVerticalScrollIndicator={false}>
+
+
+        <View style={styles.headerContainer}>
+          <View style={styles.logoBox}>
+            <Image
+              source={require('../assets/figma/apptile-logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.appName}>Mondo TNT</Text>
+          <View style={styles.liveBadge}>
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        </View>
+
+        <View style={styles.regionTitleRow}>
+          <Image
+            source={require('../assets/figma/regionIcon.png')}
+            style={styles.regionIcon}
+            resizeMode="contain"
+          />
+          <Text style={styles.regionTitleText}>Select a Language & Region to view</Text>
+        </View>
+
+
+        <View style={styles.cardContainer}>
+          <View style={styles.languageList}>
+            {forks && forks.map(fork => (
+              <LanguageOption
+                key={fork.id}
+                label={fork.title}
+                selected={selectedForkId === fork.id}
+                onPress={() => setSelectedForkId(fork.id)}
+              />
+            ))}
+          </View>
+        </View>
+
+
+
+      </ScrollView>
+
+
+      <View style={styles.bottomButtonContainer}>
+        <StyledButton
+          title="Select"
+          onPress={() => {
+            if (selectedForkId) {
+              fetchBranches(selectedForkId);
+            }
+          }}
+          style={styles.selectButton}
+        />
+      </View>
+
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+  onboardingContainer: {
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    paddingTop: 0,
+    paddingBottom: 32,
+    paddingHorizontal: 0,
+  },
+  cardContainer: {
+    width: '90%',
+    borderRadius: 16,
+    padding: 20,
+    paddingTop: 0,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  languageList: {
+    width: '100%',
+    marginBottom: 8,
+  },
+  selectButton: {
+    width: '100%',
+    marginTop: 0,
+    marginBottom: 0,
+    alignSelf: 'center',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  item: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  defaultBadge: {
-    marginTop: 5,
-    color: '#fff',
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
   errorText: {
     color: 'red',
     fontSize: 16,
+  },
+  bottomButtonContainer: {
+    width: '100%',
+    paddingHorizontal: 54,
+    paddingBottom: 24,
+    backgroundColor: '#fff',
+    borderTopWidth: 0,
+    // Optionally add shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    // Optionally add elevation for Android
+    elevation: 8,
+    marginBottom: 30
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F7',
+    paddingHorizontal: 20,
+    marginTop: 20
+  },
+  logoBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 32,
+    height: 32,
+  },
+  appName: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#111',
+    fontFamily: 'Circular Std',
+  },
+  liveBadge: {
+    backgroundColor: '#6DD13B',
+    borderRadius: 28,
+    justifyContent: 'center',
+    height: 25,
+    paddingHorizontal: 9,
+    paddingVertical: 6
+  },
+  liveText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 11,
+    letterSpacing: 1,
+    fontFamily: 'Circular Std',
+  },
+  regionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 26
+  },
+  regionIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8
+  },
+  regionTitleText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#2D2D2D',
+    fontFamily: 'Circular Std',
   },
 });
 

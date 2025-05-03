@@ -7,7 +7,6 @@ import { border, buttons, layout, text } from '../styles';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { setLocalStorageItem as setItem } from 'apptile-core';
-import { setLaunchSequenceSuccess } from '../constants/constant';
 
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
@@ -34,6 +33,7 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
       break;
     case 'UPDATE_FORK_IN_MANIFEST':
       {
+        // TODO(gaurav): add immer
         const existingForkIndex = state.manifest.forks.findIndex(fork => fork.id === action.payload.forkId);
         if (existingForkIndex >= 0) {
           let forks = state.manifest.forks;
@@ -525,7 +525,27 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
           console.log("bundlesPath: ", bundlesPath);
           await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
-          dispatch(setLaunchSequenceSuccess);
+          dispatch({
+            type: 'SET_LAUNCH_SEQUENCE',
+            payload: [
+              {
+                label: 'Clear old files',
+                status: 'success'
+              },
+              {
+                label: 'Download appconfig',
+                status: 'success'
+              },
+              {
+                label: 'Download javascript bundle',
+                status: 'success'
+              },
+              {
+                label: 'Setup new files',
+                status: 'success'
+              }
+            ]
+          });
         } catch (err) {
           console.error("Failed to unzip files", err)
           dispatch({

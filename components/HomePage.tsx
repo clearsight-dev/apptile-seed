@@ -12,7 +12,6 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
 import { HomeState, IAppForksResponse, IAppFork, DispatchFcn, HomeAction, IManifestResponse } from '../types/type';
 import HomeCard from './HomeCard';
-import { setLaunchSequenceSetupFileError, setLaunchSequenceSuccess } from '../constants/constant';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
@@ -575,10 +574,50 @@ async function downloadForPreview(
         console.log('contents of bundles: ', inBundles);
 
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
-        dispatch(setLaunchSequenceSuccess);
+        dispatch({
+          type: 'SET_LAUNCH_SEQUENCE',
+          payload: [
+            {
+              label: 'Clear old files',
+              status: 'success'
+            },
+            {
+              label: 'Download appconfig',
+              status: 'success'
+            },
+            {
+              label: 'Download javascript bundle',
+              status: 'success'
+            },
+            {
+              label: 'Setup new files',
+              status: 'success'
+            }
+          ]
+        });
       } catch (err) {
         logger.error("Failed to unzip files", err)
-        dispatch(setLaunchSequenceSetupFileError);
+        dispatch({
+          type: 'SET_LAUNCH_SEQUENCE',
+          payload: [
+            {
+              label: 'Clear old files',
+              status: 'success'
+            },
+            {
+              label: 'Download appconfig',
+              status: 'error'
+            },
+            {
+              label: 'Download javascript bundle',
+              status: 'error'
+            },
+            {
+              label: 'Setup new files',
+              status: 'error'
+            }
+          ]
+        });
       }
     } else {
       console.error('AppId not found. stopping')
