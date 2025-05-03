@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useReducer } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Pressable, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenParams } from '../screenParams';
-import { DispatchFcn, HomeState, IAppDraftResponse, IManifestResponse, IFork, HomeAction } from '../types/type';
-import { border, buttons, layout, text } from '../styles';
+import { setLocalStorageItem as setItem } from 'apptile-core';
+import React, { useEffect, useReducer, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
-import { setLocalStorageItem as setItem } from 'apptile-core';
+import { ScreenParams } from '../screenParams';
+import { HomeAction, HomeState, IAppDraftResponse, IFork, IManifestResponse } from '../types/type';
+import AppInfo from './AppInfo';
 
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
@@ -639,60 +639,85 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   const currentFork = state.manifest.forks.find(f => f.id === forkId);
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
-        <Text style={styles.title}>{state.manifest.name}</Text>
-        <Text style={[text.secondary]}>App ID: {appId}</Text>
-        <Text style={[text.secondary]}>Fork ID: {forkId}</Text>
-        <Text style={[text.secondary]}>Branch ID: {branchId}</Text>
-        <Text style={[text.secondary]}>Branch Name: {branchName}</Text>
+    <>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.container}>
 
-        {currentFork && currentFork.publishedCommitId ? (
-          <View style={[styles.draftContainer, border.solid, border.round1, layout.p1]}>
-            <Text style={[text.danger]}>PUBLISHED</Text>
-            <View style={[layout.flexRow, layout.alignCenter, layout.justifyBetween]}>
-              <Text>{currentFork.title}</Text>
-              <View style={[layout.flexCol, layout.grow]}>
-                <View style={[layout.flexRow, layout.grow, layout.justifySpaceEvenly]}>
-                  <Text>{state.manifest.androidBundleId || "-"}</Text>
-                  <Text>{state.manifest.iosBundleId || "-"}</Text>
-                  <Text>{currentFork.publishedCommitId}</Text>
-                  <Pressable 
-                    style={[buttons.primary]}
-                    onPress={() => downloadForPreview(
-                      currentFork.publishedCommitId,
-                      state.manifest.iosBundleId,
-                      state.manifest.androidBundleId
-                    )}
-                  >
-                    <Text style={[text.accent, text.large]}>Download</Text>
-                  </Pressable>
+          {/* <Text style={styles.title}>{state.manifest.name}</Text>
+          <Text style={[text.secondary]}>App ID: {appId}</Text>
+          <Text style={[text.secondary]}>Fork ID: {forkId}</Text>
+          <Text style={[text.secondary]}>Branch ID: {branchId}</Text>
+          <Text style={[text.secondary]}>Branch Name: {branchName}</Text>
+
+          {currentFork && currentFork.publishedCommitId ? (
+            <View style={[styles.draftContainer, border.solid, border.round1, layout.p1]}>
+              <Text style={[text.danger]}>PUBLISHED</Text>
+              <View style={[layout.flexRow, layout.alignCenter, layout.justifyBetween]}>
+                <Text>{currentFork.title}</Text>
+                <View style={[layout.flexCol, layout.grow]}>
+                  <View style={[layout.flexRow, layout.grow, layout.justifySpaceEvenly]}>
+                    <Text>{state.manifest.androidBundleId || "-"}</Text>
+                    <Text>{state.manifest.iosBundleId || "-"}</Text>
+                    <Text>{currentFork.publishedCommitId}</Text>
+                    <Pressable 
+                      style={[buttons.primary]}
+                      onPress={() => downloadForPreview(
+                        currentFork.publishedCommitId,
+                        state.manifest.iosBundleId,
+                        state.manifest.androidBundleId
+                      )}
+                    >
+                      <Text style={[text.accent, text.large]}>Download</Text>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        ) : (
-          <View style={[styles.draftContainer, border.solid, border.round1, layout.p1]}>
-            <Text style={[text.safe]}>No Published Version Live</Text>
-          </View>
-        )}
-
-        {appDraft && (
-          <>
-            <Text style={styles.subtitle}>Latest Draft</Text>
-            <View style={styles.draftContainer}>
-              <Text style={styles.text}>Commit ID: {appDraft.commitId}</Text>
-              <Text style={styles.text}>Android Bundle URL: {appDraft.androidBundleUrl || 'Not available'}</Text>
-              <Text style={styles.text}>iOS Bundle URL: {appDraft.iosBundleUrl || 'Not available'}</Text>
-              <Text style={styles.text}>Navigators Bundle URL: {appDraft.navigatorsBundleUrl || 'Not available'}</Text>
-              <Text style={styles.text}>Plugins Bundle URL: {appDraft.pluginsBundleUrl || 'Not available'}</Text>
-              <Text style={styles.text}>Created At: {new Date(appDraft.createdAt).toLocaleString()}</Text>
-              <Text style={styles.text}>Updated At: {new Date(appDraft.updatedAt).toLocaleString()}</Text>
+          ) : (
+            <View style={[styles.draftContainer, border.solid, border.round1, layout.p1]}>
+              <Text style={[text.safe]}>No Published Version Live</Text>
             </View>
-          </>
-        )}
-      </View>
-    </ScrollView>
+          )}
+
+          {appDraft && (
+            <>
+              <Text style={styles.subtitle}>Latest Draft</Text>
+              <View style={styles.draftContainer}>
+                <Text style={styles.text}>Commit ID: {appDraft.commitId}</Text>
+                <Text style={styles.text}>Android Bundle URL: {appDraft.androidBundleUrl || 'Not available'}</Text>
+                <Text style={styles.text}>iOS Bundle URL: {appDraft.iosBundleUrl || 'Not available'}</Text>
+                <Text style={styles.text}>Navigators Bundle URL: {appDraft.navigatorsBundleUrl || 'Not available'}</Text>
+                <Text style={styles.text}>Plugins Bundle URL: {appDraft.pluginsBundleUrl || 'Not available'}</Text>
+                <Text style={styles.text}>Created At: {new Date(appDraft.createdAt).toLocaleString()}</Text>
+                <Text style={styles.text}>Updated At: {new Date(appDraft.updatedAt).toLocaleString()}</Text>
+              </View>
+            </>
+          )} */}
+
+          <AppInfo />
+
+          <View style={figmaVersionStyles.sectionContainer}>
+            <Text style={figmaVersionStyles.sectionTitle}>Latest</Text>
+            <View style={figmaVersionStyles.versionCard}>
+              <Text style={figmaVersionStyles.versionLabel}>Version</Text>
+              <Text style={figmaVersionStyles.versionDate}>13 Apr, 2025</Text>
+              <Pressable style={figmaVersionStyles.previewButtonFilled}>
+                <Text style={figmaVersionStyles.previewButtonFilledText}>Preview</Text>
+              </Pressable>
+            </View>
+            <Text style={figmaVersionStyles.sectionTitle}>Draft</Text>
+            <View style={figmaVersionStyles.versionCard}>
+              <Text style={figmaVersionStyles.versionLabel}>Version</Text>
+              <Text style={figmaVersionStyles.versionDate}>10 Mar, 2025</Text>
+              <Pressable style={figmaVersionStyles.previewButtonOutline}>
+                <Text style={figmaVersionStyles.previewButtonOutlineText}>Preview</Text>
+              </Pressable>
+            </View>
+          </View>
+
+        </View>
+      </ScrollView>
+    </>
   );
 }
 
@@ -735,6 +760,63 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
   },
-}); 
+});
+
+const figmaVersionStyles = StyleSheet.create({
+  sectionContainer: {
+    marginTop: 24,
+    marginHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  versionCard: {
+    backgroundColor: '#F7F7F7',
+    borderRadius: 18,
+    padding: 24,
+    marginBottom: 16,
+  },
+  versionLabel: {
+    fontSize: 14,
+    color: '#B0B0B0',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  versionDate: {
+    fontSize: 20,
+    color: '#222',
+    fontWeight: '600',
+    marginBottom: 18,
+  },
+  previewButtonFilled: {
+    backgroundColor: '#295DDB',
+    borderRadius: 32,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  previewButtonFilledText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  previewButtonOutline: {
+    borderWidth: 2,
+    borderColor: '#295DDB',
+    borderRadius: 32,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  previewButtonOutlineText: {
+    color: '#295DDB',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default AppDetail;

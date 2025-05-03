@@ -5,6 +5,7 @@ import { ScreenParams } from '../screenParams';
 import { IForkWithBranches } from '../types/type';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
+import AppInfo from './AppInfo';
 // import {getConfigValue} from 'apptile-core';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Fork'>;
@@ -74,23 +75,11 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
       <ScrollView contentContainerStyle={styles.onboardingContainer} showsVerticalScrollIndicator={false}>
 
 
-        <View style={styles.headerContainer}>
-          <View style={styles.logoBox}>
-            <Image
-              source={require('../assets/figma/apptile-logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-          <Text style={styles.appName}>Mondo TNT</Text>
-          <View style={styles.liveBadge}>
-            <Text style={styles.liveText}>LIVE</Text>
-          </View>
-        </View>
+        <AppInfo />
 
         <View style={styles.regionTitleRow}>
           <Image
-            source={require('../assets/figma/regionIcon.png')}
+            source={require('../assets/regionIcon.png')}
             style={styles.regionIcon}
             resizeMode="contain"
           />
