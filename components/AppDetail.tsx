@@ -12,6 +12,12 @@ import { getFormattedDate } from '../utils/commonUtil';
 import { SvgXml } from 'react-native-svg';
 import RNRestart from 'react-native-restart';
 import Tooltip from './Tooltip';
+import {
+  fetchManifestApi,
+  fetchAppDraftApi,
+  fetchPushLogsApi,
+  fetchLastSavedConfigApi
+} from '../utils/api';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
 function reducer(state: HomeState, action: HomeAction): HomeState {
@@ -103,10 +109,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
   async function fetchPushLogs(appId: string) {
     try {
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-      const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
-      let pushLogs = await fetch(url).then(res => res.json())
+      const pushLogs = await fetchPushLogsApi(appId);
       dispatch({
         type: 'SET_PUSHLOGS',
         payload: pushLogs
@@ -123,25 +126,13 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   async function fetchAppDraft(forkId: number) {
     try {
       setLoading(true);
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-      const fetchAppDraftUrl = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branch/${branchName}/PreviewAppDraft`;
-      console.log('fetchAppDraftUrl', fetchAppDraftUrl);
-      const response = await fetch(fetchAppDraftUrl);
-
-      if (response.status === 404) {
+      const data = await fetchAppDraftApi(appId, forkId, branchName);
+      if ((data as any).notFound) {
         setError('Draft not found');
         setAppDraft(null);
         return;
       }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: IAppDraftResponse = await response.json();
-      console.log('data IAppDraftResponse', data);
-      setAppDraft(data.appDraft);
+      setAppDraft((data as IAppDraftResponse).appDraft);
     } catch (err) {
       console.error('Error fetching app draft:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch app draft');
@@ -155,14 +146,9 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       commitId: -1,
       cdnlink: ''
     };
-
     try {
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-      const fetchUrl = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`;
-      console.log('fetching url', fetchUrl);
-      const { url } = await fetch(fetchUrl).then(res => res.json())
-      console.log('url', url);
+      const data = await fetchLastSavedConfigApi(appId, forkId);
+      const url = data.url;
       const commitId = url.match(/\/([0-9]+)\.json$/);
       if (commitId && commitId[1]) {
         result.cdnlink = url;
@@ -176,13 +162,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
   async function fetchManifest(appId: string) {
     try {
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-      const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/manifest`;
-      console.log('fetching manifest', url);
-      const manifestData: IManifestResponse = await fetch(url).then(res => res.json());
-      console.log('manifestData', manifestData);
-
+      const manifestData = await fetchManifestApi(appId);
       let manifest: HomeState['manifest'] = {
         name: manifestData.name,
         published: manifestData.published,
@@ -200,16 +180,13 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           };
         })
       };
-
       dispatch({
         type: 'SET_MANIFEST',
         payload: manifest
       });
-
       for (let i = 0; i < manifest.forks.length; ++i) {
         const fork = manifest.forks[i];
         const mainBranchLatestSave = await fetchLastSavedConfig(appId, fork.id);
-        console.log('mainBranchLatestSave', mainBranchLatestSave);
         dispatch({
           type: 'UPDATE_FORK_IN_MANIFEST',
           payload: {
@@ -476,9 +453,10 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         ]
       });
 
-      const apptileBackendUrl = 'http://localhost:3000';
+      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
       if (appId && publishedCommitId) {
-        const appconfigUrl = `${apptileBackendUrl}/${appId}/main/main/${publishedCommitId}.json`;
+        const appconfigUrl = `${APPTILE_API_ENDPOINT}/${appId}/main/main/${publishedCommitId}.json`;
         console.log("Appconfig url: " + appconfigUrl);
 
         const appConfigDownload = RNFetchBlob.config({
@@ -672,57 +650,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         <AppInfo appName={state.manifest.name} showLiveBadge={!!currentFork?.publishedCommitId} />
         <View style={styles.container}>
 
-          {/* <Text style={styles.title}>{state.manifest.name}</Text>
-          <Text style={[text.secondary]}>App ID: {appId}</Text>
-          <Text style={[text.secondary]}>Fork ID: {forkId}</Text>
-          <Text style={[text.secondary]}>Branch Name: {branchName}</Text>
-
-          {currentFork && currentFork.publishedCommitId ? (
-            <View style={[styles.draftContainer, border.solid, border.round1, layout.p1]}>
-              <Text style={[text.danger]}>PUBLISHED</Text>
-              <View style={[layout.flexRow, layout.alignCenter, layout.justifyBetween]}>
-                <Text>{currentFork.title}</Text>
-                <View style={[layout.flexCol, layout.grow]}>
-                  <View style={[layout.flexRow, layout.grow, layout.justifySpaceEvenly]}>
-                    <Text>{state.manifest.androidBundleId || "-"}</Text>
-                    <Text>{state.manifest.iosBundleId || "-"}</Text>
-                    <Text>{currentFork.publishedCommitId}</Text>
-                    <Pressable 
-                      style={[buttons.primary]}
-                      onPress={() => downloadForPreview(
-                        currentFork.publishedCommitId,
-                        state.manifest.iosBundleId,
-                        state.manifest.androidBundleId
-                      )}
-                    >
-                      <Text style={[text.accent, text.large]}>Download</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={[styles.draftContainer, border.solid, border.round1, layout.p1]}>
-              <Text style={[text.safe]}>No Published Version Live</Text>
-            </View>
-          )}
-
-          {appDraft && (
-            <>
-              <Text style={styles.subtitle}>Latest Draft</Text>
-              <View style={styles.draftContainer}>
-                <Text style={styles.text}>Commit ID: {appDraft.commitId}</Text>
-                <Text style={styles.text}>Android Bundle URL: {appDraft.androidBundleUrl || 'Not available'}</Text>
-                <Text style={styles.text}>iOS Bundle URL: {appDraft.iosBundleUrl || 'Not available'}</Text>
-                <Text style={styles.text}>Navigators Bundle URL: {appDraft.navigatorsBundleUrl || 'Not available'}</Text>
-                <Text style={styles.text}>Plugins Bundle URL: {appDraft.pluginsBundleUrl || 'Not available'}</Text>
-                <Text style={styles.text}>Created At: {new Date(appDraft.createdAt).toLocaleString()}</Text>
-                <Text style={styles.text}>Updated At: {new Date(appDraft.updatedAt).toLocaleString()}</Text>
-              </View>
-            </>
-          )} */}
-
-
           <View style={styles.sectionContainer}>
 
             {
@@ -733,13 +660,8 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                   <Text style={styles.versionLabel}>Version</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={styles.versionDate}>
-                      {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
+                      {appDraft?.createdAt ? getFormattedDate(currentFork.createdAt) : ''}
                     </Text>
-                    <Tooltip
-                      visible={showFailedTooltip}
-                      onClose={() => setShowFailedTooltip(false)}
-                      message="Download failed. Please try again."
-                    />
                   </View>
                   <StyledButton
                     loading={livePreviewLoading}
@@ -764,16 +686,18 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                   <>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
                       <Text style={styles.versionLabel}>Version</Text>
+                     
+                     {/* Failed Code */}
                       <TouchableOpacity
                         onPress={() => setShowFailedTooltip(true)}
                         activeOpacity={0.7}
-                        style={{ flexDirection: 'row', alignItems: 'center' }}
-                      >
+                        style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
                           Failed
                         </Text>
                         <SvgXml xml={downloadFailedIcon} width={22} height={22} />
                       </TouchableOpacity>
+
                     </View>
                     <Text style={styles.versionDate}>
                       {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
@@ -881,10 +805,10 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   versionDate: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#222',
     fontWeight: '600',
-    marginBottom: 18,
+    marginBottom: 18
   },
   previewButtonFilled: {
     backgroundColor: '#295DDB',

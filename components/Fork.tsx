@@ -29,7 +29,8 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
         // Navigate to Branch screen if there are multiple branches
         navigation.navigate('Branch', {
           appId: appId,
-          branches: branchData.branches
+          branches: branchData.branches,
+          forkId: forkId
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch

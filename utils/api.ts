@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IForkWithBranches } from '../types/type';
+import { IForkWithBranches, IManifestResponse, IAppDraftResponse } from '../types/type';
 // import {getConfigValue} from 'apptile-core';
 
 
@@ -8,5 +8,44 @@ export async function fetchBranchesApi(appId: string | number, forkId: string | 
   const APPTILE_API_ENDPOINT = 'http://localhost:3000';
   const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branches`;
   const response = await axios.get<IForkWithBranches>(url);
+  return response.data;
+}
+
+export async function fetchManifestApi(appId: string | number) {
+  // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+  const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/manifest`;
+  const response = await axios.get<IManifestResponse>(url);
+  return response.data;
+}
+
+export async function fetchAppDraftApi(appId: string | number, forkId: string | number, branchName: string) {
+  // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+  const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branch/${branchName}/PreviewAppDraft`;
+  try {
+    const response = await axios.get<IAppDraftResponse>(url);
+    return response.data;
+  } catch (err: any) {
+    if (err.response && err.response.status === 404) {
+      return { notFound: true };
+    }
+    throw err;
+  }
+}
+
+export async function fetchPushLogsApi(appId: string | number) {
+  // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+  const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
+  const response = await axios.get(url);
+  return response.data;
+}
+
+export async function fetchLastSavedConfigApi(appId: string | number, forkId: string | number) {
+  // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+  const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`;
+  const response = await axios.get(url);
   return response.data;
 } 

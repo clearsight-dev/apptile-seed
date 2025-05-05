@@ -1,47 +1,60 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenParams } from '../screenParams';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
 import AppInfo from './AppInfo';
+import { fetchManifestApi } from '../utils/api';
+import { IFork } from '../types/type';
 
 const { width } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<ScreenParams, 'Branch'>;
 
 const Branch: React.FC<Props> = ({ route, navigation }) => {
-  const { appId, branches } = route.params;
+  const { appId, branches, forkId } = route.params;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(branches && branches.length > 0 ? branches[0].id : null);
+  const [manifest, setManifest] = useState<any>(null);
+
+  async function fetchManifest() {
+    const data = await fetchManifestApi(appId);
+    const getPublishedCommitId = data?.forks.find(f => f.id === selectedBranchId)?.publishedCommitId;
+    console.log('getPublishedCommitId', getPublishedCommitId);
+  }
+
+  useEffect(() => {
+    fetchManifest();
+  }, [appId]);
 
   const handleBranchPress = async (branchId: number) => {
     const branch = branches.find(b => b.id === branchId);
-    if (branch) {
+    if (branch && manifest) {
       navigation.navigate('AppDetail', {
         appId,
         forkId: branch.forkId,
         branchName: branch.branchName
       });
     }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
   }
 
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={styles.centerContainer}>
+  //       <ActivityIndicator size="large" color="#0000ff" />
+  //     </View>
+  //   );
+  // }
+
+  // if (error) {
+  //   return (
+  //     <View style={styles.centerContainer}>
+  //       <Text style={styles.errorText}>{error}</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -54,7 +67,7 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
             style={styles.regionIcon}
             resizeMode="contain"
           />
-          <Text style={styles.regionTitleText}>Select a saved version</Text>
+          <Text style={styles.regionTitleText}>Select a Version to Preview</Text>
         </View>
         <View style={styles.cardContainer}>
           <View style={styles.languageList}>
