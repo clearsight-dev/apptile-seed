@@ -8,8 +8,6 @@ import AppInfo from './AppInfo';
 import { fetchManifestApi, fetchCommitApi } from '../utils/api';
 import { IBranch, IFork } from '../types/type';
 
-const { width } = Dimensions.get('window');
-
 type Props = NativeStackScreenProps<ScreenParams, 'Branch'>;
 
 const Branch: React.FC<Props> = ({ route, navigation }) => {
@@ -78,14 +76,17 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
         </View>
         <View style={styles.cardContainer}>
 
-          <Text style={styles.sectionTitle}>Live Version</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, marginLeft: 6 }}>
+            <Text style={styles.sectionTitle}>Live Version</Text>
+            <View style={styles.greenDot} />
+          </View>
           <View style={styles.languageList}>
-              <LanguageOption
-                key={liveBranch?.id}
-                label={liveBranch?.title || ''}
-                selected={selectedBranchId === liveBranch?.id}
-                onPress={() => setSelectedBranchId(liveBranch?.id ?? null)}
-              />
+            <LanguageOption
+              key={liveBranch?.id}
+              label={liveBranch?.title || ''}
+              selected={selectedBranchId === liveBranch?.id}
+              onPress={() => setSelectedBranchId(liveBranch?.id ?? null)}
+            />
           </View>
         </View>
 
@@ -93,16 +94,22 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
 
           <Text style={styles.sectionTitle}>Other Version</Text>
           <View style={styles.languageList}>
-            {branches && branches
-              .filter(branch => branch.id !== liveBranchId)
-              .map(branch => (
-                <LanguageOption
-                  key={branch.id}
-                  label={branch.title}
-                  selected={selectedBranchId === branch.id}
-                  onPress={() => setSelectedBranchId(branch.id)}
-                />
-              ))}
+            {branches && branches.filter(branch => branch.id !== liveBranchId).length === 0 ? (
+              <View style={styles.noVersionsBox}>
+                <Text style={styles.noVersionsText}>No Saved Versions Yet</Text>
+              </View>
+            ) : (
+              branches && branches
+                .filter(branch => branch.id !== liveBranchId)
+                .map(branch => (
+                  <LanguageOption
+                    key={branch.id}
+                    label={branch.title}
+                    selected={selectedBranchId === branch.id}
+                    onPress={() => setSelectedBranchId(branch.id)}
+                  />
+                ))
+            )}
           </View>
         </View>
       </ScrollView>
@@ -254,12 +261,30 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: '#2D2D2D',
-    fontFamily: "Circular Std",
     fontSize: 16,
-    fontStyle: "normal",
-    fontWeight: "400",
-    marginBottom: 8,
+    fontWeight: '400',
+    marginBottom: 10
+  },
+  greenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 4,
+    backgroundColor: '#6DD13B',
     marginLeft: 6,
+  },
+  noVersionsBox: {
+    width: '100%',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    paddingVertical: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  noVersionsText: {
+    color: '#B0B0B0',
+    fontSize: 14,
+    fontWeight: '400',
   },
 });
 
