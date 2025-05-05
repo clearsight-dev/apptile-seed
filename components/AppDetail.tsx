@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { setLocalStorageItem as setItem } from 'apptile-core';
 import React, { useEffect, useReducer, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View, TouchableOpacity, Modal } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
@@ -10,7 +10,8 @@ import AppInfo from './AppInfo';
 import StyledButton from './StyledButton';
 import { getFormattedDate } from '../utils/commonUtil';
 import { SvgXml } from 'react-native-svg';
-
+import RNRestart from 'react-native-restart';
+import Tooltip from './Tooltip';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
 function reducer(state: HomeState, action: HomeAction): HomeState {
@@ -69,6 +70,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   const [error, setError] = useState<string | null>(null);
   const [livePreviewLoading, setLivePreviewLoading] = useState(false);
   const [draftPreviewLoading, setDraftPreviewLoading] = useState(false);
+  const [showFailedTooltip, setShowFailedTooltip] = useState(false);
   const [state, dispatch] = useReducer(
     reducer,
     {
@@ -367,6 +369,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
             }
           ]
         });
+        RNRestart.Restart()
       } catch (err) {
         setDraftPreviewLoading(false);
         console.error("Failed to unzip files", err)
@@ -565,6 +568,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
               }
             ]
           });
+          RNRestart.Restart()
         } catch (err) {
           setLivePreviewLoading(false);
           console.error("Failed to unzip files", err)
@@ -731,7 +735,11 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                     <Text style={styles.versionDate}>
                       {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
                     </Text>
-                    <SvgXml xml={downloadFailedIcon} width={22} height={22} style={{ marginLeft: 8 }} />
+                    <Tooltip
+                      visible={showFailedTooltip}
+                      onClose={() => setShowFailedTooltip(false)}
+                      message="Download failed. Please try again."
+                    />
                   </View>
                   <StyledButton
                     loading={livePreviewLoading}
@@ -755,17 +763,26 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                 appDraft ?
                   <>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
-                    <Text style={styles.versionLabel}>Version</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center'  }}>
-                        <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6}}>
+                      <Text style={styles.versionLabel}>Version</Text>
+                      <TouchableOpacity
+                        onPress={() => setShowFailedTooltip(true)}
+                        activeOpacity={0.7}
+                        style={{ flexDirection: 'row', alignItems: 'center' }}
+                      >
+                        <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
                           Failed
                         </Text>
                         <SvgXml xml={downloadFailedIcon} width={22} height={22} />
-                      </View>
+                      </TouchableOpacity>
                     </View>
                     <Text style={styles.versionDate}>
-                        {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
-                      </Text>
+                      {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
+                    </Text>
+                    <Tooltip
+                      visible={showFailedTooltip}
+                      onClose={() => setShowFailedTooltip(false)}
+                      message="Download failed. Please try again."
+                    />
                     <StyledButton
                       loading={draftPreviewLoading}
                       disabled={draftPreviewLoading}

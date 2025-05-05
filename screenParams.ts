@@ -14,7 +14,6 @@ export type ScreenParams = {
   AppDetail: {
     appId: string;
     forkId: number;
-    branchId?: number;
     branchName?: string;
   }
 };
