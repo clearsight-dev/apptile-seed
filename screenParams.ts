@@ -10,10 +10,11 @@ export type ScreenParams = {
   Branch: {
     appId: string;
     branches: IForkWithBranches['branches'];
+    forkId: number;
   },
   AppDetail: {
     appId: string;
     forkId: number;
-    branchName?: string;
+    branchName: string;
   }
 };

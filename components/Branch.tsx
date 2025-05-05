@@ -5,8 +5,8 @@ import { ScreenParams } from '../screenParams';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
 import AppInfo from './AppInfo';
-import { fetchManifestApi } from '../utils/api';
-import { IFork } from '../types/type';
+import { fetchManifestApi, fetchCommitApi } from '../utils/api';
+import { IBranch, IFork } from '../types/type';
 
 const { width } = Dimensions.get('window');
 
@@ -17,12 +17,19 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(branches && branches.length > 0 ? branches[0].id : null);
-  const [manifest, setManifest] = useState<any>(null);
+  const [liveBranchId, setLiveBranchId] = useState<number | null>(null);
+  const [liveBranch, setLiveBranch] = useState<IBranch | null>(null);
 
   async function fetchManifest() {
     const data = await fetchManifestApi(appId);
     const getPublishedCommitId = data?.forks.find(f => f.id === selectedBranchId)?.publishedCommitId;
-    console.log('getPublishedCommitId', getPublishedCommitId);
+
+    const commitData = await fetchCommitApi(getPublishedCommitId as number);
+    setLiveBranchId(commitData?.branchId);
+    console.log('commitData', commitData);
+    const getLiveBranch = branches.find(b => b.id === commitData?.branchId) as IBranch;
+    console.log('getLiveBranch', getLiveBranch);
+    setLiveBranch(getLiveBranch);
   }
 
   useEffect(() => {
@@ -31,7 +38,7 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
 
   const handleBranchPress = async (branchId: number) => {
     const branch = branches.find(b => b.id === branchId);
-    if (branch && manifest) {
+    if (branch) {
       navigation.navigate('AppDetail', {
         appId,
         forkId: branch.forkId,
@@ -70,15 +77,32 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
           <Text style={styles.regionTitleText}>Select a Version to Preview</Text>
         </View>
         <View style={styles.cardContainer}>
+
+          <Text style={styles.sectionTitle}>Live Version</Text>
           <View style={styles.languageList}>
-            {branches && branches.map(branch => (
               <LanguageOption
-                key={branch.id}
-                label={branch.title}
-                selected={selectedBranchId === branch.id}
-                onPress={() => setSelectedBranchId(branch.id)}
+                key={liveBranch?.id}
+                label={liveBranch?.title || ''}
+                selected={selectedBranchId === liveBranch?.id}
+                onPress={() => setSelectedBranchId(liveBranch?.id ?? null)}
               />
-            ))}
+          </View>
+        </View>
+
+        <View style={styles.cardContainer}>
+
+          <Text style={styles.sectionTitle}>Other Version</Text>
+          <View style={styles.languageList}>
+            {branches && branches
+              .filter(branch => branch.id !== liveBranchId)
+              .map(branch => (
+                <LanguageOption
+                  key={branch.id}
+                  label={branch.title}
+                  selected={selectedBranchId === branch.id}
+                  onPress={() => setSelectedBranchId(branch.id)}
+                />
+              ))}
           </View>
         </View>
       </ScrollView>
@@ -227,6 +251,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#222',
     fontFamily: 'Circular Std',
+  },
+  sectionTitle: {
+    color: '#2D2D2D',
+    fontFamily: "Circular Std",
+    fontSize: 16,
+    fontStyle: "normal",
+    fontWeight: "400",
+    marginBottom: 8,
+    marginLeft: 6,
   },
 });
 

@@ -2,6 +2,20 @@ import axios from 'axios';
 import { IForkWithBranches, IManifestResponse, IAppDraftResponse } from '../types/type';
 // import {getConfigValue} from 'apptile-core';
 
+export interface ICommitResponse {
+  id: number;
+  forkId: number;
+  branchId: number;
+  s3ObjectKey: string;
+  remark: string;
+  previousCommitId: number | null;
+  isPublished: boolean;
+  publishStatus: string;
+  updatedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
 
 export async function fetchBranchesApi(appId: string | number, forkId: string | number): Promise<IForkWithBranches> {
   // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
@@ -47,5 +61,13 @@ export async function fetchLastSavedConfigApi(appId: string | number, forkId: st
   const APPTILE_API_ENDPOINT = 'http://localhost:3000';
   const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`;
   const response = await axios.get(url);
+  return response.data;
+}
+
+export async function fetchCommitApi(commitId: string | number): Promise<ICommitResponse> {
+  // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+  const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/commit/${commitId}`;
+  const response = await axios.get<ICommitResponse>(url);
   return response.data;
 } 
