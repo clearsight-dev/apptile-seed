@@ -1,20 +1,32 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View, ImageSourcePropType } from 'react-native';
 
-const AppInfo = () => {
+interface AppInfoProps {
+  logoSource?: ImageSourcePropType;
+  appName?: string;
+  showLiveBadge?: boolean;
+}
+
+const AppInfo: React.FC<AppInfoProps> = ({
+  logoSource = require('../assets/apptile-logo.png'),
+  appName = 'Mondo TNT',
+  showLiveBadge = true,
+}) => {
   return (
     <View style={styles.headerContainer}>
       <View style={styles.logoBox}>
         <Image
-          source={require('../assets/apptile-logo.png')}
+          source={logoSource}
           style={styles.logo}
           resizeMode="contain"
         />
       </View>
-      <Text style={styles.appName}>Mondo TNT</Text>
-      <View style={styles.liveBadge}>
-        <Text style={styles.liveText}>LIVE</Text>
-      </View>
+      <Text style={styles.appName}>{appName}</Text>
+      {showLiveBadge && (
+        <View style={styles.liveBadge}>
+          <Text style={styles.liveText}>Live</Text>
+        </View>
+      )}
     </View>
   )
 }

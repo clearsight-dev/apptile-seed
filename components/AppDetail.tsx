@@ -642,7 +642,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   return (
     <>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-        <AppInfo />
+        <AppInfo appName={state.manifest.name} showLiveBadge={!!currentFork?.publishedCommitId} />
         <View style={styles.container}>
 
           {/* <Text style={styles.title}>{state.manifest.name}</Text>
@@ -698,27 +698,36 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
 
           <View style={figmaVersionStyles.sectionContainer}>
-            <Text style={figmaVersionStyles.sectionTitle}>Latest</Text>
-            <View style={figmaVersionStyles.versionCard}>
-              <Text style={figmaVersionStyles.versionLabel}>Version</Text>
-              <Text style={figmaVersionStyles.versionDate}>13 Apr, 2025</Text>
-              <StyledButton
-                title="Preview"
-                onPress={() => {
 
-                }}
-                style={styles.selectButton}
-              />
-            </View>
+            {
+              currentFork?.publishedCommitId &&
+              <>
+                <Text style={figmaVersionStyles.sectionTitle}>Latest</Text>
+                <View style={figmaVersionStyles.versionCard}>
+                  <Text style={figmaVersionStyles.versionLabel}>Version</Text>
+                  <Text style={figmaVersionStyles.versionDate}>13 Apr, 2025</Text>
+                  <StyledButton
+                    loading={false}
+                    disabled={false}
+                    title="Preview"
+                    onPress={() => {
+
+                    }}
+                    style={styles.selectButton}
+                  />
+                </View>
+              </>
+            }
             <Text style={figmaVersionStyles.sectionTitle}>Draft</Text>
             <View style={figmaVersionStyles.versionCard}>
               <Text style={figmaVersionStyles.versionLabel}>Version</Text>
               <Text style={figmaVersionStyles.versionDate}>10 Mar, 2025</Text>
               <StyledButton
+                loading={false}
+                disabled={false}
                 variant="outline"
                 title="Preview"
                 onPress={() => {
-
                 }}
                 style={styles.selectButton}
               />
