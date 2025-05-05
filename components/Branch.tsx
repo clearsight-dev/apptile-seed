@@ -22,7 +22,6 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
       navigation.navigate('AppDetail', {
         appId,
         forkId: branch.forkId,
-        branchId: branch.id,
         branchName: branch.branchName
       });
     }

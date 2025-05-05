@@ -8,6 +8,8 @@ import { ScreenParams } from '../screenParams';
 import { HomeAction, HomeState, IAppDraftResponse, IFork, IManifestResponse } from '../types/type';
 import AppInfo from './AppInfo';
 import StyledButton from './StyledButton';
+import { getFormattedDate } from '../utils/commonUtil';
+import { SvgXml } from 'react-native-svg';
 
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
@@ -61,10 +63,12 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
 }
 
 const AppDetail: React.FC<ScreenProps> = ({ route }) => {
-  const { appId, forkId, branchId, branchName } = route.params;
+  const { appId, forkId, branchName } = route.params;
   const [appDraft, setAppDraft] = useState<IAppDraftResponse['appDraft'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [livePreviewLoading, setLivePreviewLoading] = useState(false);
+  const [draftPreviewLoading, setDraftPreviewLoading] = useState(false);
   const [state, dispatch] = useReducer(
     reducer,
     {
@@ -88,10 +92,12 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   );
 
   useEffect(() => {
-    fetchManifest(appId);
-    fetchAppDraft();
-    fetchPushLogs(appId);
-  }, [appId, forkId, branchId]);
+    if (appId) {
+      fetchManifest(appId);
+      fetchAppDraft(forkId);
+      fetchPushLogs(appId);
+    }
+  }, [appId, forkId, branchName]);
 
   async function fetchPushLogs(appId: string) {
     try {
@@ -112,20 +118,27 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     }
   }
 
-  async function fetchAppDraft() {
+  async function fetchAppDraft(forkId: number) {
     try {
       setLoading(true);
       // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
       const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-      const response = await fetch(
-        `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branch/${branchId}/PreviewAppDraft`
-      );
+      const fetchAppDraftUrl = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branch/${branchName}/PreviewAppDraft`;
+      console.log('fetchAppDraftUrl', fetchAppDraftUrl);
+      const response = await fetch(fetchAppDraftUrl);
+
+      if (response.status === 404) {
+        setError('Draft not found');
+        setAppDraft(null);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data: IAppDraftResponse = await response.json();
+      console.log('data IAppDraftResponse', data);
       setAppDraft(data.appDraft);
     } catch (err) {
       console.error('Error fetching app draft:', err);
@@ -216,6 +229,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     iosBundleId: number | null,
     androidBundleId: number | null
   ) {
+    setDraftPreviewLoading(true);
     dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
     const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
     const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
@@ -354,6 +368,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           ]
         });
       } catch (err) {
+        setDraftPreviewLoading(false);
         console.error("Failed to unzip files", err)
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
@@ -378,6 +393,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         });
       }
     } catch (err) {
+      setDraftPreviewLoading(false);
       console.error("Failed for some reason: ", err);
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
@@ -408,6 +424,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     iosBundleId: number | null,
     androidBundleId: number | null
   ) {
+    setLivePreviewLoading(true);
     dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
     const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
     const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
@@ -486,6 +503,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
             bundleUrl = artefact.cdnlink;
           }
         } else {
+          setLivePreviewLoading(false);
           console.error("Unsupported platform!");
         }
 
@@ -548,6 +566,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
             ]
           });
         } catch (err) {
+          setLivePreviewLoading(false);
           console.error("Failed to unzip files", err)
           dispatch({
             type: 'SET_LAUNCH_SEQUENCE',
@@ -572,6 +591,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           });
         }
       } else {
+        setLivePreviewLoading(false);
         console.error('AppId not found. stopping')
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
@@ -596,6 +616,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         })
       }
     } catch (err) {
+      setLivePreviewLoading(false);
       console.error("Failed for some reason: ", err);
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
@@ -629,15 +650,17 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-      </View>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <View style={styles.container}>
+  //       <Text style={styles.errorText}>Error: {error}</Text>
+  //     </View>
+  //   );
+  // }
 
   const currentFork = state.manifest.forks.find(f => f.id === forkId);
+
+  const downloadFailedIcon = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="10.56" stroke="#FF0000" stroke-width="0.88"/><path d="M12.1071 4.76944L11.6636 12.6736H10.333L9.87367 4.76944H12.1071ZM9.84199 14.9546C9.84199 14.321 10.3489 13.7824 10.9825 13.7824C11.6319 13.7824 12.1546 14.321 12.1546 14.9546C12.1546 15.5882 11.6319 16.1109 10.9825 16.1109C10.3489 16.1109 9.84199 15.5882 9.84199 14.9546Z" fill="#FF0000"/></svg>`;
 
   return (
     <>
@@ -648,7 +671,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           {/* <Text style={styles.title}>{state.manifest.name}</Text>
           <Text style={[text.secondary]}>App ID: {appId}</Text>
           <Text style={[text.secondary]}>Fork ID: {forkId}</Text>
-          <Text style={[text.secondary]}>Branch ID: {branchId}</Text>
           <Text style={[text.secondary]}>Branch Name: {branchName}</Text>
 
           {currentFork && currentFork.publishedCommitId ? (
@@ -697,40 +719,71 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           )} */}
 
 
-          <View style={figmaVersionStyles.sectionContainer}>
+          <View style={styles.sectionContainer}>
 
             {
               currentFork?.publishedCommitId &&
               <>
-                <Text style={figmaVersionStyles.sectionTitle}>Latest</Text>
-                <View style={figmaVersionStyles.versionCard}>
-                  <Text style={figmaVersionStyles.versionLabel}>Version</Text>
-                  <Text style={figmaVersionStyles.versionDate}>13 Apr, 2025</Text>
+                <Text style={styles.sectionTitle}>Latest</Text>
+                <View style={styles.versionCard}>
+                  <Text style={styles.versionLabel}>Version</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.versionDate}>
+                      {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
+                    </Text>
+                    <SvgXml xml={downloadFailedIcon} width={22} height={22} style={{ marginLeft: 8 }} />
+                  </View>
                   <StyledButton
-                    loading={false}
-                    disabled={false}
+                    loading={livePreviewLoading}
+                    disabled={livePreviewLoading}
                     title="Preview"
                     onPress={() => {
-
+                      downloadForPreview(
+                        currentFork.publishedCommitId,
+                        state.manifest.iosBundleId,
+                        state.manifest.androidBundleId
+                      )
                     }}
                     style={styles.selectButton}
                   />
                 </View>
               </>
             }
-            <Text style={figmaVersionStyles.sectionTitle}>Draft</Text>
-            <View style={figmaVersionStyles.versionCard}>
-              <Text style={figmaVersionStyles.versionLabel}>Version</Text>
-              <Text style={figmaVersionStyles.versionDate}>10 Mar, 2025</Text>
-              <StyledButton
-                loading={false}
-                disabled={false}
-                variant="outline"
-                title="Preview"
-                onPress={() => {
-                }}
-                style={styles.selectButton}
-              />
+            <Text style={styles.sectionTitle}>Draft</Text>
+            <View style={styles.versionCard}>
+              {
+                appDraft ?
+                  <>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
+                    <Text style={styles.versionLabel}>Version</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center'  }}>
+                        <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6}}>
+                          Failed
+                        </Text>
+                        <SvgXml xml={downloadFailedIcon} width={22} height={22} />
+                      </View>
+                    </View>
+                    <Text style={styles.versionDate}>
+                        {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
+                      </Text>
+                    <StyledButton
+                      loading={draftPreviewLoading}
+                      disabled={draftPreviewLoading}
+                      variant="outline"
+                      title="Preview"
+                      onPress={() => {
+                        downloadForPreviewNonCache(
+                          currentFork?.mainBranchLatestSave?.cdnlink as string,
+                          state.manifest.iosBundleId,
+                          state.manifest.androidBundleId
+                        )
+                      }}
+                      style={styles.selectButton}
+                    />
+                  </>
+                  :
+                  <Text style={styles.versionLabel}>No Draft is saved</Text>
+              }
             </View>
           </View>
 
@@ -784,10 +837,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 0,
     alignSelf: 'center',
-  }
-});
-
-const figmaVersionStyles = StyleSheet.create({
+  },
   sectionContainer: {
     marginTop: 24,
     marginHorizontal: 16,
@@ -814,7 +864,7 @@ const figmaVersionStyles = StyleSheet.create({
     marginBottom: 2,
   },
   versionDate: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#222',
     fontWeight: '600',
     marginBottom: 18,

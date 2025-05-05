@@ -10,8 +10,10 @@ import { Linking, Platform } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
-import { HomeState, IAppForksResponse, IAppFork, DispatchFcn, HomeAction, IManifestResponse } from '../types/type';
+import { HomeState, IAppForksResponse, IAppFork, DispatchFcn, HomeAction, IManifestResponse, IForkWithBranches } from '../types/type';
 import HomeCard from './HomeCard';
+import { defaultBranchName } from '../constants/constant';
+import { fetchBranchesApi } from '../utils/api';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
@@ -19,7 +21,7 @@ type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
 type NavigationProp = NativeStackNavigationProp<ScreenParams, 'PreviewHome'>;
 
 async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | string> {
-  const tempAppId = 'cda38d9c-403f-4a47-a8ce-a81dd5da9eb3';
+  const tempAppId = 'f225f58b-96d6-4b06-a24b-efe7af3db203';
   let appId: string | null = null;
   try {
     appId = tempAppId;
@@ -139,18 +141,31 @@ async function fetchForks(appId: string, dispatch: DispatchFcn, navigation: Navi
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data: IAppForksResponse = await response.json();
+    const forkData: IAppForksResponse = await response.json();
     
-    if (data.forks.length > 1) {
+    if (forkData.forks.length > 1) {
       navigation.navigate('Fork', {
         appId: appId,
-        forks: data.forks
+        forks: forkData.forks
       });
     } else {
-      navigation.navigate('AppDetail', {
-        appId: appId,
-        forkId: data.forks[0].id
-      });
+      // when the fork is only one, then we can directly go to the App Detail Page.
+      // but need to check If there are any versions created for that fork
+      const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkData?.forks[0].id);
+      if (branchData.branches.length > 1) {
+        // Navigate to Branch screen if there are multiple branches
+        navigation.navigate('Branch', {
+          appId: appId,
+          branches: branchData.branches
+        });
+      } else {
+        // Navigate to AppDetail screen if there's only one branch
+        navigation.navigate('AppDetail', {
+          appId: appId,
+          forkId: forkData.forks[0].id,
+          branchName:defaultBranchName
+        });
+      }
     }
   } catch (error) {
     console.error('Error fetching forks:', error);

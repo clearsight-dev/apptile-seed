@@ -6,6 +6,8 @@ import { IForkWithBranches } from '../types/type';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
 import AppInfo from './AppInfo';
+import { fetchBranchesApi } from '../utils/api';
+import { defaultBranchName } from '../constants/constant';
 // import {getConfigValue} from 'apptile-core';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Fork'>;
@@ -20,30 +22,21 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
 
   const fetchBranches = async (forkId: number) => {
     try {
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
       setLoading(true);
       setError(null);
-      const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/fork/${forkId}/branches`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: IForkWithBranches = await response.json();
-
-      if (data.branches.length > 1) {
+      const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkId);
+      if (branchData.branches.length > 1) {
         // Navigate to Branch screen if there are multiple branches
         navigation.navigate('Branch', {
           appId: appId,
-          branches: data.branches
+          branches: branchData.branches
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch
-        const singleBranch = data.branches?.[0];
         navigation.navigate('AppDetail', {
           appId: appId,
           forkId: forkId,
-          branchId: singleBranch?.id,
-          branchName: singleBranch?.branchName
+          branchName: defaultBranchName
         });
       }
     } catch (err) {
