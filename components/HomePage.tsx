@@ -1,19 +1,18 @@
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useIsFocused } from '@react-navigation/native';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   getConfigValue,
-  getLocalStorageItem as getItem,
   setLocalStorageItem as setItem
 } from 'apptile-core';
 import React, { useEffect, useReducer } from 'react';
 import { Linking, Platform } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
-import { ScreenParams } from '../screenParams';
-import { HomeState, IAppForksResponse, IAppFork, DispatchFcn, HomeAction, IManifestResponse, IForkWithBranches } from '../types/type';
-import HomeCard from './HomeCard';
 import { defaultBranchName } from '../constants/constant';
+import { ScreenParams } from '../screenParams';
+import { DispatchFcn, HomeAction, HomeState, IAppForksResponse, IForkWithBranches, IManifestResponse } from '../types/type';
 import { fetchBranchesApi } from '../utils/api';
+import HomeCard from './HomeCard';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
@@ -156,7 +155,8 @@ async function fetchForks(appId: string, dispatch: DispatchFcn, navigation: Navi
         // Navigate to Branch screen if there are multiple branches
         navigation.navigate('Branch', {
           appId: appId,
-          branches: branchData.branches
+          branches: branchData.branches,
+          forkId: forkData?.forks[0].id
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch

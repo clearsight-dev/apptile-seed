@@ -62,18 +62,6 @@ export type HomeAction = { type: 'SET_APP_ID'; payload: string | null; } |
   }
 }
 
-export type IAppFork = {
-  id: number;
-  appId: number;
-  frameworkVersion: string;
-  forkName: string;
-  title: string;
-  publishedCommitId: number;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-};
-
 export type ICodeArtefact = {
   id: number;
   type: string;

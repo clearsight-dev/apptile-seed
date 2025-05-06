@@ -1,30 +1,27 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenParams } from '../screenParams';
+import { IBranch } from '../types/type';
+import { fetchCommitApi, fetchManifestApi } from '../utils/api';
+import AppInfo from './AppInfo';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
-import AppInfo from './AppInfo';
-import { fetchManifestApi, fetchCommitApi } from '../utils/api';
-import { IBranch, IFork } from '../types/type';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Branch'>;
 
 const Branch: React.FC<Props> = ({ route, navigation }) => {
   const { appId, branches, forkId } = route.params;
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(branches && branches.length > 0 ? branches[0].id : null);
   const [liveBranchId, setLiveBranchId] = useState<number | null>(null);
   const [liveBranch, setLiveBranch] = useState<IBranch | null>(null);
 
   async function fetchManifest() {
     const data = await fetchManifestApi(appId);
-    const getPublishedCommitId = data?.forks.find(f => f.id === selectedBranchId)?.publishedCommitId;
+    const getPublishedCommitId = data?.forks.find(f => f.id === forkId)?.publishedCommitId;
 
     const commitData = await fetchCommitApi(getPublishedCommitId as number);
     setLiveBranchId(commitData?.branchId);
-    console.log('commitData', commitData);
     const getLiveBranch = branches.find(b => b.id === commitData?.branchId) as IBranch;
     console.log('getLiveBranch', getLiveBranch);
     setLiveBranch(getLiveBranch);
@@ -76,7 +73,7 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
         </View>
         <View style={styles.cardContainer}>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, marginLeft: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={styles.sectionTitle}>Live Version</Text>
             <View style={styles.greenDot} />
           </View>

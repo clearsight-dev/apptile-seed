@@ -1,11 +1,11 @@
-import { IAppFork, IForkWithBranches } from "./types/type";
+import { IFork, IForkWithBranches } from "./types/type";
 
 export type ScreenParams = {
   PreviewHome: undefined,
   Scanner: undefined,
   Fork: {
     appId: string;
-    forks: IAppFork[];
+    forks: IFork[];
   },
   Branch: {
     appId: string;
@@ -16,5 +16,6 @@ export type ScreenParams = {
     appId: string;
     forkId: number;
     branchName: string;
+    branchId?: number;
   }
 };

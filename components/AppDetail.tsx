@@ -1,23 +1,25 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { setLocalStorageItem as setItem } from 'apptile-core';
 import React, { useEffect, useReducer, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View, TouchableOpacity, Modal } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import RNRestart from 'react-native-restart';
+import { SvgXml } from 'react-native-svg';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
-import { HomeAction, HomeState, IAppDraftResponse, IFork, IManifestResponse } from '../types/type';
+import { HomeAction, HomeState, IAppDraftResponse, IFork, IForkWithBranches } from '../types/type';
+import {
+  fetchAppDraftApi,
+  fetchBranchesApi,
+  fetchCommitApi,
+  fetchLastSavedConfigApi,
+  fetchManifestApi,
+  fetchPushLogsApi
+} from '../utils/api';
+import { getFormattedDate } from '../utils/commonUtil';
 import AppInfo from './AppInfo';
 import StyledButton from './StyledButton';
-import { getFormattedDate } from '../utils/commonUtil';
-import { SvgXml } from 'react-native-svg';
-import RNRestart from 'react-native-restart';
 import Tooltip from './Tooltip';
-import {
-  fetchManifestApi,
-  fetchAppDraftApi,
-  fetchPushLogsApi,
-  fetchLastSavedConfigApi
-} from '../utils/api';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
 function reducer(state: HomeState, action: HomeAction): HomeState {
@@ -73,9 +75,9 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   const { appId, forkId, branchName } = route.params;
   const [appDraft, setAppDraft] = useState<IAppDraftResponse['appDraft'] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [livePreviewLoading, setLivePreviewLoading] = useState(false);
   const [draftPreviewLoading, setDraftPreviewLoading] = useState(false);
+  const [isLive, setIsLive] = useState(false);
   const [showFailedTooltip, setShowFailedTooltip] = useState(false);
   const [state, dispatch] = useReducer(
     reducer,
@@ -99,13 +101,58 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     }
   );
 
+
+  async function logLiveBranchInfo() {
+    try {
+      // 1. Find the current fork
+      const currentFork = state.manifest.forks.find(f => f.id === forkId);
+      if (!currentFork || !currentFork.publishedCommitId) {
+        console.log('No published commit for this fork.');
+        return;
+      }
+      // 2. Get publishedCommitId
+      const publishedCommitId = currentFork.publishedCommitId;
+      // 3. Fetch commit details
+      const commitDetails = await fetchCommitApi(publishedCommitId);
+      const liveBranchId = commitDetails.branchId;
+      // 4. Fetch branch list
+      const branchesData = await fetchBranchesApi(appId, forkId);
+      // 5. Find the live branch and the branch from props
+      const liveBranch = branchesData.branches.find(b => b.id === liveBranchId);
+      const propBranch = branchesData.branches.find(b => b.branchName === branchName);
+      if (liveBranch) {
+        console.log('Live branch name:', liveBranch.branchName);
+      } else {
+        console.log('Live branch not found in branch list.');
+      }
+      if (propBranch) {
+        console.log('Prop branch name:', propBranch.branchName);
+        console.log('Active branch (from props) name:', propBranch.branchName);
+        if (liveBranch && propBranch.id === liveBranch.id) {
+          console.log('This branch is LIVE.');
+          setIsLive(true);
+        }
+      } else {
+        console.log('Prop branch not found in branch list.');
+      }
+    } catch (err) {
+      console.error('Error in logLiveBranchInfo:', err);
+    }
+  }
+
   useEffect(() => {
-    if (appId) {
+    if (appId && forkId) {
       fetchManifest(appId);
       fetchAppDraft(forkId);
       fetchPushLogs(appId);
     }
   }, [appId, forkId, branchName]);
+
+  useEffect(() => {
+    if (appId && forkId && state.manifest.forks.length > 0 && branchName) {
+      logLiveBranchInfo();
+    }
+  }, [appId, forkId, branchName, state.manifest.forks]);
 
   async function fetchPushLogs(appId: string) {
     try {
@@ -128,14 +175,12 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       setLoading(true);
       const data = await fetchAppDraftApi(appId, forkId, branchName);
       if ((data as any).notFound) {
-        setError('Draft not found');
         setAppDraft(null);
         return;
       }
       setAppDraft((data as IAppDraftResponse).appDraft);
     } catch (err) {
       console.error('Error fetching app draft:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch app draft');
     } finally {
       setLoading(false);
     }
@@ -653,14 +698,14 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           <View style={styles.sectionContainer}>
 
             {
-              currentFork?.publishedCommitId &&
+              (currentFork?.publishedCommitId && isLive) &&
               <>
                 <Text style={styles.sectionTitle}>Latest</Text>
                 <View style={styles.versionCard}>
                   <Text style={styles.versionLabel}>Version</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={styles.versionDate}>
-                      {appDraft?.createdAt ? getFormattedDate(currentFork.createdAt) : ''}
+                      {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
                     </Text>
                   </View>
                   <StyledButton

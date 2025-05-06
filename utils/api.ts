@@ -70,4 +70,4 @@ export async function fetchCommitApi(commitId: string | number): Promise<ICommit
   const url = `${APPTILE_API_ENDPOINT}/api/v2/app/commit/${commitId}`;
   const response = await axios.get<ICommitResponse>(url);
   return response.data;
-} 
+}
