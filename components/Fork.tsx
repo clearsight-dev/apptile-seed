@@ -79,9 +79,28 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: '#fff', marginTop: 60 }}>
       <ScrollView contentContainerStyle={styles.onboardingContainer} showsVerticalScrollIndicator={false}>
 
+      <View style={{
+          width: '100%',
+          paddingHorizontal: 40,
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginTop: 26,
+          marginBottom: 5
+      }}>
+          <Image
+            source={require('../assets/apptilePreviewLogo.png')}
+            style={{
+              width: 30,
+              height: 30,
+              marginRight: 8
+            }}
+            resizeMode="contain"
+          />
+          <Text style={styles.regionTitleText}>Preview</Text>
+        </View>
 
         <AppInfo appName={appName} showLiveBadge={false} />
 

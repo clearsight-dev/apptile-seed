@@ -32,9 +32,9 @@ function App(): React.JSX.Element {
       <Stack.Navigator>
         <Stack.Screen name="PreviewHome" component={HomePage} options={{headerShown: false}} />
         <Stack.Screen name="Scanner" component={Scanner} options={{headerShown: false}} />
-        <Stack.Screen name="Fork" component={Fork} options={{headerShown: true, title: ''}} />
-        <Stack.Screen name="Branch" component={Branch} options={{headerShown: true, title: ''}} />
-        <Stack.Screen name="AppDetail" component={AppDetail} options={{headerShown: true, title: ''}} />
+        <Stack.Screen name="Fork" component={Fork} options={{headerShown: false, title: ''}} />
+        <Stack.Screen name="Branch" component={Branch} options={{headerShown: true, title: '',headerBackTitle: 'Language & Region'}} />
+        <Stack.Screen name="AppDetail" component={AppDetail} options={{headerShown: true, title: '', headerBackTitle: 'Versions'}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
