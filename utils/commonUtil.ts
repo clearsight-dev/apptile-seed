@@ -1,5 +1,5 @@
 import moment from 'moment';
 
 export const getFormattedDate = (date: string) => {
-  return moment(date).format('DD MMM, hh:mm A');
+  return moment(date).format('DD MMM, (hh:mm A) ');
 };

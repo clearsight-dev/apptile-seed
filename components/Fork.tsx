@@ -30,14 +30,16 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
           appId: appId,
           branches: branchData.branches,
           forkId: forkId,
-          appName: appName
+          appName: appName,
+          forkName: forks.find(fork => fork.id === forkId)?.title || ''
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch
         navigation.navigate('AppDetail', {
           appId: appId,
           forkId: forkId,
-          branchName: defaultBranchName
+          branchName: defaultBranchName,
+          forkName: forks.find(fork => fork.id === forkId)?.title || ''
         });
       }
     } catch (err) {
@@ -93,6 +95,7 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
 
+
         <View style={styles.cardContainer}>
           <View style={styles.languageList}>
             {forks && forks.map(fork => (
@@ -113,7 +116,7 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
 
       <View style={styles.bottomButtonContainer}>
         <StyledButton
-          title="Select"
+          title="Proceed"
           onPress={() => {
             if (selectedForkId) {
               fetchBranches(selectedForkId);
@@ -225,6 +228,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Circular Std',
   },
   regionTitleRow: {
+    // backgroundColor: 'red',
+    width: '100%',
+    paddingHorizontal: 40,
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 26

@@ -2,19 +2,16 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenParams } from '../screenParams';
-import { IBranch } from '../types/type';
+import { IBranch, IOtaSnapshot, IOtaSnapshotResponse } from '../types/type';
 import { fetchCommitApi, fetchManifestApi, fetchOtaSnapshotsApi } from '../utils/api';
-import { IOtaSnapshotResponse, IOtaSnapshot } from '../types/type';
 import AppInfo from './AppInfo';
-import LanguageOption from './LanguageOption';
-import StyledButton from './StyledButton';
-import { getFormattedDate } from '../utils/commonUtil';
 import BranchListCard from './BranchListCard';
+import StyledButton from './StyledButton';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Branch'>;
 
 const Branch: React.FC<Props> = ({ route, navigation }) => {
-  const { appId, branches, forkId, appName = '' } = route.params;
+  const { appId, branches, forkId, appName = '', forkName } = route.params;
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(branches && branches.length > 0 ? branches[0].id : null);
   const [liveBranchId, setLiveBranchId] = useState<number | null>(null);
   const [liveBranch, setLiveBranch] = useState<IBranch | null>(null);
@@ -27,7 +24,6 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
     const commitData = await fetchCommitApi(getPublishedCommitId as number);
     setLiveBranchId(commitData?.branchId);
     const getLiveBranch = branches.find(b => b.id === commitData?.branchId) as IBranch;
-    console.log('getLiveBranch', getLiveBranch);
     setLiveBranch(getLiveBranch);
   }
 
@@ -76,31 +72,16 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
       navigation.navigate('AppDetail', {
         appId,
         forkId: branch.forkId,
+        forkName: forkName,
         branchName: branch.branchName
       });
     }
   }
 
-  // if (loading) {
-  //   return (
-  //     <View style={styles.centerContainer}>
-  //       <ActivityIndicator size="large" color="#0000ff" />
-  //     </View>
-  //   );
-  // }
-
-  // if (error) {
-  //   return (
-  //     <View style={styles.centerContainer}>
-  //       <Text style={styles.errorText}>{error}</Text>
-  //     </View>
-  //   );
-  // }
-
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView contentContainerStyle={styles.onboardingContainer} showsVerticalScrollIndicator={false}>
-        <AppInfo appName={appName} showLiveBadge={false} />
+        <AppInfo appName={appName} forkName={forkName} showLiveBadge={false} />
 
         <View style={styles.regionTitleRow}>
           <Image
@@ -166,7 +147,7 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
       </ScrollView>
       <View style={styles.bottomButtonContainer}>
         <StyledButton
-          title="Select"
+          title="Proceed"
           onPress={() => {
             if (selectedBranchId) {
               handleBranchPress(selectedBranchId);
@@ -274,6 +255,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Circular Std',
   },
   regionTitleRow: {
+    // backgroundColor: 'red',
+    width: '100%',
+    paddingHorizontal: 40,
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 26

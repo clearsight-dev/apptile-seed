@@ -156,7 +156,8 @@ async function fetchForks(appId: string, dispatch: DispatchFcn, navigation: Navi
         navigation.navigate('Branch', {
           appId: appId,
           branches: branchData.branches,
-          forkId: forkData?.forks[0].id
+          forkId: forkData?.forks[0].id,
+          forkName: forkData?.forks[0].title
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch

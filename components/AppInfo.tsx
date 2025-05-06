@@ -4,24 +4,20 @@ import { Image, StyleSheet, Text, View, ImageSourcePropType } from 'react-native
 interface IAppInfoProps {
   logoSource?: ImageSourcePropType;
   appName: string;
+  forkName?: string;
+  branchName?: string;
   showLiveBadge?: boolean;
 }
 
 const AppInfo: React.FC<IAppInfoProps> = ({
-  logoSource = require('../assets/apptile-logo.png'),
   appName,
+  forkName,
+  branchName,
   showLiveBadge,
 }) => {
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.logoBox}>
-        {/* <Image
-          source={logoSource}
-          style={styles.logo}
-          resizeMode="contain"
-        /> */}
-      </View>
-      <Text style={styles.appName}>{appName}</Text>
+      <Text style={styles.appName}>{appName} {forkName && <Text style={styles.forkName}>{`(${forkName}${branchName ? `, ${branchName}` : ''})`}</Text>}</Text>
       {showLiveBadge && (
         <View style={styles.liveBadge}>
           <Text style={styles.liveText}>Live</Text>
@@ -37,7 +33,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F7F7F7',
     paddingHorizontal: 20,
-    marginTop: 20
+    marginTop: 20,
+    height: 71,
+    paddingLeft: 40,
+  },
+  forkName: {
+    fontSize: 18,
+    fontWeight: '400',
+    color: '#999',
   },
   logoBox: {
     width: 56,
