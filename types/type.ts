@@ -183,3 +183,7 @@ export type IAppDraftResponse = {
     deletedAt: string | null;
   };
 };
+
+export type ILastSavedConfigResponse = {
+  url: string;
+};

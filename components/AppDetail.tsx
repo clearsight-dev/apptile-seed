@@ -186,14 +186,14 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     }
   }
 
-  async function fetchLastSavedConfig(appId: string, forkId: number | string) {
+  async function fetchLastSavedConfig(appId: string, forkId: number | string, branchName: string) {
     const result = {
       commitId: -1,
       cdnlink: ''
     };
     try {
-      const data = await fetchLastSavedConfigApi(appId, forkId);
-      const url = data.url;
+      const savedConfigData = await fetchLastSavedConfigApi(appId, forkId, branchName);
+      const url = savedConfigData.url;
       const commitId = url.match(/\/([0-9]+)\.json$/);
       if (commitId && commitId[1]) {
         result.cdnlink = url;
@@ -231,7 +231,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       });
       for (let i = 0; i < manifest.forks.length; ++i) {
         const fork = manifest.forks[i];
-        const mainBranchLatestSave = await fetchLastSavedConfig(appId, fork.id);
+        const mainBranchLatestSave = await fetchLastSavedConfig(appId, fork.id, branchName);
         dispatch({
           type: 'UPDATE_FORK_IN_MANIFEST',
           payload: {
@@ -686,7 +686,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   // }
 
   const currentFork = state.manifest.forks.find(f => f.id === forkId);
-
+  console.log('currentFork', currentFork);
   const downloadFailedIcon = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="10.56" stroke="#FF0000" stroke-width="0.88"/><path d="M12.1071 4.76944L11.6636 12.6736H10.333L9.87367 4.76944H12.1071ZM9.84199 14.9546C9.84199 14.321 10.3489 13.7824 10.9825 13.7824C11.6319 13.7824 12.1546 14.321 12.1546 14.9546C12.1546 15.5882 11.6319 16.1109 10.9825 16.1109C10.3489 16.1109 9.84199 15.5882 9.84199 14.9546Z" fill="#FF0000"/></svg>`;
 
   return (
@@ -772,7 +772,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
               }
             </View>
           </View>
-
         </View>
       </ScrollView>
     </>

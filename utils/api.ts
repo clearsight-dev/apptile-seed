@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IForkWithBranches, IManifestResponse, IAppDraftResponse } from '../types/type';
+import { IForkWithBranches, IManifestResponse, IAppDraftResponse, ILastSavedConfigResponse } from '../types/type';
 // import {getConfigValue} from 'apptile-core';
 
 export interface ICommitResponse {
@@ -56,10 +56,10 @@ export async function fetchPushLogsApi(appId: string | number) {
   return response.data;
 }
 
-export async function fetchLastSavedConfigApi(appId: string | number, forkId: string | number) {
+export async function fetchLastSavedConfigApi(appId: string | number, forkId: string | number, branchName: string): Promise<ILastSavedConfigResponse> {
   // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
   const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`;
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/${branchName}/noRedirect`;
   const response = await axios.get(url);
   return response.data;
 }
