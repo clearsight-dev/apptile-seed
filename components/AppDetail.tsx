@@ -79,9 +79,10 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   const [livePreviewLoading, setLivePreviewLoading] = useState(false);
   const [draftPreviewLoading, setDraftPreviewLoading] = useState(false);
   const [isLive, setIsLive] = useState(false);
-  const [showFailedTooltip, setShowFailedTooltip] = useState(false);
   const [draftCommitURL, setDraftCommitURL] = useState('');
   const [liveCommitData, setLiveCommitData] = useState<ICommitResponse | null>(null);
+  const [isLatestPreviewActive, setIsLatestPreviewActive] = useState(false);
+  const [isDraftPreviewActive, setIsDraftPreviewActive] = useState(false);
   const [state, dispatch] = useReducer(
     reducer,
     {
@@ -706,17 +707,44 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
               <>
                 <Text style={styles.sectionTitle}>Latest</Text>
                 <View style={styles.versionCard}>
+                   
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
                   <Text style={styles.versionLabel}>Version</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.versionDate}>
+                    {/* Info/Failed Download Status */}
+                    {isLatestPreviewActive && livePreviewLoading && (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
+                        style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ color: '#1060E0', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
+                          Info
+                        </Text>
+                        <SvgXml xml={infoIcon} width={22} height={22} />
+                      </TouchableOpacity>
+                    )}
+                    {/* Failed Download Status */}
+                    {isLatestPreviewActive && state.launchSequence.some(item => item.status === 'error') && (
+                      <TouchableOpacity
+                        onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
+                        activeOpacity={0.7}
+                        style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
+                          Failed
+                        </Text>
+                        <SvgXml xml={downloadFailedIcon} width={22} height={22} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <Text style={styles.versionDate}>
                       {liveCommitData?.createdAt ? getFormattedDate(liveCommitData?.createdAt) : ''}
                     </Text>
-                  </View>
                   <StyledButton
                     loading={livePreviewLoading}
                     disabled={livePreviewLoading}
                     title="Preview"
                     onPress={() => {
+                      setIsLatestPreviewActive(true);
+                      setIsDraftPreviewActive(false);
                       downloadForPreview(
                         currentFork.publishedCommitId,
                         state.manifest.iosBundleId,
@@ -736,7 +764,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
                       <Text style={styles.versionLabel}>Version</Text>
                       {/* Info/Failed Download Status */}
-                      {draftPreviewLoading && (
+                      {isDraftPreviewActive && draftPreviewLoading && (
                         <TouchableOpacity
                           activeOpacity={0.7}
                           onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
@@ -748,7 +776,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                         </TouchableOpacity>
                       )}
                       {/* Failed Download Status */}
-                      {state.launchSequence.some(item => item.status === 'error') && (
+                      {isDraftPreviewActive && state.launchSequence.some(item => item.status === 'error') && (
                         <TouchableOpacity
                           onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
                           activeOpacity={0.7}
@@ -773,6 +801,8 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                       variant="outline"
                       title="Preview"
                       onPress={() => {
+                        setIsDraftPreviewActive(true);
+                        setIsLatestPreviewActive(false);
                         downloadForPreviewNonCache(
                           draftCommitURL as string,
                           state.manifest.iosBundleId,
