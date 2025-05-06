@@ -20,7 +20,7 @@ import {
 import { getFormattedDate } from '../utils/commonUtil';
 import AppInfo from './AppInfo';
 import StyledButton from './StyledButton';
-import Tooltip from './Tooltip';
+import LauncSequenceModal from './LauncSequenceModal';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
 function reducer(state: HomeState, action: HomeAction): HomeState {
@@ -178,14 +178,12 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     try {
       setLoading(true);
       const previewAppDraftData = await fetchAppDraftApi(appId, forkId, branchName);
-      console.log('previewAppDraftData', previewAppDraftData);
       if ((previewAppDraftData as any).notFound) {
         setAppDraft(null);
         return;
-      } else {
+      } else if ('appDraft' in previewAppDraftData) {
         setAppDraft((previewAppDraftData as IAppDraftResponse).appDraft);
-        
-        const getCommitURL = await fetchCommitApi(previewAppDraftData.appDraft.commitId);
+        const getCommitURL = await fetchCommitApi((previewAppDraftData as IAppDraftResponse).appDraft.commitId);
         setDraftCommitURL(getCommitURL.url);
       }
 
@@ -264,30 +262,26 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     androidBundleId: number | null
   ) {
     setDraftPreviewLoading(true);
-    dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
+    // dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
     const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
     const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
       if (exists) {
         return RNFetchBlob.fs.unlink(appConfigPath);
       }
     });
-
     const jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
     const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
       if (exists) {
         return RNFetchBlob.fs.unlink(jsBundlePath);
       }
     });
-
     const assetsFolderPath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/assets';
     const delAssetsFolder = RNFetchBlob.fs.exists(assetsFolderPath).then(exists => {
       if (exists) {
         return RNFetchBlob.fs.unlink(assetsFolderPath);
       }
     });
-
     await setItem('generateCache', 'YES');
-
     try {
       await Promise.all([delAppConfig, delJsBundle, delAssetsFolder]);
       dispatch({
@@ -330,7 +324,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         if (artefact) {
           bundleUrl = artefact.cdnlink;
         }
-
       } else if (Platform.OS === 'android') {
         const artefact = state.pushLogs.artefacts.find(asset => {
           return (asset.type === 'android-jsbundle') && (asset.id === androidBundleId)
@@ -340,20 +333,22 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
           bundleUrl = artefact.cdnlink;
         }
       } else {
-        console.error("Unsupported platform!");
+        console.error('[downloadForPreviewNonCache] Unsupported platform!');
       }
+      
 
       let bundleDownload: any = null;
       if (bundleUrl) {
-        
         bundleDownload = RNFetchBlob.config({
           fileCache: true,
           path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip'
         })
           .fetch('GET', bundleUrl);
+        
       }
 
       await Promise.all([appConfigDownload, bundleDownload]);
+      
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
         payload: [
@@ -378,7 +373,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
       try {
         const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-        
+        console.log('bundlesPath', bundlesPath);
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
@@ -404,7 +399,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         RNRestart.Restart()
       } catch (err) {
         setDraftPreviewLoading(false);
-        console.error("Failed to unzip files", err)
+        console.error('[downloadForPreviewNonCache] Failed to unzip files', err)
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
           payload: [
@@ -429,7 +424,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       }
     } catch (err) {
       setDraftPreviewLoading(false);
-      console.error("Failed for some reason: ", err);
+      console.error('[downloadForPreviewNonCache] Failed for some reason: ', err);
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
         payload: [
@@ -460,7 +455,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
     androidBundleId: number | null
   ) {
     setLivePreviewLoading(true);
-    dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
+    // dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
     const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
     const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
       if (exists) {
@@ -698,6 +693,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   const currentFork = state.manifest.forks.find(f => f.id === forkId);
   
   const downloadFailedIcon = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="10.56" stroke="#FF0000" stroke-width="0.88"/><path d="M12.1071 4.76944L11.6636 12.6736H10.333L9.87367 4.76944H12.1071ZM9.84199 14.9546C9.84199 14.321 10.3489 13.7824 10.9825 13.7824C11.6319 13.7824 12.1546 14.321 12.1546 14.9546C12.1546 15.5882 11.6319 16.1109 10.9825 16.1109C10.3489 16.1109 9.84199 15.5882 9.84199 14.9546Z" fill="#FF0000"/></svg>`;
+  const infoIcon = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="10.56" stroke="#1060E0" stroke-width="0.88"/><path d="M11 7.5V11.5M11 14.5H11.01" stroke="#1060E0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
   return (
     <>
@@ -739,26 +735,37 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                   <>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
                       <Text style={styles.versionLabel}>Version</Text>
-                     
-                     {/* Failed Code */}
-                      <TouchableOpacity
-                        onPress={() => setShowFailedTooltip(true)}
-                        activeOpacity={0.7}
-                        style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
-                          Failed
-                        </Text>
-                        <SvgXml xml={downloadFailedIcon} width={22} height={22} />
-                      </TouchableOpacity>
-
+                      {/* Info/Failed Download Status */}
+                      {draftPreviewLoading && (
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
+                          style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text style={{ color: '#1060E0', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
+                            Info
+                          </Text>
+                          <SvgXml xml={infoIcon} width={22} height={22} />
+                        </TouchableOpacity>
+                      )}
+                      {/* Failed Download Status */}
+                      {state.launchSequence.some(item => item.status === 'error') && (
+                        <TouchableOpacity
+                          onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
+                          activeOpacity={0.7}
+                          style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text style={{ color: '#FF2D1A', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
+                            Failed
+                          </Text>
+                          <SvgXml xml={downloadFailedIcon} width={22} height={22} />
+                        </TouchableOpacity>
+                      )}
                     </View>
                     <Text style={styles.versionDate}>
                       {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
                     </Text>
-                    <Tooltip
-                      visible={showFailedTooltip}
-                      onClose={() => setShowFailedTooltip(false)}
-                      message="Download failed. Please try again."
+                    <LauncSequenceModal
+                      state={state}
+                      onModalDismiss={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: false })}
                     />
                     <StyledButton
                       loading={draftPreviewLoading}
