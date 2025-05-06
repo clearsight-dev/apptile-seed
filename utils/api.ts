@@ -15,6 +15,7 @@ export interface ICommitResponse {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  url: string;
 }
 
 export async function fetchBranchesApi(appId: string | number, forkId: string | number): Promise<IForkWithBranches> {

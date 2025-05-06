@@ -263,11 +263,12 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   greenDot: {
-    width: 6,
-    height: 6,
+    width: 8,
+    height: 8,
     borderRadius: 4,
     backgroundColor: '#6DD13B',
-    marginLeft: 6,
+    marginLeft: 8,
+    marginBottom: 8
   },
   noVersionsBox: {
     width: '100%',

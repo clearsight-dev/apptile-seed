@@ -14,7 +14,8 @@ import {
   fetchCommitApi,
   fetchLastSavedConfigApi,
   fetchManifestApi,
-  fetchPushLogsApi
+  fetchPushLogsApi,
+  ICommitResponse
 } from '../utils/api';
 import { getFormattedDate } from '../utils/commonUtil';
 import AppInfo from './AppInfo';
@@ -79,6 +80,8 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   const [draftPreviewLoading, setDraftPreviewLoading] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [showFailedTooltip, setShowFailedTooltip] = useState(false);
+  const [draftCommitURL, setDraftCommitURL] = useState('');
+  const [liveCommitData, setLiveCommitData] = useState<ICommitResponse | null>(null);
   const [state, dispatch] = useReducer(
     reducer,
     {
@@ -107,13 +110,14 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       // 1. Find the current fork
       const currentFork = state.manifest.forks.find(f => f.id === forkId);
       if (!currentFork || !currentFork.publishedCommitId) {
-        console.log('No published commit for this fork.');
+        
         return;
       }
       // 2. Get publishedCommitId
       const publishedCommitId = currentFork.publishedCommitId;
       // 3. Fetch commit details
       const commitDetails = await fetchCommitApi(publishedCommitId);
+      setLiveCommitData(commitDetails);
       const liveBranchId = commitDetails.branchId;
       // 4. Fetch branch list
       const branchesData = await fetchBranchesApi(appId, forkId);
@@ -121,19 +125,19 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       const liveBranch = branchesData.branches.find(b => b.id === liveBranchId);
       const propBranch = branchesData.branches.find(b => b.branchName === branchName);
       if (liveBranch) {
-        console.log('Live branch name:', liveBranch.branchName);
+        
       } else {
-        console.log('Live branch not found in branch list.');
+        
       }
       if (propBranch) {
-        console.log('Prop branch name:', propBranch.branchName);
-        console.log('Active branch (from props) name:', propBranch.branchName);
+        
+        
         if (liveBranch && propBranch.id === liveBranch.id) {
-          console.log('This branch is LIVE.');
+          
           setIsLive(true);
         }
       } else {
-        console.log('Prop branch not found in branch list.');
+        
       }
     } catch (err) {
       console.error('Error in logLiveBranchInfo:', err);
@@ -173,12 +177,18 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   async function fetchAppDraft(forkId: number) {
     try {
       setLoading(true);
-      const data = await fetchAppDraftApi(appId, forkId, branchName);
-      if ((data as any).notFound) {
+      const previewAppDraftData = await fetchAppDraftApi(appId, forkId, branchName);
+      console.log('previewAppDraftData', previewAppDraftData);
+      if ((previewAppDraftData as any).notFound) {
         setAppDraft(null);
         return;
+      } else {
+        setAppDraft((previewAppDraftData as IAppDraftResponse).appDraft);
+        
+        const getCommitURL = await fetchCommitApi(previewAppDraftData.appDraft.commitId);
+        setDraftCommitURL(getCommitURL.url);
       }
-      setAppDraft((data as IAppDraftResponse).appDraft);
+
     } catch (err) {
       console.error('Error fetching app draft:', err);
     } finally {
@@ -303,7 +313,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       });
 
       const appconfigUrl = cdnlink;
-      console.log("Appconfig url: " + appconfigUrl);
+      
 
       const appConfigDownload = RNFetchBlob.config({
         fileCache: true,
@@ -335,7 +345,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
       let bundleDownload: any = null;
       if (bundleUrl) {
-        console.log("Downloading bundle from: ", bundleUrl);
+        
         bundleDownload = RNFetchBlob.config({
           fileCache: true,
           path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip'
@@ -368,7 +378,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
       try {
         const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-        console.log("bundlesPath: ", bundlesPath);
+        
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
@@ -502,7 +512,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       const APPTILE_API_ENDPOINT = 'http://localhost:3000';
       if (appId && publishedCommitId) {
         const appconfigUrl = `${APPTILE_API_ENDPOINT}/${appId}/main/main/${publishedCommitId}.json`;
-        console.log("Appconfig url: " + appconfigUrl);
+        
 
         const appConfigDownload = RNFetchBlob.config({
           fileCache: true,
@@ -535,7 +545,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
         let bundleDownload: any = null;
         if (bundleUrl) {
-          console.log("Downloading bundle from: ", bundleUrl);
+          
           bundleDownload = RNFetchBlob.config({
             fileCache: true,
             path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip'
@@ -568,7 +578,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
         try {
           const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-          console.log("bundlesPath: ", bundlesPath);
+          
           await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
           dispatch({
             type: 'SET_LAUNCH_SEQUENCE',
@@ -686,7 +696,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   // }
 
   const currentFork = state.manifest.forks.find(f => f.id === forkId);
-  console.log('currentFork', currentFork);
+  
   const downloadFailedIcon = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="10.56" stroke="#FF0000" stroke-width="0.88"/><path d="M12.1071 4.76944L11.6636 12.6736H10.333L9.87367 4.76944H12.1071ZM9.84199 14.9546C9.84199 14.321 10.3489 13.7824 10.9825 13.7824C11.6319 13.7824 12.1546 14.321 12.1546 14.9546C12.1546 15.5882 11.6319 16.1109 10.9825 16.1109C10.3489 16.1109 9.84199 15.5882 9.84199 14.9546Z" fill="#FF0000"/></svg>`;
 
   return (
@@ -705,7 +715,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                   <Text style={styles.versionLabel}>Version</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={styles.versionDate}>
-                      {appDraft?.createdAt ? getFormattedDate(appDraft.createdAt) : ''}
+                      {liveCommitData?.createdAt ? getFormattedDate(liveCommitData?.createdAt) : ''}
                     </Text>
                   </View>
                   <StyledButton
@@ -759,7 +769,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                       title="Preview"
                       onPress={() => {
                         downloadForPreviewNonCache(
-                          currentFork?.mainBranchLatestSave?.cdnlink as string,
+                          draftCommitURL as string,
                           state.manifest.iosBundleId,
                           state.manifest.androidBundleId
                         )
