@@ -1,24 +1,23 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenParams } from '../screenParams';
 import { IForkWithBranches } from '../types/type';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
 import AppInfo from './AppInfo';
-import { fetchBranchesApi } from '../utils/api';
+import { fetchBranchesApi, fetchManifestApi } from '../utils/api';
 import { defaultBranchName } from '../constants/constant';
 // import {getConfigValue} from 'apptile-core';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Fork'>;
-
-const { width } = Dimensions.get('window');
 
 const Fork: React.FC<Props> = ({ navigation, route }) => {
   const { appId, forks } = route.params;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedForkId, setSelectedForkId] = useState<number | null>(forks && forks.length > 0 ? forks[0].id : null);
+  const [appName, setAppName] = useState('');
 
   const fetchBranches = async (forkId: number) => {
     try {
@@ -30,7 +29,8 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
         navigation.navigate('Branch', {
           appId: appId,
           branches: branchData.branches,
-          forkId: forkId
+          forkId: forkId,
+          appName: appName
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch
@@ -47,6 +47,18 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    async function fetchManifest() {
+      try {
+        const manifest = await fetchManifestApi(appId);
+        setAppName(manifest.name);
+      } catch (err) {
+        console.error('Error fetching manifest:', err);
+      }
+    }
+    fetchManifest();
+  }, [appId]);
 
   if (loading) {
     return (
@@ -69,7 +81,7 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
       <ScrollView contentContainerStyle={styles.onboardingContainer} showsVerticalScrollIndicator={false}>
 
 
-        <AppInfo />
+        <AppInfo appName={appName} showLiveBadge={false} />
 
         <View style={styles.regionTitleRow}>
           <Image

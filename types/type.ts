@@ -187,3 +187,32 @@ export type IAppDraftResponse = {
 export type ILastSavedConfigResponse = {
   url: string;
 };
+
+export type IScheduledOta = {
+  id: number;
+  snapshotId: string;
+  forkId: number;
+  branchId: number;
+  publishDate: string;
+  targetCommitId: number | null;
+  revertSnapshot: boolean;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
+export type IOtaSnapshot = {
+  id: string;
+  createdBy: string;
+  forkId: number;
+  branchId: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  scheduledOtas: IScheduledOta[];
+};
+
+export type IOtaSnapshotResponse = IOtaSnapshot[];

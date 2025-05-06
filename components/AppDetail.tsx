@@ -702,11 +702,9 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   return (
     <>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-        <AppInfo appName={state.manifest.name} showLiveBadge={!!currentFork?.publishedCommitId} />
+        <AppInfo appName={state.manifest.name} showLiveBadge={isLive} />
         <View style={styles.container}>
-
           <View style={styles.sectionContainer}>
-
             {
               (currentFork?.publishedCommitId && isLive) &&
               <>

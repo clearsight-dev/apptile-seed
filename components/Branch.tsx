@@ -3,18 +3,22 @@ import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenParams } from '../screenParams';
 import { IBranch } from '../types/type';
-import { fetchCommitApi, fetchManifestApi } from '../utils/api';
+import { fetchCommitApi, fetchManifestApi, fetchOtaSnapshotsApi } from '../utils/api';
+import { IOtaSnapshotResponse, IOtaSnapshot } from '../types/type';
 import AppInfo from './AppInfo';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
+import { getFormattedDate } from '../utils/commonUtil';
+import BranchListCard from './BranchListCard';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Branch'>;
 
 const Branch: React.FC<Props> = ({ route, navigation }) => {
-  const { appId, branches, forkId } = route.params;
+  const { appId, branches, forkId, appName = '' } = route.params;
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(branches && branches.length > 0 ? branches[0].id : null);
   const [liveBranchId, setLiveBranchId] = useState<number | null>(null);
   const [liveBranch, setLiveBranch] = useState<IBranch | null>(null);
+  const [snapshotsWithLatestScheduledOta, setSnapshotsWithLatestScheduledOta] = useState<IOtaSnapshot[]>([]);
 
   async function fetchManifest() {
     const data = await fetchManifestApi(appId);
@@ -27,8 +31,43 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
     setLiveBranch(getLiveBranch);
   }
 
+  async function fetchOtaSnapshots() {
+    try {
+      const otaSnapshots: IOtaSnapshotResponse = await fetchOtaSnapshotsApi(forkId);
+      // Filter the array to keep only the latest snapshot for each branchId
+      const latestByBranch = new Map<number, IOtaSnapshot>();
+      otaSnapshots.forEach(snapshot => {
+        const existing = latestByBranch.get(snapshot.branchId);
+        if (!existing || new Date(snapshot.createdAt) > new Date(existing.createdAt)) {
+          latestByBranch.set(snapshot.branchId, snapshot);
+        }
+      });
+      const filteredSnapshots = otaSnapshots.filter(snapshot => {
+        const latest = latestByBranch.get(snapshot.branchId);
+        return latest && latest.id === snapshot.id;
+      });
+
+      // For each snapshot, keep only the latest scheduledOta (by createdAt)
+      const processedSnapshots = filteredSnapshots.map(snapshot => {
+        if (!snapshot.scheduledOtas || snapshot.scheduledOtas.length === 0) return snapshot;
+        const latestScheduledOta = snapshot.scheduledOtas.reduce((latest, current) => {
+          return new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest;
+        }, snapshot.scheduledOtas[0]);
+        return {
+          ...snapshot,
+          scheduledOtas: [latestScheduledOta]
+        };
+      });
+
+      setSnapshotsWithLatestScheduledOta(processedSnapshots);
+      console.log('Filtered OTA Snapshots with only latest scheduledOta:', processedSnapshots);
+    } catch (err) {
+      console.error('Error fetching OTA snapshots:', err);
+    }
+  }
   useEffect(() => {
     fetchManifest();
+    fetchOtaSnapshots();
   }, [appId]);
 
   const handleBranchPress = async (branchId: number) => {
@@ -61,7 +100,7 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView contentContainerStyle={styles.onboardingContainer} showsVerticalScrollIndicator={false}>
-        <AppInfo />
+        <AppInfo appName={appName} showLiveBadge={false} />
 
         <View style={styles.regionTitleRow}>
           <Image
@@ -78,12 +117,22 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
             <View style={styles.greenDot} />
           </View>
           <View style={styles.languageList}>
-            <LanguageOption
-              key={liveBranch?.id}
-              label={liveBranch?.title || ''}
-              selected={selectedBranchId === liveBranch?.id}
-              onPress={() => setSelectedBranchId(liveBranch?.id ?? null)}
-            />
+            {liveBranch && (
+              <BranchListCard
+                key={liveBranch.id}
+                label={liveBranch.title || ''}
+                selected={selectedBranchId === liveBranch.id}
+                onPress={() => setSelectedBranchId(liveBranch.id)}
+                startDate={(() => {
+                  const snapshot = snapshotsWithLatestScheduledOta.find(s => s.branchId === liveBranch.id);
+                  return snapshot ? snapshot.startDate : undefined;
+                })()}
+                endDate={(() => {
+                  const snapshot = snapshotsWithLatestScheduledOta.find(s => s.branchId === liveBranch.id);
+                  return snapshot ? snapshot.endDate : undefined;
+                })()}
+              />
+            )}
           </View>
         </View>
 
@@ -98,14 +147,19 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
             ) : (
               branches && branches
                 .filter(branch => branch.id !== liveBranchId)
-                .map(branch => (
-                  <LanguageOption
-                    key={branch.id}
-                    label={branch.title}
-                    selected={selectedBranchId === branch.id}
-                    onPress={() => setSelectedBranchId(branch.id)}
-                  />
-                ))
+                .map(branch => {
+                  const snapshot = snapshotsWithLatestScheduledOta.find(s => s.branchId === branch.id);
+                  return (
+                    <BranchListCard
+                      key={branch.id}
+                      label={branch.title}
+                      selected={selectedBranchId === branch.id}
+                      onPress={() => setSelectedBranchId(branch.id)}
+                      startDate={snapshot ? snapshot.startDate : undefined}
+                      endDate={snapshot ? snapshot.endDate : undefined}
+                    />
+                  );
+                })
             )}
           </View>
         </View>

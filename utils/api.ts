@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IForkWithBranches, IManifestResponse, IAppDraftResponse, ILastSavedConfigResponse } from '../types/type';
+import { IForkWithBranches, IManifestResponse, IAppDraftResponse, ILastSavedConfigResponse, IOtaSnapshotResponse } from '../types/type';
 // import {getConfigValue} from 'apptile-core';
 
 export interface ICommitResponse {
@@ -70,5 +70,14 @@ export async function fetchCommitApi(commitId: string | number): Promise<ICommit
   const APPTILE_API_ENDPOINT = 'http://localhost:3000';
   const url = `${APPTILE_API_ENDPOINT}/api/v2/app/commit/${commitId}`;
   const response = await axios.get<ICommitResponse>(url);
+  return response.data;
+}
+
+export async function fetchOtaSnapshotsApi(forkId: string | number): Promise<IOtaSnapshotResponse> {
+  // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+  const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+  const url = `${APPTILE_API_ENDPOINT}/api/v2/app/ota/fork/${forkId}/appSnapshot`;
+  console.log('url', url);
+  const response = await axios.get<IOtaSnapshotResponse>(url);
   return response.data;
 }
