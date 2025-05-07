@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View, ImageSourcePropType } from 'react-native';
+import { ImageSourcePropType, StyleSheet, Text, View } from 'react-native';
 
 interface IAppInfoProps {
   logoSource?: ImageSourcePropType;

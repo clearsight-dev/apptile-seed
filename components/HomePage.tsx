@@ -1,5 +1,5 @@
-import {  useIsFocused } from '@react-navigation/native';
-import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useIsFocused } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   getConfigValue,
   getLocalStorageItem as getItem,

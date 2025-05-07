@@ -79,10 +79,6 @@ const HomeCard = ({ state, onDownload, onNonCacheDownload, onModalDismiss, onRef
               justifyContent: 'center',
               paddingVertical: 14,
               paddingHorizontal: 32,
-              shadowColor: '#1060E0',
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 2,
             }}
             onPress={onScan}
           >
