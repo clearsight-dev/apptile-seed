@@ -1,14 +1,13 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { defaultBranchName } from '../constants/constant';
 import { ScreenParams } from '../screenParams';
 import { IForkWithBranches } from '../types/type';
+import { fetchBranchesApi, fetchManifestApi } from '../utils/api';
+import AppInfo from './AppInfo';
 import LanguageOption from './LanguageOption';
 import StyledButton from './StyledButton';
-import AppInfo from './AppInfo';
-import { fetchBranchesApi, fetchManifestApi } from '../utils/api';
-import { defaultBranchName } from '../constants/constant';
-// import {getConfigValue} from 'apptile-core';
 
 type Props = NativeStackScreenProps<ScreenParams, 'Fork'>;
 
@@ -31,7 +30,8 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
           branches: branchData.branches,
           forkId: forkId,
           appName: appName,
-          forkName: forks.find(fork => fork.id === forkId)?.title || ''
+          forkName: forks.find(fork => fork.id === forkId)?.title || '',
+          backTitle: 'Language & Region'
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch
@@ -39,7 +39,8 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
           appId: appId,
           forkId: forkId,
           branchName: defaultBranchName,
-          forkName: forks.find(fork => fork.id === forkId)?.title || ''
+          forkName: forks.find(fork => fork.id === forkId)?.title || '',
+          backTitle: 'Language & Region'
         });
       }
     } catch (err) {

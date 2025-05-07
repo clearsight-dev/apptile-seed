@@ -7,7 +7,7 @@ import { SvgXml } from 'react-native-svg';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
-import { HomeAction, HomeState, IAppDraftResponse, IFork, IForkWithBranches } from '../types/type';
+import { HomeAction, HomeState, IAppDraftResponse, IFork } from '../types/type';
 import {
   fetchAppDraftApi,
   fetchBranchesApi,
@@ -19,8 +19,8 @@ import {
 } from '../utils/api';
 import { getFormattedDate } from '../utils/commonUtil';
 import AppInfo from './AppInfo';
-import StyledButton from './StyledButton';
 import LauncSequenceModal from './LauncSequenceModal';
+import StyledButton from './StyledButton';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'AppDetail'>;
 
 function reducer(state: HomeState, action: HomeAction): HomeState {
@@ -73,7 +73,7 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
 }
 
 const AppDetail: React.FC<ScreenProps> = ({ route }) => {
-  const { appId, forkId, branchName } = route.params;
+  const { appId, forkId, branchName, forkName } = route.params;
   const [appDraft, setAppDraft] = useState<IAppDraftResponse['appDraft'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [livePreviewLoading, setLivePreviewLoading] = useState(false);
@@ -507,7 +507,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
       // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
       const APPTILE_API_ENDPOINT = 'http://localhost:3000';
       if (appId && publishedCommitId) {
-        const appconfigUrl = `${APPTILE_API_ENDPOINT}/${appId}/main/main/${publishedCommitId}.json`;
+        const appconfigUrl = `${APPTILE_API_ENDPOINT}/${appId}/${forkName}/${branchName}/${publishedCommitId}.json`;
         
 
         const appConfigDownload = RNFetchBlob.config({

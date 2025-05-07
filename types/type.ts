@@ -1,3 +1,6 @@
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { ScreenParams } from "../screenParams";
+
 export type HomeState = {
     appId: null | string;
     hasError: boolean;
@@ -44,6 +47,7 @@ export type HomeState = {
 export type DownloadNonCacheCodepushCb = (cdnlink: string, iosBundleId: number | null, androidBundleId: number | null) => Promise<void>;
 export type DownloadCodepushCb = (publishedCommitId: number | null, iosBundleId: number | null, androidBundleId: number | null) => Promise<void>;
 export type DispatchFcn = (action: HomeAction) => void;
+export type NavigationProp = NativeStackNavigationProp<ScreenParams, 'PreviewHome'>;
 
 export type HomeAction = { type: 'SET_APP_ID'; payload: string | null; } |
 { type: 'SET_ERROR'; payload: string; } |

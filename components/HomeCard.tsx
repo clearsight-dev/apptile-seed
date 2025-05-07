@@ -45,43 +45,51 @@ const HomeCard = ({ state, onDownload, onNonCacheDownload, onModalDismiss, onRef
     );
   } else {
     return (
-      <SafeAreaView
-        style={[
-          layout.flexCol,
-          layout.alignCenter,
-          layout.p2
-        ]}
-      >
-        <Image
-          style={{
-            height: 100
-          }}
-          resizeMode={'contain'}
-          source={require('../assets/logo.png')}
-        />
-        <View
-          style={[layout.mTopBottom]}
-        >
-          <Text>Scan your QR code to see your app's versions</Text>
-        </View>
-        <Pressable
-          style={{
-            borderRadius: 16,
-            backgroundColor: '#1060E0',
-            minWidth: 80,
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 8,
-            marginTop: 40
-          }}
-        >
-          <Text
-            style={[text.large, { color: 'white' }]}
+      <SafeAreaView style={[layout.flexCol, layout.alignCenter, layout.justifyCenter, { flex: 1, backgroundColor: '#F6F8FB' }]}>
+        <View style={{
+          // backgroundColor: 'white',
+          borderRadius: 24,
+          padding: 32,
+          alignItems: 'center',
+          shadowColor: '#000',
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+          elevation: 4,
+          margin: 24,
+          width: '90%',
+        }}>
+          <Image
+            style={{ height: 90, marginBottom: 16 }}
+            resizeMode="contain"
+            source={require('../assets/logo.png')}
+          />
+          <Text style={[{ fontWeight: 'bold', marginBottom: 8, marginTop: 30 }]}>
+            Welcome to Apptile Preview
+          </Text>
+          <Text style={[{ color: '#6B7280', textAlign: 'center', marginBottom: 32 }]}>
+            Scan your QR code to see your app's versions
+          </Text>
+          <Pressable
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderRadius: 20,
+              backgroundColor: '#1060E0',
+              minWidth: 120,
+              justifyContent: 'center',
+              paddingVertical: 14,
+              paddingHorizontal: 32,
+              shadowColor: '#1060E0',
+              shadowOpacity: 0.2,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
             onPress={onScan}
           >
-            Scan
-          </Text>
-        </Pressable>
+            <Image source={require('../assets/qr-icon.png')} style={{ width: 22, height: 22, marginRight: 10 }} />
+            <Text style={[text.large, { color: 'white', fontWeight: '600' }]}>Scan QR Code</Text>
+          </Pressable>
+        </View>
       </SafeAreaView>
     );
   }

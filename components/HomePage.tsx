@@ -1,7 +1,8 @@
-import { useIsFocused } from '@react-navigation/native';
+import {  useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   getConfigValue,
+  getLocalStorageItem as getItem,
   setLocalStorageItem as setItem
 } from 'apptile-core';
 import React, { useEffect, useReducer } from 'react';
@@ -10,20 +11,18 @@ import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { defaultBranchName } from '../constants/constant';
 import { ScreenParams } from '../screenParams';
-import { DispatchFcn, HomeAction, HomeState, IAppForksResponse, IForkWithBranches, IManifestResponse } from '../types/type';
+import { DispatchFcn, HomeAction, HomeState, IAppForksResponse, IForkWithBranches, IManifestResponse, NavigationProp } from '../types/type';
 import { fetchBranchesApi } from '../utils/api';
 import HomeCard from './HomeCard';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
 
-type NavigationProp = NativeStackNavigationProp<ScreenParams, 'PreviewHome'>;
 
 async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | string> {
-  const tempAppId = 'f225f58b-96d6-4b06-a24b-efe7af3db203';
   let appId: string | null = null;
   try {
-    appId = tempAppId;
+    appId = await getItem('appId');
     let initialUrl = url || null;
     if (!initialUrl) {
       initialUrl = await Linking.getInitialURL();
@@ -31,9 +30,9 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
 
     if (!appId) {
       if (initialUrl && initialUrl.startsWith('apptilepreview://locktoapp/')) {
-        appId = tempAppId;
+        appId = initialUrl.slice('apptilepreview://locktoapp/'.length);
         try {
-          await setItem("appId", tempAppId);
+          await setItem("appId", appId);
         } catch (err) {
           dispatch({
             type: 'SET_ERROR',
@@ -43,8 +42,8 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
       }
     } else {
       if (initialUrl && initialUrl.startsWith('apptilepreview://unlock')) {
-        appId = tempAppId;
-        await setItem('appId', tempAppId);
+        appId = null;
+        await setItem('appId', null);
       }
     }
   } catch (err) {
@@ -57,9 +56,9 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
   console.log('setting appId to: ', appId);
   dispatch({
     type: 'SET_APP_ID',
-    payload: tempAppId
+    payload: appId
   });
-  return tempAppId;
+  return appId;
 }
 
 async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
@@ -130,7 +129,7 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   }
 }
 
-async function fetchForks(appId: string, dispatch: DispatchFcn, navigation: NavigationProp) {
+async function fetchForks(appId: string, navigation: NavigationProp) {
   try {
     // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
     const APPTILE_API_ENDPOINT = 'http://localhost:3000';
@@ -157,14 +156,17 @@ async function fetchForks(appId: string, dispatch: DispatchFcn, navigation: Navi
           appId: appId,
           branches: branchData.branches,
           forkId: forkData?.forks[0].id,
-          forkName: forkData?.forks[0].title
+          forkName: forkData?.forks[0].title,
+          backTitle: ''
         });
       } else {
         // Navigate to AppDetail screen if there's only one branch
         navigation.navigate('AppDetail', {
           appId: appId,
           forkId: forkData.forks[0].id,
-          branchName:defaultBranchName
+          branchName:defaultBranchName,
+          forkName: forkData?.forks[0].title,
+          backTitle: ''
         });
       }
     }
@@ -200,7 +202,7 @@ async function initialize(dispatch: DispatchFcn, navigation: NavigationProp) {
     await Promise.all([
       fetchPushLogs(appId, dispatch),
       fetchManifest(appId, dispatch),
-      fetchForks(appId, dispatch, navigation)
+      fetchForks(appId, navigation)
     ]);
   }
 }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { IForkWithBranches, IManifestResponse, IAppDraftResponse, ILastSavedConfigResponse, IOtaSnapshotResponse } from '../types/type';
-// import {getConfigValue} from 'apptile-core';
+import {getConfigValue} from 'apptile-core';
 
 export interface ICommitResponse {
   id: number;
