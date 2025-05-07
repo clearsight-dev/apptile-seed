@@ -73,7 +73,7 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
 }
 
 const AppDetail: React.FC<ScreenProps> = ({ route }) => {
-  const { appId, forkId, branchName, forkName } = route.params;
+  const { appId, forkId, branchName, forkName, branchTitle } = route.params;
   const [appDraft, setAppDraft] = useState<IAppDraftResponse['appDraft'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [livePreviewLoading, setLivePreviewLoading] = useState(false);
@@ -699,7 +699,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   return (
     <>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-        <AppInfo appName={state.manifest.name} forkName={currentFork?.title} branchName={branchName} showLiveBadge={isLive} />
+        <AppInfo appName={state.manifest.name} forkName={currentFork?.title} branchName={branchTitle} showLiveBadge={isLive} />
         <View style={styles.container}>
           <View style={styles.sectionContainer}>
             {

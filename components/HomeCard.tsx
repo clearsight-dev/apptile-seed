@@ -67,7 +67,7 @@ const HomeCard = ({ state, onDownload, onNonCacheDownload, onModalDismiss, onRef
             Welcome to Apptile Preview
           </Text>
           <Text style={[{ color: '#6B7280', textAlign: 'center', marginBottom: 32 }]}>
-            Scan your QR code to see your app's versions
+            Scan your QR code to see your app
           </Text>
           <Pressable
             style={{

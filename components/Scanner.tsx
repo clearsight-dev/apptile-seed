@@ -85,7 +85,8 @@ export function Scanner(props: ScreenProps) {
             forkId: forkData.forks[0].id,
             branchName:defaultBranchName,
             forkName: forkData?.forks[0].title,
-            backTitle: ''
+            backTitle: '',
+            branchTitle: branchData?.branches?.[0]?.title || defaultBranchName,
           });
         }
       }

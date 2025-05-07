@@ -74,6 +74,7 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
         forkId: branch.forkId,
         forkName: forkName,
         branchName: branch.branchName,
+        branchTitle: branch.title,
         backTitle: 'Versions'
       });
     }

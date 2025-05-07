@@ -39,6 +39,7 @@ const Fork: React.FC<Props> = ({ navigation, route }) => {
           appId: appId,
           forkId: forkId,
           branchName: defaultBranchName,
+          branchTitle: branchData?.branches?.[0]?.title || defaultBranchName,
           forkName: forks.find(fork => fork.id === forkId)?.title || '',
           backTitle: 'Language & Region'
         });

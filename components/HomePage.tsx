@@ -165,6 +165,7 @@ async function fetchForks(appId: string, navigation: NavigationProp) {
           appId: appId,
           forkId: forkData.forks[0].id,
           branchName:defaultBranchName,
+          branchTitle: branchData?.branches?.[0]?.title || defaultBranchName,
           forkName: forkData?.forks[0].title,
           backTitle: ''
         });
