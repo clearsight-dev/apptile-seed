@@ -115,7 +115,7 @@ export function Scanner(props: ScreenProps) {
           } : {})
       }}
     >
-      <Text style={{color: 'black', marginTop: 100}} onPress={() => fetchForks('f225f58b-96d6-4b06-a24b-efe7af3db203')}>Scan QR Code</Text>
+      <Text style={{color: 'black', marginTop: 100}} onPress={() => fetchForks('b834d097-ea9b-4026-bc0a-fc873be78bb8')}>Scan QR Code</Text>
       {isDownloading && 
         <>
           <ActivityIndicator size="large" />

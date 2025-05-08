@@ -699,7 +699,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
   return (
     <>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
-        <AppInfo appName={state.manifest.name} forkName={currentFork?.title} branchName={branchTitle} showLiveBadge={isLive} />
+        <AppInfo appName={state.manifest.name} forkName={(currentFork?.title == 'Main' || currentFork?.title == 'main') ? '' : currentFork?.title} branchName={branchTitle == 'Main' || branchTitle == 'main' ? '' : branchTitle} showLiveBadge={isLive} />
         <View style={styles.container}>
           <View style={styles.sectionContainer}>
             {

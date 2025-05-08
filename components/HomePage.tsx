@@ -203,7 +203,7 @@ async function initialize(dispatch: DispatchFcn, navigation: NavigationProp) {
     await Promise.all([
       fetchPushLogs(appId, dispatch),
       fetchManifest(appId, dispatch),
-      fetchForks(appId, navigation)
+      // fetchForks(appId, navigation)
     ]);
   }
 }
