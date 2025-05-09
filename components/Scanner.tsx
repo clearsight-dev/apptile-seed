@@ -50,8 +50,7 @@ export function Scanner(props: ScreenProps) {
 
   async function fetchForks(appId: string) {
     try {
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+      const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
       console.log('Fetching forks for appId:', appId,`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
       const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
       console.log('Response:', response);
@@ -115,7 +114,6 @@ export function Scanner(props: ScreenProps) {
           } : {})
       }}
     >
-      <Text style={{color: 'black', marginTop: 100}} onPress={() => fetchForks('b834d097-ea9b-4026-bc0a-fc873be78bb8')}>Scan QR Code</Text>
       {isDownloading && 
         <>
           <ActivityIndicator size="large" />

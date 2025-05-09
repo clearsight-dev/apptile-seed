@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { setLocalStorageItem as setItem } from 'apptile-core';
+import { getConfigValue, setLocalStorageItem as setItem } from 'apptile-core';
 import React, { useEffect, useReducer, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RNRestart from 'react-native-restart';
@@ -504,8 +504,7 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
         ]
       });
 
-      // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const APPTILE_API_ENDPOINT = 'http://localhost:3000';
+      const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
       if (appId && publishedCommitId) {
         const appconfigUrl = `${APPTILE_API_ENDPOINT}/${appId}/${forkName}/${branchName}/${publishedCommitId}.json`;
         

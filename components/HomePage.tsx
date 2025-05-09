@@ -9,10 +9,8 @@ import React, { useEffect, useReducer } from 'react';
 import { Linking, Platform } from 'react-native';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
-import { defaultBranchName } from '../constants/constant';
 import { ScreenParams } from '../screenParams';
-import { DispatchFcn, HomeAction, HomeState, IAppForksResponse, IForkWithBranches, IManifestResponse, NavigationProp } from '../types/type';
-import { fetchBranchesApi } from '../utils/api';
+import { DispatchFcn, HomeAction, HomeState, IManifestResponse, NavigationProp } from '../types/type';
 import HomeCard from './HomeCard';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
@@ -63,8 +61,7 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
 
 async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
   try {
-    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-    const APPTILE_API_ENDPOINT = 'https://api.apptile.local';
+    const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
     const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
     let pushLogs = await fetch(url).then(res => res.json())
     dispatch({
@@ -82,8 +79,7 @@ async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
 
 async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   try {
-    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-    const APPTILE_API_ENDPOINT = 'https://api.apptile.local';
+    const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
     const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/manifest`;
     const manifestData: IManifestResponse = await fetch(url).then(res => res.json());
 
@@ -129,53 +125,6 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   }
 }
 
-async function fetchForks(appId: string, navigation: NavigationProp) {
-  try {
-    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-    const APPTILE_API_ENDPOINT = 'http://localhost:3000';
-    console.log('Fetching forks for appId:', appId,`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
-    const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
-    console.log('Response:', response);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const forkData: IAppForksResponse = await response.json();
-    
-    if (forkData.forks.length > 1) {
-      navigation.navigate('Fork', {
-        appId: appId,
-        forks: forkData.forks
-      });
-    } else {
-      // when the fork is only one, then we can directly go to the App Detail Page.
-      // but need to check If there are any versions created for that fork
-      const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkData?.forks[0].id);
-      if (branchData.branches.length > 1) {
-        // Navigate to Branch screen if there are multiple branches
-        navigation.navigate('Branch', {
-          appId: appId,
-          branches: branchData.branches,
-          forkId: forkData?.forks[0].id,
-          forkName: forkData?.forks[0].title,
-          backTitle: ''
-        });
-      } else {
-        // Navigate to AppDetail screen if there's only one branch
-        navigation.navigate('AppDetail', {
-          appId: appId,
-          forkId: forkData.forks[0].id,
-          branchName:defaultBranchName,
-          branchTitle: branchData?.branches?.[0]?.title || defaultBranchName,
-          forkName: forkData?.forks[0].title,
-          backTitle: ''
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching forks:', error);
-  }
-}
-
 async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   const result = {
     commitId: -1,
@@ -203,7 +152,6 @@ async function initialize(dispatch: DispatchFcn, navigation: NavigationProp) {
     await Promise.all([
       fetchPushLogs(appId, dispatch),
       fetchManifest(appId, dispatch),
-      // fetchForks(appId, navigation)
     ]);
   }
 }
