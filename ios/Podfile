@@ -299,7 +299,13 @@ target 'apptileSeed' do
       
       # Update MARKETING_VERSION for all targets
       project_content = project_content.gsub(
-        /MARKETING_VERSION = [^;]+;/,
+        /MARKETING_VERSION = [^;]*;/,
+        "MARKETING_VERSION = #{app_version};"
+      )
+      
+      # Additional check for MARKETING_VERSION with different formatting
+      project_content = project_content.gsub(
+        /MARKETING_VERSION\s*=\s*[^;]*;/,
         "MARKETING_VERSION = #{app_version};"
       )
       
