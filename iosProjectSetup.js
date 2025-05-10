@@ -287,6 +287,14 @@ async function main() {
     infoPlist.CFBundleShortVersionString = app_version;
     infoPlist.CFBundleVersion = build_number;
 
+    // Also update ImageNotification Info.plist with version and build number
+    imageNotificationPlist.CFBundleShortVersionString = app_version;
+    imageNotificationPlist.CFBundleVersion = build_number;
+
+    // Also update NotificationContentExtension Info.plist with version and build number
+    notificationContentExtensionPlist.CFBundleShortVersionString = app_version;
+    notificationContentExtensionPlist.CFBundleVersion = build_number;
+
     infoPlist.APPTILE_API_ENDPOINT = apptileConfig.APPTILE_BACKEND_URL;
     infoPlist.APPTILE_UPDATE_ENDPOINT = apptileConfig.APPCONFIG_SERVER_URL;
     infoPlist.APP_ID = apptileConfig.APP_ID;

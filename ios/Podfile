@@ -215,26 +215,7 @@ target 'apptileSeed' do
         file_contents = File.read(path)
 
         updated_contents = file_contents
-        
-        # Add/update version settings
-        updated_contents = updated_contents.gsub(
-          /^MARKETING_VERSION = (.+)$/i,
-          "MARKETING_VERSION = #{app_version}"
-        )
-        
-        unless updated_contents.include?("MARKETING_VERSION")
-          updated_contents += "\nMARKETING_VERSION = #{app_version}\n"
-        end
-        
-        updated_contents = updated_contents.gsub(
-          /^CURRENT_PROJECT_VERSION = (.+)$/i,
-          "CURRENT_PROJECT_VERSION = #{build_number}"
-        )
-        
-        unless updated_contents.include?("CURRENT_PROJECT_VERSION")
-          updated_contents += "\nCURRENT_PROJECT_VERSION = #{build_number}\n"
-        end
-        
+
         # Process feature flags
         FLAGS.each do |flag|
           flag_enabled = feature_flags[flag]
@@ -285,29 +266,6 @@ target 'apptileSeed' do
       puts "------------"
     end
     
-    # Directly update the project.pbxproj file to ensure all targets have the same version
-    project_path = "apptileSeed.xcodeproj/project.pbxproj"
-    if File.exist?(project_path)
-      puts "Updating version in project.pbxproj"
-      project_content = File.read(project_path)
-      
-      # Update CURRENT_PROJECT_VERSION for all targets
-      project_content = project_content.gsub(
-        /CURRENT_PROJECT_VERSION = \d+;/,
-        "CURRENT_PROJECT_VERSION = #{build_number};"
-      )
-      
-      # Update MARKETING_VERSION for all targets
-      project_content = project_content.gsub(
-        /MARKETING_VERSION = [^;]+;/,
-        "MARKETING_VERSION = #{app_version};"
-      )
-      
-      File.write(project_path, project_content)
-      puts "Updated project.pbxproj with version #{app_version} and build number #{build_number}"
-    else
-      puts "project.pbxproj not found at #{project_path}"
-    end
     
     xcconfig_paths=[
       ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig", bundle_id + '.NotificationContentExtension'],
@@ -375,6 +333,18 @@ target 'apptileSeed' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     ) 
+    
+    # Run the update_versions.rb script as the final step
+    script_path = "./update_versions.rb"
+    if File.exist?(script_path)
+      # Make sure the script is executable
+      File.chmod(0755, script_path) unless File.executable?(script_path)
+      
+      # Run the script
+      system(script_path)
+    else
+      puts "Warning: update_versions.rb script not found at #{script_path}"
+    end
   end
 end
 
