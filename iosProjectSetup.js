@@ -278,6 +278,15 @@ async function main() {
     const rawInfoPlist = await readFile(infoPlistLocation, {encoding: 'utf8'});
     const infoPlist = plist.parse(rawInfoPlist);
 
+    // Get version and build number from apptileConfig
+    const app_version = apptileConfig.ios?.version || '1.0.0';
+    const build_number = apptileConfig.ios?.build_number || '1';
+    console.log(`Setting app version to ${app_version} and build number to ${build_number}`);
+
+    // Update main app Info.plist with version and build number
+    infoPlist.CFBundleShortVersionString = app_version;
+    infoPlist.CFBundleVersion = build_number;
+
     infoPlist.APPTILE_API_ENDPOINT = apptileConfig.APPTILE_BACKEND_URL;
     infoPlist.APPTILE_UPDATE_ENDPOINT = apptileConfig.APPCONFIG_SERVER_URL;
     infoPlist.APP_ID = apptileConfig.APP_ID;
