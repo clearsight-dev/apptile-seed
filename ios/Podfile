@@ -215,26 +215,7 @@ target 'apptileSeed' do
         file_contents = File.read(path)
 
         updated_contents = file_contents
-        
-        # Add/update version settings
-        updated_contents = updated_contents.gsub(
-          /^MARKETING_VERSION = (.+)$/i,
-          "MARKETING_VERSION = #{app_version}"
-        )
-        
-        unless updated_contents.include?("MARKETING_VERSION")
-          updated_contents += "\nMARKETING_VERSION = #{app_version}\n"
-        end
-        
-        updated_contents = updated_contents.gsub(
-          /^CURRENT_PROJECT_VERSION = (.+)$/i,
-          "CURRENT_PROJECT_VERSION = #{build_number}"
-        )
-        
-        unless updated_contents.include?("CURRENT_PROJECT_VERSION")
-          updated_contents += "\nCURRENT_PROJECT_VERSION = #{build_number}\n"
-        end
-        
+
         # Process feature flags
         FLAGS.each do |flag|
           flag_enabled = feature_flags[flag]
@@ -285,28 +266,82 @@ target 'apptileSeed' do
       puts "------------"
     end
     
+    
+    xcconfig_paths=[
+      ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig", bundle_id + '.NotificationContentExtension'],
+      ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.release.xcconfig", bundle_id + '.NotificationContentExtension'],
+    ]
+    
+    xcconfig_paths.each do |path, productBundleIdentifier|
+      if File.exist?(path)
+        puts "Modifying #{path} for SWIFT_ACTIVE_COMPILATION_CONDITIONS"
+        # Read the current filecontents
+        file_contents = File.read(path)
+    
+        updated_contents = file_contents
+        FLAGS.each do |flag|
+          flag_enabled = feature_flags[flag]
+          puts "Feature flag #{flag}: #{flag_enabled}"
+          if flag_enabled
+            puts "Adding #{flag}"
+            #Check if is already present
+            unless updated_contents.include?("#{flag}")
+              #Append to the SWIFT_ACTIVE_COMPILATION_CONDITIONS line or create it
+               updated_contents=updated_contents.gsub(
+                     /^SWIFT_ACTIVE_COMPILATION_CONDITIONS = (.+)$/i,
+                     'SWIFT_ACTIVE_COMPILATION_CONDITIONS = \1 ' + flag
+               )
+      
+              unless updated_contents.include?("SWIFT_ACTIVE_COMPILATION_CONDITIONS")
+                #If SWIFT_ACTIVE_COMPILATION_CONDITIONS is not present, add it
+                updated_contents+="\nSWIFT_ACTIVE_COMPILATION_CONDITIONS = #{flag}\n"
+              end
+
+              puts "Added #{flag} to #{path}"
+            else
+              puts "#{flag} already exists in #{path} "
+            end
+          else
+            puts "Removing #{flag}"
+            if updated_contents.include?("#{flag}")
+              updated_contents=updated_contents.gsub(/\s*#{flag}/, '')
+              #Write the updated contents back to the file
+              puts "Removed from #{path}"
+            end
+          end
+        end
+
+        updated_contents=updated_contents.gsub(
+          /^PRODUCT_BUNDLE_IDENTIFIER = (.+)$/i,
+          'PRODUCT_BUNDLE_IDENTIFIER = ' + productBundleIdentifier 
+        )
+
+        unless updated_contents.include?("PRODUCT_BUNDLE_IDENTIFIER")
+          updated_contents+="\nPRODUCT_BUNDLE_IDENTIFIER = #{productBundleIdentifier}\n"
+        end
+
+        File.write(path, updated_contents)
+      else
+        puts "File not found #{path}"
+      end
+      puts "------------"
+    end
+     
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false
-    )
+    ) 
     
     # Run the update_versions.rb script as the final step
-    puts "Running update_versions.rb script as the final step"
     script_path = "./update_versions.rb"
-    
     if File.exist?(script_path)
       # Make sure the script is executable
       File.chmod(0755, script_path) unless File.executable?(script_path)
       
       # Run the script
-      result = system(script_path)
-      if result
-        puts "Successfully updated app version to #{app_version} and build number to #{build_number} in project.pbxproj file"
-      else
-        puts "Error updating versions, exit code: #{$?.exitstatus}"
-      end
+      system(script_path)
     else
       puts "Warning: update_versions.rb script not found at #{script_path}"
     end
