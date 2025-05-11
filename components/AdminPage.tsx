@@ -52,7 +52,6 @@ export default function AdminPage({route}) {
     getConfigValue('APPTILE_API_ENDPOINT')
       .then((APPTILE_API_ENDPOINT:string) => {
         const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
-        console.log("Getting pushLogs from: ", url);
         return url;
       })
       .then((url) => {
@@ -67,7 +66,6 @@ export default function AdminPage({route}) {
           };
           pushLogs.logs = rawPushLogs.logs;
           pushLogs.artefacts = rawPushLogs.artefacts;
-          console.log("pushlogs: ", pushLogs);
           setPushLogs(pushLogs);
         } catch (err) {
           console.error("Failed to parse pushLogs", err);
@@ -91,7 +89,6 @@ export default function AdminPage({route}) {
     getConfigValue('APPTILE_UPDATE_ENDPOINT')
       .then(APPTILE_UPDATE_ENDPOINT => {
         const url = `${APPTILE_UPDATE_ENDPOINT}/app/${appId}/main/main/manifest?frameworkVersion=0.17.0`;
-        console.log("fetching manifest from: ", url);
         return url;
       })
       .then((url) => {

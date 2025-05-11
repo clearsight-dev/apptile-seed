@@ -1,22 +1,6 @@
 import axios from 'axios';
-import { IForkWithBranches, IManifestResponse, IAppDraftResponse, ILastSavedConfigResponse, IOtaSnapshotResponse } from '../types/type';
+import { IForkWithBranches, IManifestResponse, IAppDraftResponse, ILastSavedConfigResponse, IOtaSnapshotResponse, IPushLogsResponse, ICommitResponse } from '../types/type';
 import {getConfigValue} from 'apptile-core';
-
-export interface ICommitResponse {
-  id: number;
-  forkId: number;
-  branchId: number;
-  s3ObjectKey: string;
-  remark: string;
-  previousCommitId: number | null;
-  isPublished: boolean;
-  publishStatus: string;
-  updatedBy: string | null;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  url: string;
-}
 
 export async function fetchBranchesApi(appId: string | number, forkId: string | number): Promise<IForkWithBranches> {
   const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
@@ -46,10 +30,10 @@ export async function fetchAppDraftApi(appId: string | number, forkId: string | 
   }
 }
 
-export async function fetchPushLogsApi(appId: string | number) {
+export async function fetchPushLogsApi(appId: string | number): Promise<IPushLogsResponse> {
   const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
   const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
-  const response = await axios.get(url);
+  const response = await axios.get<IPushLogsResponse>(url);
   return response.data;
 }
 

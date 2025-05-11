@@ -60,7 +60,7 @@ const HomeCard = ({ state, onDownload, onNonCacheDownload, onModalDismiss, onRef
             onPress={onScan}
           >
             <Image source={require('../assets/qr-icon.png')} style={styles.qrIcon} />
-            <Text style={styles.scanButtonText}>Scan to Preview</Text>
+            <Text style={styles.scanButtonText}>Scan your Project</Text>
           </Pressable>
         </View>
       </SafeAreaView>

@@ -7,15 +7,14 @@ import { SvgXml } from 'react-native-svg';
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
-import { HomeAction, HomeState, IAppDraftResponse, IFork } from '../types/type';
+import { HomeAction, HomeState, IAppDraftResponse, ICommitResponse, IFork } from '../types/type';
 import {
   fetchAppDraftApi,
   fetchBranchesApi,
   fetchCommitApi,
   fetchLastSavedConfigApi,
   fetchManifestApi,
-  fetchPushLogsApi,
-  ICommitResponse
+  fetchPushLogsApi
 } from '../utils/api';
 import { getFormattedDate } from '../utils/commonUtil';
 import AppInfo from './AppInfo';
@@ -374,7 +373,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
 
       try {
         const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-        console.log('bundlesPath', bundlesPath);
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',

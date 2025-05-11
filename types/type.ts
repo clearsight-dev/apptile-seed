@@ -219,4 +219,53 @@ export type IOtaSnapshot = {
   scheduledOtas: IScheduledOta[];
 };
 
+export interface ICommitResponse {
+  id: number;
+  forkId: number;
+  branchId: number;
+  s3ObjectKey: string;
+  remark: string;
+  previousCommitId: number | null;
+  isPublished: boolean;
+  publishStatus: string;
+  updatedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  url: string;
+}
+
+export interface IPushLog {
+  id: number;
+  appId: string;
+  iosBundleId: number | null;
+  androidBundleId: number | null;
+  navigatorsBundleId: number;
+  pluginsBundleId: number;
+  publishedCommitId: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IArtefact {
+  id: number;
+  type: string;
+  cdnlink: string;
+  s3link: string;
+  gitsha: string;
+  sdksha: string;
+  appId: number;
+  tag: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+export interface IPushLogsResponse {
+  logs: IPushLog[];
+  artefacts: IArtefact[];
+}
+
+
 export type IOtaSnapshotResponse = IOtaSnapshot[];

@@ -56,7 +56,6 @@ const Branch: React.FC<Props> = ({ route, navigation }) => {
       });
 
       setSnapshotsWithLatestScheduledOta(processedSnapshots);
-      console.log('Filtered OTA Snapshots with only latest scheduledOta:', processedSnapshots);
     } catch (err) {
       console.error('Error fetching OTA snapshots:', err);
     }

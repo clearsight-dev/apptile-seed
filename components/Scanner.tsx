@@ -1,17 +1,16 @@
-import React, {useState} from 'react';
-import {Dimensions, View, Alert, ActivityIndicator, Text} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import QRCodeScanner from 'react-native-qrcode-scanner';
-import {RNCamera} from 'react-native-camera';
-// import AsyncStorage from '../utils/MetaData';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { getConfigValue, setLocalStorageItem as setItem, getLocalStorageItem as getItem, setLocalStorageItem } from 'apptile-core';
+import React, { useState } from 'react';
+import { ActivityIndicator, Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
+import { RNCamera } from "react-native-camera";
+import QRCodeScanner from "react-native-qrcode-scanner";
+import RNRestart from 'react-native-restart';
+import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
-import axios from 'axios';
-
-import { ScreenParams } from '../screenParams';
-import { download, downloadTransient } from '../utils/download';
-import { IAppForksResponse, IForkWithBranches, NavigationProp } from '../types/type';
 import { defaultBranchName } from '../constants/constant';
-import { fetchBranchesApi } from '../utils/api';
+import { ScreenParams } from '../screenParams';
+import { IAppForksResponse, IForkWithBranches, IArtefact } from '../types/type';
+import { fetchBranchesApi, fetchPushLogsApi } from '../utils/api';
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
 
 export function Scanner(props: ScreenProps) {
@@ -37,23 +36,10 @@ export function Scanner(props: ScreenProps) {
     });
   };
 
-    // setApps(apps => {
-    //   console.log("Setting apps");
-    //   if (!apps.find(entry => entry.id == appId)) {
-    //     const newEntry = {name: appName, id: appId, fork: forkId};
-    //     apps = apps.concat(newEntry);
-    //   }
-    //   console.log("pushing apps: ", apps);
-    //   return apps;
-    // });
-  }
-
   async function fetchForks(appId: string) {
     try {
       const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      console.log('Fetching forks for appId:', appId,`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
       const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
-      console.log('Response:', response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -65,11 +51,8 @@ export function Scanner(props: ScreenProps) {
           forks: forkData.forks
         });
       } else {
-        // when the fork is only one, then we can directly go to the App Detail Page.
-        // but need to check If there are any versions created for that fork
         const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkData?.forks[0].id);
         if (branchData.branches.length > 1) {
-          // Navigate to Branch screen if there are multiple branches
           navigation.navigate('Branch', {
             appId: appId,
             branches: branchData.branches,
@@ -78,7 +61,6 @@ export function Scanner(props: ScreenProps) {
             backTitle: ''
           });
         } else {
-          // Navigate to AppDetail screen if there's only one branch
           navigation.navigate('AppDetail', {
             appId: appId,
             forkId: forkData.forks[0].id,
@@ -97,125 +79,226 @@ export function Scanner(props: ScreenProps) {
   const screenWidth = Dimensions.get("screen").width;
   const screenHeight = Dimensions.get("screen").height;
   const qrBoxWidth = Math.min(screenWidth * 0.8, 400);
-
   const qrBoxTop = (screenHeight - qrBoxWidth) * 0.5;
   const qrBoxLeft = (screenWidth - qrBoxWidth) * 0.5;
 
+  async function downloadForPreviewNonCache(
+    cdnlink: string,
+    iosBundleId: number | null,
+    androidBundleId: number | null
+  ) {
+    const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
+    const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
+      if (exists) {
+        return RNFetchBlob.fs.unlink(appConfigPath);
+      }
+    });
+    const jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
+    const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
+      if (exists) {
+        return RNFetchBlob.fs.unlink(jsBundlePath);
+      }
+    });
+    const assetsFolderPath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/assets';
+    const delAssetsFolder = RNFetchBlob.fs.exists(assetsFolderPath).then(exists => {
+      if (exists) {
+        return RNFetchBlob.fs.unlink(assetsFolderPath);
+      }
+    });
+    await setItem('generateCache', 'YES');
+    try {
+      await Promise.all([delAppConfig, delJsBundle, delAssetsFolder]);
+      const appconfigUrl = cdnlink;
+      const appConfigDownload = RNFetchBlob.config({
+        fileCache: true,
+        path: RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json'
+      })
+        .fetch('GET', appconfigUrl);
+
+      // Fetch push logs from API
+      let artefacts: IArtefact[] = [];
+      try {
+        const appId = await getItem('appId');
+        if (appId) {
+          const pushLogs = await fetchPushLogsApi(appId);
+          artefacts = pushLogs.artefacts;
+        }
+      } catch (err) {
+        console.error('[downloadForPreviewNonCache] Failed to fetch push logs', err);
+      }
+
+      let bundleUrl = null;
+      if (Platform.OS === 'ios') {
+        const artefact = artefacts.find(asset => {
+          return (asset.type === 'ios-jsbundle') && (asset.id === iosBundleId);
+        });
+        if (artefact) {
+          bundleUrl = artefact.cdnlink;
+        }
+      } else if (Platform.OS === 'android') {
+        const artefact = artefacts.find(asset => {
+          return (asset.type === 'android-jsbundle') && (asset.id === androidBundleId)
+        });
+        if (artefact) {
+          bundleUrl = artefact.cdnlink;
+        }
+      } else {
+        console.error('[downloadForPreviewNonCache] Unsupported platform!');
+      }
+
+      let bundleDownload: any = null;
+      if (bundleUrl) {
+        bundleDownload = RNFetchBlob.config({
+          fileCache: true,
+          path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip'
+        })
+          .fetch('GET', bundleUrl);
+      }
+
+      await Promise.all([appConfigDownload, bundleDownload]);
+      try {
+        const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
+        await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
+        RNRestart.Restart()
+      } catch (err) {
+        console.error('[downloadForPreviewNonCache] Failed to unzip files', err)
+      }
+    } catch (err) {
+      console.error('[downloadForPreviewNonCache] Failed for some reason: ', err);
+    }
+  }
+
   return (
     <View
-      style={{
-        width: '100%',
-        height: '100%',
-        ...(isDownloading ? {
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          flexDirection: 'column',
-          backgroundColor: 'white'
-          } : {})
-      }}
-    >
+      style={[styles.container, isDownloading && styles.downloadingContainer]}>
+      <Text style={styles.scanText} onPress={() => fetchForks('b5d476f7-09b6-4d21-95f5-f7cce420736a')}>Scan QR Code</Text>
       {isDownloading && 
         <>
           <ActivityIndicator size="large" />
-          <Text style={{color: 'black'}}>Downloading latest appsave...</Text>
+          <Text style={styles.downloadingText}>Downloading latest appsave...</Text>
         </>
       }
       {!isDownloading && (
         <>
           <QRCodeScanner
-            containerStyle={{
-              backgroundColor: 'black',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            cameraContainerStyle={{
-              width: '100%',
-              height: '100%',
-              overflow: 'hidden',
-            }}
-            cameraStyle={{
-              width: '100%',
-              height: '100%',
-            }}
-            topViewStyle={{height: 0}}
-            bottomViewStyle={{height: 0}}
+            containerStyle={styles.qrScannerContainer}
+            cameraContainerStyle={styles.qrCameraContainer}
+            cameraStyle={styles.qrCamera}
+            topViewStyle={styles.qrTopView}
+            bottomViewStyle={styles.qrBottomView}
             onRead={onScan}
             flashMode={RNCamera.Constants.FlashMode.off}
             reactivate={true}
             reactivateTimeout={1000}
           />
           <View
-            style={{
-              // borderWidth: 3,
-              // borderColor: '#1060E0',
-              width: qrBoxWidth,
-              height: qrBoxWidth,
-              position: 'absolute',
-              top: qrBoxTop,
-              left: qrBoxLeft,
-            }}>
-            <View
-              style={{
-                borderWidth: 3,
-                width: 100,
-                height: 100,
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                borderTopLeftRadius: 20,
-                borderTopColor: '#1060e0',
-                borderLeftColor: '#1060e0',
-                borderBottomColor: '#ff000001',
-                borderRightColor: '#ff000001',
-              }}></View>
-
-            <View
-              style={{
-                borderWidth: 3,
-                width: 100,
-                height: 100,
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                borderTopRightRadius: 20,
-                borderTopColor: '#1060e0',
-                borderRightColor: '#1060e0',
-                borderBottomColor: '#ff000001',
-                borderLeftColor: '#ff000001',
-              }}></View>
-
-            <View
-              style={{
-                borderWidth: 3,
-                width: 100,
-                height: 100,
-                position: 'absolute',
-                left: 0,
-                bottom: 0,
-                borderBottomLeftRadius: 20,
-                borderBottomColor: '#1060e0',
-                borderLeftColor: '#1060e0',
-                borderTopColor: '#ff000001',
-                borderRightColor: '#ff000001',
-              }}></View>
-
-            <View
-              style={{
-                borderWidth: 3,
-                width: 100,
-                height: 100,
-                position: 'absolute',
-                right: 0,
-                bottom: 0,
-                borderBottomRightRadius: 20,
-                borderBottomColor: '#1060e0',
-                borderRightColor: '#1060e0',
-                borderLeftColor: '#ff000001',
-                borderTopColor: '#ff000001',
-              }}></View>
+            style={[
+              styles.qrBox,
+              { width: qrBoxWidth, height: qrBoxWidth, top: qrBoxTop, left: qrBoxLeft }
+            ]}>
+            <View style={styles.qrCornerTopLeft} />
+            <View style={styles.qrCornerTopRight} />
+            <View style={styles.qrCornerBottomLeft} />
+            <View style={styles.qrCornerBottomRight} />
           </View>
         </>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: '100%',
+  },
+  downloadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    backgroundColor: 'white',
+  },
+  scanText: {
+    color: 'black',
+    marginTop: 100,
+  },
+  downloadingText: {
+    color: 'black',
+  },
+  qrScannerContainer: {
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qrCameraContainer: {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  },
+  qrCamera: {
+    width: '100%',
+    height: '100%',
+  },
+  qrTopView: {
+    height: 0,
+  },
+  qrBottomView: {
+    height: 0,
+  },
+  qrBox: {
+    position: 'absolute',
+  },
+  qrCornerTopLeft: {
+    borderWidth: 3,
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    borderTopLeftRadius: 20,
+    borderTopColor: '#1060e0',
+    borderLeftColor: '#1060e0',
+    borderBottomColor: '#ff000001',
+    borderRightColor: '#ff000001',
+  },
+  qrCornerTopRight: {
+    borderWidth: 3,
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    borderTopRightRadius: 20,
+    borderTopColor: '#1060e0',
+    borderRightColor: '#1060e0',
+    borderBottomColor: '#ff000001',
+    borderLeftColor: '#ff000001',
+  },
+  qrCornerBottomLeft: {
+    borderWidth: 3,
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
+    borderBottomLeftRadius: 20,
+    borderBottomColor: '#1060e0',
+    borderLeftColor: '#1060e0',
+    borderTopColor: '#ff000001',
+    borderRightColor: '#ff000001',
+  },
+  qrCornerBottomRight: {
+    borderWidth: 3,
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    borderBottomRightRadius: 20,
+    borderBottomColor: '#1060e0',
+    borderRightColor: '#1060e0',
+    borderLeftColor: '#ff000001',
+    borderTopColor: '#ff000001',
+  }
+});
+

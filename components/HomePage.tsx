@@ -12,6 +12,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { ScreenParams } from '../screenParams';
 import { DispatchFcn, HomeAction, HomeState, IManifestResponse, NavigationProp } from '../types/type';
 import HomeCard from './HomeCard';
+import { fetchPushLogsApi } from '../utils/api';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
@@ -51,7 +52,6 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
     });
   }
 
-  console.log('setting appId to: ', appId);
   dispatch({
     type: 'SET_APP_ID',
     payload: appId
@@ -61,9 +61,7 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
 
 async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
   try {
-    const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-    const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/pushLogs`;
-    let pushLogs = await fetch(url).then(res => res.json())
+    const pushLogs = await fetchPushLogsApi(appId);
     dispatch({
       type: 'SET_PUSHLOGS',
       payload: pushLogs
@@ -132,8 +130,7 @@ async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   };
 
   try {
-    // const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-    const APPTILE_API_ENDPOINT = 'https://api.apptile.local';
+    const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
     const { url } = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`).then(res => res.json())
     const commitId = url.match(/\/([0-9]+)\.json$/);
     if (commitId && commitId[1]) {
@@ -268,7 +265,6 @@ async function downloadForPreviewNonCache(
     });
 
     const appconfigUrl = cdnlink;
-    console.log("Appconfig url: " + appconfigUrl);
 
     const appConfigDownload = RNFetchBlob.config({
       fileCache: true,
@@ -471,7 +467,6 @@ async function downloadForPreview(
     const apptileBackendUrl = await getConfigValue('APPTILE_UPDATE_ENDPOINT');
     if (store.appId && publishedCommitId) {
       const appconfigUrl = `${apptileBackendUrl}/${store.appId}/main/main/${publishedCommitId}.json`;
-      console.log("Appconfig url: " + appconfigUrl);
 
       const appConfigDownload = RNFetchBlob.config({
         fileCache: true,

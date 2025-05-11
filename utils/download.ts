@@ -9,7 +9,6 @@ export async function download(url: string, savePath: string) {
       path: RNFetchBlob.fs.dirs.DocumentDir + '/' + savePath
     })
     .fetch('GET', url)
-    console.log("downloaded: " + res);
   } catch (err) {
     console.error("Failed to download: ", err);
   }
