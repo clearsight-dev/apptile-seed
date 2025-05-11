@@ -8,6 +8,7 @@ import { Scanner } from './components/Scanner';
 import Fork from './components/Fork';
 import Branch from './components/Branch';
 import AppDetail from './components/AppDetail';
+import { ToastProvider } from 'react-native-toast-notifications';
 
 declare global {
   function networkLog(logLine: string): void;
@@ -24,6 +25,7 @@ const Stack = createNativeStackNavigator<ScreenParams>();
 
 function App(): React.JSX.Element {
   return (
+    <ToastProvider>
     <NavigationContainer
       onReady={() => {
         RNApptile.notifyJSReady();
@@ -45,6 +47,7 @@ function App(): React.JSX.Element {
         })} />
       </Stack.Navigator>
     </NavigationContainer>
+    </ToastProvider>
   );
 }
 

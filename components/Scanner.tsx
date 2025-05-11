@@ -9,14 +9,18 @@ import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { defaultBranchName } from '../constants/constant';
 import { ScreenParams } from '../screenParams';
-import { IAppForksResponse, IForkWithBranches, IArtefact } from '../types/type';
-import { fetchBranchesApi, fetchPushLogsApi } from '../utils/api';
+import { IAppForksResponse, IForkWithBranches, IArtefact, IAppDraftResponse } from '../types/type';
+import { fetchAppDraftApi, fetchBranchesApi, fetchCommitApi, fetchManifestApi, fetchPushLogsApi } from '../utils/api';
+import { useToast } from "react-native-toast-notifications";
+import { sendToast } from '../utils/commonUtil';
+
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
 
 export function Scanner(props: ScreenProps) {
-  const {navigation} = props;
+  const { navigation } = props;
+  const toast = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
-  const onScan = (e: {data: string}) => {
+  const onScan = (e: { data: string }) => {
     // console.log("Camera scan result: ", e);
     // console.log(e.data.match(/appId=(.*)&appName/));
     // console.log(e.data.match(/appName=(.*)&orgName/));
@@ -35,52 +39,6 @@ export function Scanner(props: ScreenProps) {
       fetchForks(appId);
     });
   };
-
-  async function fetchForks(appId: string) {
-    try {
-      const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const forkData: IAppForksResponse = await response.json();
-      
-      if (forkData.forks.length > 1) {
-        navigation.navigate('Fork', {
-          appId: appId,
-          forks: forkData.forks
-        });
-      } else {
-        const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkData?.forks[0].id);
-        if (branchData.branches.length > 1) {
-          navigation.navigate('Branch', {
-            appId: appId,
-            branches: branchData.branches,
-            forkId: forkData?.forks[0].id,
-            forkName: forkData?.forks[0].title,
-            backTitle: ''
-          });
-        } else {
-          navigation.navigate('AppDetail', {
-            appId: appId,
-            forkId: forkData.forks[0].id,
-            branchName:defaultBranchName,
-            forkName: forkData?.forks[0].title,
-            backTitle: '',
-            branchTitle: branchData?.branches?.[0]?.title || defaultBranchName,
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching forks:', error);
-    }
-  }
-
-  const screenWidth = Dimensions.get("screen").width;
-  const screenHeight = Dimensions.get("screen").height;
-  const qrBoxWidth = Math.min(screenWidth * 0.8, 400);
-  const qrBoxTop = (screenHeight - qrBoxWidth) * 0.5;
-  const qrBoxLeft = (screenWidth - qrBoxWidth) * 0.5;
 
   async function downloadForPreviewNonCache(
     cdnlink: string,
@@ -168,11 +126,69 @@ export function Scanner(props: ScreenProps) {
     }
   }
 
+  async function fetchForks(appId: string) {
+    try {
+      console.log('-0')
+      const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
+      console.log(APPTILE_API_ENDPOINT)
+      const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const forkData: IAppForksResponse = await response.json();
+      console.log(1)
+      if (forkData.forks.length > 1) {
+        console.log('-1')
+        navigation.navigate('Fork', {
+          appId: appId,
+          forks: forkData.forks
+        });
+      } else {
+        console.log(0)
+        const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkData?.forks[0].id);
+        console.log(1)
+        if (branchData.branches.length > 1) {
+          navigation.navigate('Branch', {
+            appId: appId,
+            branches: branchData.branches,
+            forkId: forkData?.forks[0].id,
+            forkName: forkData?.forks[0].title,
+            backTitle: ''
+          });
+        } else {
+          console.log(2)
+          const previewAppDraftData = await fetchAppDraftApi(appId, forkData?.forks[0].id, defaultBranchName);
+          console.log('previewAppDraftData',previewAppDraftData)
+          console.log(3)
+          if ((previewAppDraftData)?.appDraft?.commitId) {
+            const getCommitURL = await fetchCommitApi((previewAppDraftData as IAppDraftResponse).appDraft.commitId);
+            console.log(4)
+            const manifestData = await fetchManifestApi(appId);
+            console.log(5)
+            downloadForPreviewNonCache(
+              getCommitURL.url,
+              manifestData.iosBundleId,
+              manifestData.androidBundleId
+            )
+          } else {
+            sendToast('No Draft available', toast);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching forks:', error);
+    }
+  }
+
+  const screenWidth = Dimensions.get("screen").width;
+  const screenHeight = Dimensions.get("screen").height;
+  const qrBoxWidth = Math.min(screenWidth * 0.8, 400);
+  const qrBoxTop = (screenHeight - qrBoxWidth) * 0.5;
+  const qrBoxLeft = (screenWidth - qrBoxWidth) * 0.5;
   return (
     <View
       style={[styles.container, isDownloading && styles.downloadingContainer]}>
-      <Text style={styles.scanText} onPress={() => fetchForks('b5d476f7-09b6-4d21-95f5-f7cce420736a')}>Scan QR Code</Text>
-      {isDownloading && 
+      {isDownloading &&
         <>
           <ActivityIndicator size="large" />
           <Text style={styles.downloadingText}>Downloading latest appsave...</Text>
@@ -301,4 +317,3 @@ const styles = StyleSheet.create({
     borderTopColor: '#ff000001',
   }
 });
-
