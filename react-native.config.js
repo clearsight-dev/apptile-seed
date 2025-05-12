@@ -41,6 +41,12 @@ module.exports = {
         "android": null,
         "ios": null
       }
+    },
+    "react-native-push-notification": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
     }
   }
 }

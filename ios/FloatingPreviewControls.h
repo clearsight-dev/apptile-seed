@@ -12,12 +12,16 @@
 
 @protocol FloatingPrviewControlsDelegate <NSObject>
 - (void)resetToDefaultBundle;
+- (void)refreshBundle;
 @end
 
-@interface FloatingPreviewControls: UIView
+@interface FloatingPreviewControls : UIView <UIGestureRecognizerDelegate>
 
-@property (nonatomic, weak) id<FloatingPrviewControlsDelegate> delegate;
+@property(nonatomic, weak) id<FloatingPrviewControlsDelegate> delegate;
+@property(nonatomic, assign, getter=isExpanded) BOOL isExpanded;
+
 - (instancetype)initWithParentView:(UIView *)parentView;
+- (void)toggleExpandedState;
 
 @end
 

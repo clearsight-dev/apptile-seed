@@ -125,9 +125,6 @@ class MainActivity : ReactActivity(), FloatingButton.FloatingButtonDelegate {
       layoutParams.leftMargin = 10
       layoutParams.topMargin = resources.displayMetrics.heightPixels / 2 - floatingButton.height / 2
       floatingButton.layoutParams = layoutParams
-      
-      // Auto-tuck the button after a delay
-      floatingButton.autoTuck()
     }
   }
 
@@ -143,6 +140,16 @@ class MainActivity : ReactActivity(), FloatingButton.FloatingButtonDelegate {
         reactNativeHost.reactInstanceManager.recreateReactContextInBackground()
     } catch (e: Exception) {
         Log.e("MainActivity", "Failed to delete bundle: ${e.localizedMessage}")
+    }
+  }
+  
+  override fun refreshBundle() {
+    try {
+        // Refresh the React Native bundle without deleting the bundle file
+        reactNativeHost.reactInstanceManager.recreateReactContextInBackground()
+        Log.d("MainActivity", "Refreshing React Native bundle")
+    } catch (e: Exception) {
+        Log.e("MainActivity", "Failed to refresh bundle: ${e.localizedMessage}")
     }
   }
 }

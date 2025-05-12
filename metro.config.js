@@ -1,16 +1,18 @@
-const chalk = require('chalk')
+const chalk = require('chalk');
 const path = require('path');
 const fs = require('fs');
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 const metroResolver = require('metro-resolver');
-require("dotenv/config");
+require('dotenv/config');
 
-console.log(chalk.yellow(`
+console.log(
+  chalk.yellow(`
 =====================================================
 start with: metro.config.js
 =====================================================
 IS_EC2=${process.env.IS_EC2}
-`));
+`),
+);
 
 /**
  * Metro configuration
@@ -19,17 +21,23 @@ IS_EC2=${process.env.IS_EC2}
  * @type {import('metro-config').MetroConfig}
  */
 const defaultConfigs = getDefaultConfig(__dirname);
-let rootPath = path.resolve(`/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages`);
+let rootPath = path.resolve(
+  `/Users/mak/apptile-cli-home/ReactNativeTSProjeect/packages`,
+);
 
 let rawExtraModules;
 
 try {
   rawExtraModules = fs.readFileSync(
     path.resolve(__dirname, 'extra_modules.json'),
-    {encoding: 'utf8'}
+    {encoding: 'utf8'},
   );
-} catch(err) {
-  console.error(chalk.red('Extra_modules.json was not found! To generate it run the app from xcode or android studio once, then start metro'));
+} catch (err) {
+  console.error(
+    chalk.red(
+      'Extra_modules.json was not found! To generate it run the app from xcode or android studio once, then start metro',
+    ),
+  );
   throw err;
 }
 
@@ -39,10 +47,10 @@ const watchPaths = Object.keys(
   extraModules.reduce((pathObj, modObj) => {
     pathObj[modObj.watchPath] = 1;
     return pathObj;
-  }, {})
+  }, {}),
 );
 
-console.log("sdk path: " + rootPath);
+console.log('sdk path: ' + rootPath);
 const sourceExts = defaultConfigs.resolver.sourceExts;
 const config = {
   resolver: {
@@ -54,7 +62,7 @@ const config = {
         if (mod.name === moduleName) {
           result = {
             [mod.returnKey]: mod.path,
-            type: mod.returnType
+            type: mod.returnType,
           };
           break;
         }
@@ -64,15 +72,16 @@ const config = {
         // console.log(result);
         return result;
       } else {
-        return metroResolver.resolve({ ...context, resolveRequest: null }, moduleName, platform);
+        return metroResolver.resolve(
+          {...context, resolveRequest: null},
+          moduleName,
+          platform,
+        );
       }
     },
-    nodeModulesPaths: [path.resolve(__dirname, 'node_modules')]
+    nodeModulesPaths: [path.resolve(__dirname, 'node_modules')],
   },
-  watchFolders: [
-    path.resolve(__dirname, './node_modules'),
-    ...watchPaths
-  ],
+  watchFolders: [path.resolve(__dirname, './node_modules'), ...watchPaths],
 };
 
 module.exports = mergeConfig(defaultConfigs, config);
