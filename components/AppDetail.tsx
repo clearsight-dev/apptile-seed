@@ -707,7 +707,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                    
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
                   <Text style={styles.versionLabel}>Version</Text>
-                    {/* Info/Failed Download Status */}
                     {isLatestPreviewActive && livePreviewLoading && (
                       <TouchableOpacity
                         activeOpacity={0.7}
@@ -719,7 +718,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                         <SvgXml xml={infoIcon} width={22} height={22} />
                       </TouchableOpacity>
                     )}
-                    {/* Failed Download Status */}
                     {isLatestPreviewActive && state.launchSequence.some(item => item.status === 'error') && (
                       <TouchableOpacity
                         onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}
@@ -760,7 +758,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                   <>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
                       <Text style={styles.versionLabel}>Version</Text>
-                      {/* Info/Failed Download Status */}
                       {isDraftPreviewActive && draftPreviewLoading && (
                         <TouchableOpacity
                           activeOpacity={0.7}
@@ -772,7 +769,6 @@ const AppDetail: React.FC<ScreenProps> = ({ route }) => {
                           <SvgXml xml={infoIcon} width={22} height={22} />
                         </TouchableOpacity>
                       )}
-                      {/* Failed Download Status */}
                       {isDraftPreviewActive && state.launchSequence.some(item => item.status === 'error') && (
                         <TouchableOpacity
                           onPress={() => dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true })}

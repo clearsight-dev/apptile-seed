@@ -1,18 +1,19 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { getConfigValue, setLocalStorageItem as setItem, getLocalStorageItem as getItem, setLocalStorageItem } from 'apptile-core';
+import { getConfigValue, getLocalStorageItem as getItem, setLocalStorageItem as setItem, setLocalStorageItem } from 'apptile-core';
 import React, { useState } from 'react';
-import { ActivityIndicator, Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import { RNCamera } from "react-native-camera";
 import QRCodeScanner from "react-native-qrcode-scanner";
 import RNRestart from 'react-native-restart';
+import { useToast } from "react-native-toast-notifications";
 import { unzip } from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import { defaultBranchName } from '../constants/constant';
 import { ScreenParams } from '../screenParams';
-import { IAppForksResponse, IForkWithBranches, IArtefact, IAppDraftResponse } from '../types/type';
+import { IAppDraftResponse, IAppForksResponse, IArtefact, IForkWithBranches } from '../types/type';
 import { fetchAppDraftApi, fetchBranchesApi, fetchCommitApi, fetchManifestApi, fetchPushLogsApi } from '../utils/api';
-import { useToast } from "react-native-toast-notifications";
 import { sendToast } from '../utils/commonUtil';
+import DownloadModal from './DownloadModal';
 
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
 
@@ -20,6 +21,9 @@ export function Scanner(props: ScreenProps) {
   const { navigation } = props;
   const toast = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [failureMessage, setFailureMessage] = useState('');
+  const [infoText, setInfoText] = useState('');
   const onScan = (e: { data: string }) => {
     // console.log("Camera scan result: ", e);
     // console.log(e.data.match(/appId=(.*)&appName/));
@@ -45,6 +49,8 @@ export function Scanner(props: ScreenProps) {
     iosBundleId: number | null,
     androidBundleId: number | null
   ) {
+    setIsDownloading(true);
+    setShowDownloadModal(true);
     const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
     const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
       if (exists) {
@@ -66,6 +72,7 @@ export function Scanner(props: ScreenProps) {
     await setItem('generateCache', 'YES');
     try {
       await Promise.all([delAppConfig, delJsBundle, delAssetsFolder]);
+      setInfoText('Downloading AppConfig and JavaScript Bundle In-Progress')
       const appconfigUrl = cdnlink;
       const appConfigDownload = RNFetchBlob.config({
         fileCache: true,
@@ -114,39 +121,39 @@ export function Scanner(props: ScreenProps) {
       }
 
       await Promise.all([appConfigDownload, bundleDownload]);
+      setInfoText('Setting up new files In-Progress')
       try {
         const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
+        setInfoText('Restarting App...')
         RNRestart.Restart()
       } catch (err) {
+        setFailureMessage('Error in setting up new files')
         console.error('[downloadForPreviewNonCache] Failed to unzip files', err)
       }
     } catch (err) {
       console.error('[downloadForPreviewNonCache] Failed for some reason: ', err);
+      setFailureMessage('Error in downloading AppConfig and JavaScript Bundle')
     }
   }
 
   async function fetchForks(appId: string) {
     try {
-      console.log('-0')
+      setShowDownloadModal(true)
+      setIsDownloading(true)
       const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      console.log(APPTILE_API_ENDPOINT)
       const response = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const forkData: IAppForksResponse = await response.json();
-      console.log(1)
       if (forkData.forks.length > 1) {
-        console.log('-1')
         navigation.navigate('Fork', {
           appId: appId,
           forks: forkData.forks
         });
       } else {
-        console.log(0)
         const branchData: IForkWithBranches = await fetchBranchesApi(appId, forkData?.forks[0].id);
-        console.log(1)
         if (branchData.branches.length > 1) {
           navigation.navigate('Branch', {
             appId: appId,
@@ -156,20 +163,19 @@ export function Scanner(props: ScreenProps) {
             backTitle: ''
           });
         } else {
-          console.log(2)
           const previewAppDraftData = await fetchAppDraftApi(appId, forkData?.forks[0].id, defaultBranchName);
-          console.log('previewAppDraftData',previewAppDraftData)
-          console.log(3)
-          if ((previewAppDraftData)?.appDraft?.commitId) {
+          if ((previewAppDraftData as IAppDraftResponse)?.appDraft?.commitId) {
             const getCommitURL = await fetchCommitApi((previewAppDraftData as IAppDraftResponse).appDraft.commitId);
-            console.log(4)
-            const manifestData = await fetchManifestApi(appId);
-            console.log(5)
-            downloadForPreviewNonCache(
-              getCommitURL.url,
-              manifestData.iosBundleId,
-              manifestData.androidBundleId
-            )
+            if (getCommitURL.url) {
+              const manifestData = await fetchManifestApi(appId);
+              downloadForPreviewNonCache(
+                getCommitURL.url,
+                manifestData.iosBundleId,
+                manifestData.androidBundleId
+              )
+            } else {
+              sendToast('No Draft available', toast);
+            }
           } else {
             sendToast('No Draft available', toast);
           }
@@ -188,37 +194,41 @@ export function Scanner(props: ScreenProps) {
   return (
     <View
       style={[styles.container, isDownloading && styles.downloadingContainer]}>
-      {isDownloading &&
-        <>
-          <ActivityIndicator size="large" />
-          <Text style={styles.downloadingText}>Downloading latest appsave...</Text>
-        </>
-      }
-      {!isDownloading && (
-        <>
-          <QRCodeScanner
-            containerStyle={styles.qrScannerContainer}
-            cameraContainerStyle={styles.qrCameraContainer}
-            cameraStyle={styles.qrCamera}
-            topViewStyle={styles.qrTopView}
-            bottomViewStyle={styles.qrBottomView}
-            onRead={onScan}
-            flashMode={RNCamera.Constants.FlashMode.off}
-            reactivate={true}
-            reactivateTimeout={1000}
-          />
-          <View
-            style={[
-              styles.qrBox,
-              { width: qrBoxWidth, height: qrBoxWidth, top: qrBoxTop, left: qrBoxLeft }
-            ]}>
-            <View style={styles.qrCornerTopLeft} />
-            <View style={styles.qrCornerTopRight} />
-            <View style={styles.qrCornerBottomLeft} />
-            <View style={styles.qrCornerBottomRight} />
-          </View>
-        </>
-      )}
+      <DownloadModal
+        visible={showDownloadModal}
+        isDownloading={isDownloading}
+        failureMessage={failureMessage}
+        infoText={infoText}
+        onClose={() => {
+          setIsDownloading(false)
+          setShowDownloadModal(false)
+          setFailureMessage('')
+          setInfoText('')
+        }}
+      />
+      <>
+        <QRCodeScanner
+          containerStyle={styles.qrScannerContainer}
+          cameraContainerStyle={styles.qrCameraContainer}
+          cameraStyle={styles.qrCamera}
+          topViewStyle={styles.qrTopView}
+          bottomViewStyle={styles.qrBottomView}
+          onRead={onScan}
+          flashMode={RNCamera.Constants.FlashMode.off}
+          reactivate={true}
+          reactivateTimeout={1000}
+        />
+        <View
+          style={[
+            styles.qrBox,
+            { width: qrBoxWidth, height: qrBoxWidth, top: qrBoxTop, left: qrBoxLeft }
+          ]}>
+          <View style={styles.qrCornerTopLeft} />
+          <View style={styles.qrCornerTopRight} />
+          <View style={styles.qrCornerBottomLeft} />
+          <View style={styles.qrCornerBottomRight} />
+        </View>
+      </>
     </View>
   );
 }
