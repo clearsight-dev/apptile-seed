@@ -614,12 +614,6 @@ async function main() {
   const updatedAndroidManifest = builder.buildObject(androidManifest);
   await writeFile(androidManifestPath, updatedAndroidManifest);
 
-
-  // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json 
-  // const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
-  // console.log('Downloading manifest from ' + manifestUrl);
-  // const {data: manifest} = await axios.get(manifestUrl);
-  
   await generateAnalytics(analyticsTemplateRef, apptileConfig.integrations, apptileConfig.feature_flags);
   await writeReactNativeConfigJs(parsedReactNativeConfig);
   await writeFile(path.resolve(__dirname, 'extra_modules.json'), JSON.stringify(extraModules.current, null, 2));
