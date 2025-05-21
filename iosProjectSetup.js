@@ -300,7 +300,7 @@ async function main() {
     infoPlist.APP_ID = apptileConfig.APP_ID;
     infoPlist.CFBundleDisplayName = apptileConfig.app_name || 'Apptile Seed';
 
-    const bundle_id = apptileConfig.ios.bundle_id || 'com.apptile.apptilepreviewdemo';
+    const bundle_id = apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
 
     apptileSeedEntitlements['com.apple.security.application-groups'] = [`group.${bundle_id}.notification`];
     imageNotificationEntitlements['com.apple.security.application-groups'] = [`group.${bundle_id}.notification`];
@@ -308,42 +308,42 @@ async function main() {
 
     // For facebook analytics
     const parsedReactNativeConfig = await readReactNativeConfigJs();
-    if (apptileConfig.feature_flags.ENABLE_FBSDK) {
+    if (apptileConfig.feature_flags?.ENABLE_FBSDK) {
       await addFacebook(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules);
     } else {
       await removeFacebook(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
     // For clevertap analytics
-    if (apptileConfig.feature_flags.ENABLE_CLEVERTAP) {
+    if (apptileConfig.feature_flags?.ENABLE_CLEVERTAP) {
       await addCleverTap(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
       await removeCleverTap(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
     // For appsflyer analytics
-    if (apptileConfig.feature_flags.ENABLE_APPSFLYER) {
+    if (apptileConfig.feature_flags?.ENABLE_APPSFLYER) {
       await addAppsflyer(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
       await removeAppsflyer(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
     // For moengage analytics
-    if (apptileConfig.feature_flags.ENABLE_MOENGAGE) {
+    if (apptileConfig.feature_flags?.ENABLE_MOENGAGE) {
       await addMoengage(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
       await removeMoengage(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
     // Onesignal notifications
-    if (apptileConfig.feature_flags.ENABLE_ONESIGNAL) {
+    if (apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
       await addOnesignal(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
       await removeOnesignal(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
     // For klaviyo notifications
-    if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
+    if (apptileConfig.feature_flags?.ENABLE_KLAVIYO) {
       await addKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules)
     } else {
       await removeKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
@@ -370,25 +370,28 @@ async function main() {
 
     // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json 
     // TODO(gaurav): use the cdn here as well
-    const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
-    console.log('Downloading manifest from ' + manifestUrl);
-    const {data: manifest} = await axios.get(manifestUrl);
-    // console.log('manifest: ', manifest);
-    const publishedCommit = manifest.forks[0].publishedCommitId;
-    const iosBundle = manifest.codeArtefacts.find((it) => it.type === 'ios-jsbundle');
-
-    const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
-    console.log('Downloading appConfig from: ' + appConfigUrl);
-    if (publishedCommit) {
-      const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
-      await downloadFile(appConfigUrl, appConfigPath);
-      console.log('appConfig downloaded');
+    try {
+      const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
+      console.log('Downloading manifest from ' + manifestUrl);
+      const {data: manifest} = await axios.get(manifestUrl);
+      const publishedCommit = manifest.forks[0].publishedCommitId;
+      const iosBundle = manifest.codeArtefacts.find((it) => it.type === 'ios-jsbundle');
       const bundleTrackerPath = path.resolve(__dirname, 'ios/localBundleTracker.json');
-      await writeFile(bundleTrackerPath, `{"publishedCommitId": ${publishedCommit}, "iosBundleId": ${iosBundle?.id ?? "null"}}`)
-      console.log('bundleTrackerPath updated: ', bundleTrackerPath);
-    } else {
-      console.error("Published appconfig not found! Stopping build.")
-      process.exit(1);
+
+      if (publishedCommit) {
+        const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+        console.log('Downloading appConfig from: ' + appConfigUrl);
+        const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
+        await downloadFile(appConfigUrl, appConfigPath);
+        console.log('appConfig downloaded');
+        await writeFile(bundleTrackerPath, `{"publishedCommitId": ${publishedCommit}, "iosBundleId": ${iosBundle?.id ?? "null"}}`);
+      } else {
+        console.error("Published appconfig not found!")
+        await writeFile(bundleTrackerPath, `{"publishedCommitId": null, "iosBundleId": null}`);
+      }
+    } catch (err) {
+      console.error("Failed to download appconfig");
+      await writeFile(bundleTrackerPath, `{"publishedCommitId": null, "iosBundleId": null}`);
     }
     await generateAnalytics(analyticsTemplateRef, apptileConfig.integrations, apptileConfig.feature_flags);
     await writeReactNativeConfigJs(parsedReactNativeConfig);
