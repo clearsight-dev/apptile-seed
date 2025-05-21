@@ -113,7 +113,7 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
     enabledAnalytics += `MoengageAnalytics,\n      `;
   }
 
-  if (featureFlags?.ENABLE_ONSIGNAL) {
+  if (featureFlags?.ENABLE_ONESIGNAL) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
