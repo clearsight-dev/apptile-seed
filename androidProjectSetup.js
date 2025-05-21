@@ -580,30 +580,30 @@ async function main() {
 
   const parsedReactNativeConfig = await readReactNativeConfigJs();
 
-  if (apptileConfig.feature_flags.ENABLE_CLEVERTAP) {
+  if (apptileConfig.feature_flags?.ENABLE_CLEVERTAP) {
     await addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
     await removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
   }
-  if (apptileConfig.feature_flags.ENABLE_FBSDK) {
+  if (apptileConfig.feature_flags?.ENABLE_FBSDK) {
     await addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
     await removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
   }
 
-  if (apptileConfig.feature_flags.ENABLE_ONESIGNAL) {
+  if (apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
     await addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
     await removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
   }
 
-  if (apptileConfig.feature_flags.ENABLE_MOENGAGE) {
+  if (apptileConfig.feature_flags?.ENABLE_MOENGAGE) {
     await addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
   } else {
     await removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
   }
 
-  if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
+  if (apptileConfig.feature_flags?.ENABLE_KLAVIYO) {
     await addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig);
   }
   else {
@@ -616,27 +616,32 @@ async function main() {
   await writeFile(androidManifestPath, updatedAndroidManifest);
 
 
-  // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json 
-  const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
-  console.log('Downloading manifest from ' + manifestUrl);
-  const {data: manifest} = await axios.get(manifestUrl);
-  // console.log('manifest: ', manifest);
-  const publishedCommit = manifest.forks[0].publishedCommitId;
-  const androidBundle = manifest.codeArtefacts.find((it) => it.type === 'android-bundle');
-
-  const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
-  console.log('Downloading appConfig from: ' + appConfigUrl);
-  if (publishedCommit) {
-    const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
-    await mkdir(assetsDir, {recursive: true});
-    const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
-    await downloadFile(appConfigUrl, appConfigPath);
-    console.log('appConfig downloaded');
+  // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
+  try {
+    const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
+    console.log('Downloading manifest from ' + manifestUrl);
+    const { data: manifest } = await axios.get(manifestUrl);
+    const publishedCommit = manifest.forks[0].publishedCommitId;
+    const androidBundle = manifest.codeArtefacts.find((it) => it.type === 'android-bundle');
     const bundleTrackerPath = path.resolve(__dirname, 'android/app/src/main/assets/localBundleTracker.json');
-    await writeFile(bundleTrackerPath, `{"publishedCommitId": ${publishedCommit}, "androidBundleId": ${androidBundle?.id ?? "null"}}`)
-  } else {
-    console.error("Published appconfig not found! Stopping build.")
-    process.exit(1);
+    
+    if (publishedCommit) {
+      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+      console.log('Downloading appConfig from: ' + appConfigUrl);
+      const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
+      await mkdir(assetsDir, { recursive: true });
+      const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
+      await downloadFile(appConfigUrl, appConfigPath);
+      console.log('appConfig downloaded');
+      await writeFile(bundleTrackerPath, `{"publishedCommitId": ${publishedCommit || "null"}, "androidBundleId": ${androidBundle?.id || "null"}}`)
+    }
+    else {
+      console.error("Published appconfig not found!");
+      await writeFile(bundleTrackerPath, `{"publishedCommitId": null, "androidBundleId": null}`);
+    }
+  } catch (err) {
+    console.error("Failed to download appconfig");
+    await writeFile(bundleTrackerPath, `{"publishedCommitId": null, "androidBundleId": null}`);
   }
   console.log("Running android project setup");
   await generateAnalytics(analyticsTemplateRef, apptileConfig.integrations, apptileConfig.feature_flags);
@@ -663,7 +668,7 @@ async function main() {
     console.log(chalk.red('Failed to download google-services.json. Will try to use the template'));
     const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
     const gsParsed = JSON.parse(gsRaw);
-    gsParsed.client[0].client_info.android_client_info.package_name = apptileConfig.android.bundle_id;
+    gsParsed.client[0].client_info.android_client_info.package_name = apptileConfig.android?.bundle_id;
     await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
 
