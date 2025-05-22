@@ -220,9 +220,13 @@ async function addForceUnlinkForNativePackage(packageName, extraModules, parsedR
       path.resolve(__dirname, `stubs/${packageName}`),
       {recursive: true}
     );
+    
+    // Use a default stub if the package doesn't have a specific one defined
+    const stubContent = packageStubs[packageName] || `export default {}; // Default stub for ${packageName}`;
+    
     await writeFile(
       path.resolve(__dirname, `stubs/${packageName}/index.ts`), 
-      packageStubs[packageName]
+      stubContent
     );
   }
 
