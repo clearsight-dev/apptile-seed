@@ -233,3 +233,60 @@ dependencies {
 
 apply from: "./apptile.gradle"
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+// Custom export path logic for release builds
+def exportPath = System.getenv("exportPath")
+
+android.applicationVariants.all { variant ->
+    if (variant.buildType.name == "release") {
+        variant.outputs.all { output ->
+            // Assemble Release task
+            tasks.named("assemble${variant.name.capitalize()}").configure { task ->
+                doLast {
+                    if (exportPath) {
+                        // Create export directory if it doesn't exist
+                        def exportDir = new File(exportPath)
+                        if (!exportDir.exists()) {
+                            exportDir.mkdirs()
+                        }
+                        
+                        // Copy APK to export path
+                        def apkFile = new File(output.outputFile.absolutePath)
+                        if (apkFile.exists()) {
+                            copy {
+                                from apkFile
+                                into exportDir
+                            }
+                            println "Exported APK to ${exportDir.absolutePath}/${apkFile.name}"
+                        }
+                    }
+                }
+            }
+            
+            // Bundle Release task
+            tasks.matching { it.name == "bundle${variant.name.capitalize()}" }.all { task ->
+                doLast {
+                    if (exportPath) {
+                        // Create export directory if it doesn't exist
+                        def exportDir = new File(exportPath)
+                        if (!exportDir.exists()) {
+                            exportDir.mkdirs()
+                        }
+                        
+                        // Copy AAB to export path
+                        def aabDir = new File("${project.buildDir}/outputs/bundle/${variant.name}")
+                        if (aabDir.exists()) {
+                            aabDir.listFiles().findAll { it.name.endsWith(".aab") }.each { aabFile ->
+                                copy {
+                                    from aabFile
+                                    into exportDir
+                                }
+                                println "Exported AAB to ${exportDir.absolutePath}/${aabFile.name}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
