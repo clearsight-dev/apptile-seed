@@ -1,14 +1,11 @@
 package com.apptileseed
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
-import android.graphics.Point
-import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
-import android.os.Handler
-import android.os.Looper
+import android.os.Process
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -22,6 +19,10 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import kotlin.system.exitProcess
 
 /**
  * FloatingButton - A floating control button that mimics iOS FloatingPreviewControls
@@ -55,7 +56,7 @@ class FloatingButton(private val context: Context) : FrameLayout(context) {
     // Interface for delegate callbacks
     interface FloatingButtonDelegate {
         fun resetToDefaultBundle()
-        fun refreshBundle()
+//        fun refreshBundle()
     }
 
     init {
@@ -124,15 +125,56 @@ class FloatingButton(private val context: Context) : FrameLayout(context) {
 
     // Go home action
     private fun goHome() {
-        delegate?.resetToDefaultBundle()
-        toggleExpandedState() // This will hide the menu
+        Log.d("FloatingButton", "Go Home action triggered")
+        // delegate?.resetToDefaultBundle() // Original action
+
+        // New: Overwrite previewTracker.json, delete appConfig.json and restart app
+        try {
+            val M_TAG = "FloatingButtonHomeAction"
+            
+            // Delete appConfig.json from app's internal storage (documents directory)
+            val appConfigFileName = "appConfig.json"
+            val appConfigFile = File(context.filesDir, appConfigFileName)
+            if (appConfigFile.exists()) {
+                if (appConfigFile.delete()) {
+                    Log.d(M_TAG, "Successfully deleted $appConfigFileName")
+                } else {
+                    Log.w(M_TAG, "Failed to delete $appConfigFileName")
+                }
+            } else {
+                Log.d(M_TAG, "$appConfigFileName does not exist, no need to delete.")
+            }
+
+            val trackerFileName = "previewTracker.json"
+            // Correct path for writing to a file in app's internal storage:
+            val internalFile = File(context.filesDir, trackerFileName)
+
+            Log.d(M_TAG, "Attempting to write to: ${internalFile.absolutePath}")
+            FileWriter(internalFile).use { writer ->
+                writer.write("{}")
+            }
+            Log.d(M_TAG, "Successfully wrote to $trackerFileName")
+
+            // Restart the app
+            val packageManager = context.packageManager
+            val intent = packageManager.getLaunchIntentForPackage(context.packageName)
+            val componentName = intent!!.component
+            val mainIntent = Intent.makeRestartActivityTask(componentName)
+            context.startActivity(mainIntent)
+            Process.killProcess(Process.myPid())
+            exitProcess(0)
+
+        } catch (e: IOException) {
+            Log.e("FloatingButtonHomeAction", "Error writing to previewTracker.json or restarting app", e)
+        }
+        hideMenu()
     }
 
-    // Refresh app action
-    private fun refreshApp() {
-        delegate?.refreshBundle()
-        toggleExpandedState() // This will hide the menu
-    }
+//    private fun refreshApp() {
+//        Log.d("FloatingButton", "Refresh App action triggered")
+//        delegate?.refreshBundle()
+//        hideMenu()
+//    }
 
     // Toggle between expanded and collapsed states
     private fun toggleExpandedState() {
@@ -205,17 +247,19 @@ class FloatingButton(private val context: Context) : FrameLayout(context) {
 
         // Create Home menu item with the new outlined icon
         val homeMenuItem = createMenuItem("Home", R.drawable.ic_outlined_home)
-        homeMenuItem.setOnClickListener { goHome() }
+        homeMenuItem.setOnClickListener {
+            goHome() // Updated goHome action will handle json writing and restart
+        }
         val homeParams = LinearLayout.LayoutParams(itemSize, itemSize)
         homeParams.marginEnd = itemMargin
         menuItemsContainer.addView(homeMenuItem, homeParams)
 
-        // Create Refresh menu item with the new outlined icon
-        val refreshMenuItem = createMenuItem("Refresh", R.drawable.ic_outlined_refresh)
-        refreshMenuItem.setOnClickListener { refreshApp() }
-        val refreshParams = LinearLayout.LayoutParams(itemSize, itemSize)
-        refreshParams.marginStart = itemMargin
-        menuItemsContainer.addView(refreshMenuItem, refreshParams)
+//        // Create Refresh menu item with the new outlined icon
+//        val refreshMenuItem = createMenuItem("Refresh", R.drawable.ic_refresh)
+//        refreshMenuItem.setOnClickListener { refreshApp() }
+//        val refreshParams = LinearLayout.LayoutParams(itemSize, itemSize)
+//        refreshParams.marginStart = itemMargin
+//        menuItemsContainer.addView(refreshMenuItem, refreshParams)
 
         // Measure the menuItemsContainer to get its actual dimensions
         menuItemsContainer.measure(
@@ -344,89 +388,89 @@ class FloatingButton(private val context: Context) : FrameLayout(context) {
         return true
     }
 
-override fun onTouchEvent(event: MotionEvent): Boolean {
-    when (event.action) {
-        MotionEvent.ACTION_DOWN -> {
-            // Save initial positions for all interactions, even if expanded
-            initialX = x
-            initialY = y
-            initialTouchX = event.rawX
-            initialTouchY = event.rawY
-            lastTouchX = event.rawX
-            lastTouchY = event.rawY
-            isDragging = false
-
-            // Request parent not to intercept touch events
-            parent?.requestDisallowInterceptTouchEvent(true)
-            return true
-        }
-
-        MotionEvent.ACTION_MOVE -> {
-            // If menu is expanded, don't allow dragging, only handle toggle clicks
-            if (isExpanded) {
-                return true
-            }
-            
-            // Calculate how far we've moved from the initial touch point
-            val deltaX = Math.abs(event.rawX - initialTouchX)
-            val deltaY = Math.abs(event.rawY - initialTouchY)
-
-            // Check if we've moved enough to consider it a drag
-            if (!isDragging && (Math.abs(deltaX) > clickDragThreshold || Math.abs(deltaY) > clickDragThreshold)) {
-                isDragging = true
-                Log.d("FloatingButton", "Started dragging")
-            }
-
-            if (isDragging) {
-                // Calculate movement delta from the last position
-                val moveDeltaX = event.rawX - lastTouchX
-                val moveDeltaY = event.rawY - lastTouchY
-
-                // Update position
-                x += moveDeltaX
-                y += moveDeltaY
-
-                // Keep button within parent bounds
-                val parentView = parent as? ViewGroup
-                if (parentView != null) {
-                    x = x.coerceIn(0f, (parentView.width - width).toFloat())
-                    y = y.coerceIn(0f, (parentView.height - height).toFloat())
-                }
-
-                // Update last touch position
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                // Save initial positions for all interactions, even if expanded
+                initialX = x
+                initialY = y
+                initialTouchX = event.rawX
+                initialTouchY = event.rawY
                 lastTouchX = event.rawX
                 lastTouchY = event.rawY
-
-                Log.d("FloatingButton", "Dragging to: (${x}, ${y})")
-            }
-            return true
-        }
-
-        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-            // Allow parent to handle touch events again
-            parent?.requestDisallowInterceptTouchEvent(false)
-
-            if (isDragging) {
-                // If we were dragging, snap to edge
-                snapToEdge()
                 isDragging = false
-                Log.d("FloatingButton", "Drag ended, snapping to edge")
-                return true
-            } else {
-                // If not dragging, this was a click
-                toggleExpandedState()
-                if (isExpanded) {
-                    Log.d("FloatingButton", "Button clicked, showing menu")
-                } else {
-                    Log.d("FloatingButton", "Button clicked, hiding menu")
-                }
-                performClick() // For accessibility
+
+                // Request parent not to intercept touch events
+                parent?.requestDisallowInterceptTouchEvent(true)
                 return true
             }
+
+            MotionEvent.ACTION_MOVE -> {
+                // If menu is expanded, don't allow dragging, only handle toggle clicks
+                if (isExpanded) {
+                    return true
+                }
+                
+                // Calculate how far we've moved from the initial touch point
+                val deltaX = Math.abs(event.rawX - initialTouchX)
+                val deltaY = Math.abs(event.rawY - initialTouchY)
+
+                // Check if we've moved enough to consider it a drag
+                if (!isDragging && (Math.abs(deltaX) > clickDragThreshold || Math.abs(deltaY) > clickDragThreshold)) {
+                    isDragging = true
+                    Log.d("FloatingButton", "Started dragging")
+                }
+
+                if (isDragging) {
+                    // Calculate movement delta from the last position
+                    val moveDeltaX = event.rawX - lastTouchX
+                    val moveDeltaY = event.rawY - lastTouchY
+
+                    // Update position
+                    x += moveDeltaX
+                    y += moveDeltaY
+
+                    // Keep button within parent bounds
+                    val parentView = parent as? ViewGroup
+                    if (parentView != null) {
+                        x = x.coerceIn(0f, (parentView.width - width).toFloat())
+                        y = y.coerceIn(0f, (parentView.height - height).toFloat())
+                    }
+
+                    // Update last touch position
+                    lastTouchX = event.rawX
+                    lastTouchY = event.rawY
+
+                    Log.d("FloatingButton", "Dragging to: (${x}, ${y})")
+                }
+                return true
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                // Allow parent to handle touch events again
+                parent?.requestDisallowInterceptTouchEvent(false)
+
+                if (isDragging) {
+                    // If we were dragging, snap to edge
+                    snapToEdge()
+                    isDragging = false
+                    Log.d("FloatingButton", "Drag ended, snapping to edge")
+                    return true
+                } else {
+                    // If not dragging, this was a click
+                    toggleExpandedState()
+                    if (isExpanded) {
+                        Log.d("FloatingButton", "Button clicked, showing menu")
+                    } else {
+                        Log.d("FloatingButton", "Button clicked, hiding menu")
+                    }
+                    performClick() // For accessibility
+                    return true
+                }
+            }
         }
+        return super.onTouchEvent(event)
     }
-    return super.onTouchEvent(event)
-}
 
     // Snap the button to the nearest edge after dragging
     private fun snapToEdge() {

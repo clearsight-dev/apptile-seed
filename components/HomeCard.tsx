@@ -2,87 +2,42 @@ import {
   Image,
   Pressable,
   SafeAreaView,
-  ScrollView,
   Text,
   View,
   StyleSheet,
 } from 'react-native';
-import {border, buttons, layout, text} from '../styles';
-import {
-  DownloadCodepushCb,
-  DownloadNonCacheCodepushCb,
-  HomeState,
-} from '../types/type';
-import LiveApp from './LiveApp';
-import PushLogs from './PushLogs';
-import LauncSequenceModal from './LauncSequenceModal';
-import ScheduledOTA from './ScheduledOTA';
+import {layout} from '../styles';
 
 type HomeCardProps = {
-  state: HomeState;
-  onNonCacheDownload: DownloadNonCacheCodepushCb;
-  onDownload: DownloadCodepushCb;
-  onModalDismiss: () => void;
-  onRefresh: () => void;
   onScan: () => void;
 };
 
-const HomeCard = ({
-  state,
-  onDownload,
-  onNonCacheDownload,
-  onModalDismiss,
-  onRefresh,
-  onScan,
-}: HomeCardProps) => {
-  if (state.appId) {
-    return (
-      <SafeAreaView>
-        <ScrollView style={[layout.flexCol, layout.p2]}>
-          <View style={[layout.flexRow, layout.justifyBetween]}>
-            <Text style={text.secondary}>{state.appId}</Text>
-            <Pressable onPress={onRefresh} style={buttons.primary}>
-              <Text style={[text.accent, text.large]}>Refresh</Text>
-            </Pressable>
-          </View>
-          <LiveApp
-            manifest={state.manifest}
-            onDownload={onDownload}
-            onNonCacheDownload={onNonCacheDownload}
-          />
-          <ScheduledOTA manifest={state.manifest} />
-          <PushLogs logs={state.pushLogs} onDownload={onDownload} />
-        </ScrollView>
-        <LauncSequenceModal state={state} onModalDismiss={onModalDismiss} />
-      </SafeAreaView>
-    );
-  } else {
-    return (
-      <SafeAreaView
-        style={[
-          layout.flexCol,
-          layout.alignCenter,
-          layout.justifyCenter,
-          styles.safeArea,
-        ]}>
-        <View style={styles.cardContainer}>
+const HomeCard = ({onScan}: HomeCardProps) => {
+  return (
+    <SafeAreaView
+      style={[
+        layout.flexCol,
+        layout.alignCenter,
+        layout.justifyCenter,
+        styles.safeArea,
+      ]}>
+      <View style={styles.cardContainer}>
+        <Image
+          style={styles.logo}
+          resizeMode="contain"
+          source={require('../assets/logo.png')}
+        />
+        <Text style={styles.welcomeText}>Welcome to Apptile Preview</Text>
+        <Pressable style={styles.scanButton} onPress={onScan}>
           <Image
-            style={styles.logo}
-            resizeMode="contain"
-            source={require('../assets/logo.png')}
+            source={require('../assets/qr-icon.png')}
+            style={styles.qrIcon}
           />
-          <Text style={styles.welcomeText}>Welcome to Apptile Preview lol</Text>
-          <Pressable style={styles.scanButton} onPress={onScan}>
-            <Image
-              source={require('../assets/qr-icon.png')}
-              style={styles.qrIcon}
-            />
-            <Text style={styles.scanButtonText}>Scan your Project</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
+          <Text style={styles.scanButtonText}>Scan your Project</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -94,10 +49,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
     margin: 24,
     width: '90%',
   },

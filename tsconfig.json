@@ -4,10 +4,18 @@
     "allowJs": true,
     "jsx": "react-native",
     "paths": {
-      "apptile-core": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-core/sdk.ts"],
-      "apptile-plugins": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-plugins/index.ts"],
-      "apptile-shopify": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-shopify/index.ts"],
-      "apptile-datasource": ["/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-datasource/index.ts"]
+      "apptile-core": [
+        "/Users/mak/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-core/sdk.ts"
+      ],
+      "apptile-plugins": [
+        "/Users/mak/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-plugins/index.ts"
+      ],
+      "apptile-shopify": [
+        "/Users/mak/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-shopify/index.ts"
+      ],
+      "apptile-datasource": [
+        "/Users/mak/apptile-cli-home/ReactNativeTSProjeect/packages/apptile-datasource/index.ts"
+      ]
     }
   }
 }

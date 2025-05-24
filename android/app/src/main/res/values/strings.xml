@@ -1,8 +1,11 @@
 <resources>
   <string name="app_name">apptilePreview</string>
-  <string name="APPTILE_API_ENDPOINT">https://api.apptile.io</string>
-  <string name="APPTILE_UPDATE_ENDPOINT">https://appconfigs.apptile.io</string>
-  <string name="APP_ID"/>
-  <string name="ONESIGNAL_APPID">xxx</string>
+  <string name="APPTILE_APP_FORK">main</string>
+  <string name="APPTILE_API_ENDPOINT">https://dev-api.apptile.io</string>
+  <string name="APPTILE_UPDATE_ENDPOINT">https://dev-appconfigs.apptile.io</string>
   <string name="IS_PREVIEW_APP">YES</string>
+  <string name="APPTILE_URL_SCHEME">apptilepreview://</string>
+  <string name="APPTILE_APP_HOST">apptile.com</string>
+  <string name="APPTILE_APP_HOST_2">apptile.com</string>
+  <string name="APP_ID"/>
 </resources>

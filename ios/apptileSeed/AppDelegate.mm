@@ -1,118 +1,42 @@
 #import "AppDelegate.h"
 
+#import "CrashHandler.h"
+#import "StartupHandler.h"
+#import "apptileSeed-Swift.h"
+#import "../FloatingPreviewControls.h"
+
 #import <React/RCTBundleURLProvider.h>
-#import <React/RCTLinkingManager.h>
-#import <React/RCTI18nUtil.h>
 #import <React/RCTEventEmitter.h>
-#import <React/RCTReloadCommand.h>
+#import <React/RCTI18nUtil.h>
+#import <React/RCTLinkingManager.h>
 
 #if ENABLE_FIREBASE_ANALYTICS
 #import <Firebase.h>
 #endif
 
-#if ENABLE_FBSDK
-#import <AuthenticationServices/AuthenticationServices.h>
-#import <SafariServices/SafariServices.h>
-#import <FBSDKCoreKit/FBSDKCoreKit-Swift.h>
-#endif
 
-#if ENABLE_MOENGAGE
-#import <ReactNativeMoEngage/MoEngageInitializer.h>
-#import <MoEngageSDK/MoEngageSDK.h>
-#endif
-
-#if ENABLE_APPSFLYER
-#import <AppsFlyerLib/AppsFlyerLib.h>
-#import <AppsFlyerAttribution.h>
-#endif
-
-#if ENABLE_CLEVERTAP
-#import <CleverTapReactManager.h>
-#import <CleverTap.h>
-#endif
 
 @implementation AppDelegate
 
-- (NSURL *)docsJSBundleUrl {
-  NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
-  NSURL *documentsDirectory = [documentDirectories firstObject];
-  NSURL *docBundlesDirectory = [documentsDirectory URLByAppendingPathComponent:@"bundles"];
-  NSURL *mainJSBundleURL = [docBundlesDirectory URLByAppendingPathComponent:@"main.jsbundle"];
-  if ([[NSFileManager defaultManager] fileExistsAtPath:[mainJSBundleURL path]]) {
-    return mainJSBundleURL;
-  } else {
-    return Nil;
-  }
-}
+- (BOOL)application:(UIApplication *)application
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  // Setting up CrashHandlers
+  [CrashHandler setupSignalHandlers];
 
-- (void)resetToDefaultBundle {
-  NSURL *bundleURL = [self docsJSBundleUrl];
-  NSError *error;
-  if (bundleURL != Nil) {
-    [[NSFileManager defaultManager] removeItemAtURL:bundleURL error:&error];
-    NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
-    NSURL *documentsDirectory = [documentDirectories firstObject];
-    NSURL *docBundlesDirectory = [documentsDirectory URLByAppendingPathComponent:@"bundles"];
-    [[NSFileManager defaultManager] removeItemAtURL:docBundlesDirectory error:&error];
-  }
-  
-  if (error) {
-    NSLog(@"Failed to delete bundle %@", error.localizedDescription);
-  } else {
-    RCTTriggerReloadCommandListeners(@"Preview App Unmount");
-  }
-}
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-#if ENABLE_CLEVERTAP
-  [CleverTap autoIntegrate];
-  [[CleverTapReactManager sharedInstance] applicationDidLaunchWithOptions:launchOptions];
-#endif
   self.jsLoaded = NO;
   self.minDurationPassed = NO;
   self.moduleName = @"apptileSeed";
   self.initialProps = @{};
-  
+
   [[RCTI18nUtil sharedInstance] allowRTL:NO];
   [[RCTI18nUtil sharedInstance] forceRTL:NO];
-  
+
 #if ENABLE_FIREBASE_ANALYTICS
   [FIRApp configure];
 #endif
 
-#if ENABLE_FBSDK
-  [[FBSDKApplicationDelegate sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
-  [FBSDKApplicationDelegate.sharedInstance initializeSDK];
-#endif
-  
-#if ENABLE_MOENGAGE
-  NSString *moEngageAppId = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MOENGAGE_APPID"];
-  NSString *moEngageDataCenterString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MOENGAGE_DATACENTER"];
-  MoEngageDataCenter moEngageDataCenter;
-  
-  // TODO(gaurav) add the rest of the cases
-  if ([moEngageDataCenterString isEqualToString:@"data_center_1"]) {
-    moEngageDataCenter = MoEngageDataCenterData_center_01;
-  } else if ([moEngageDataCenterString isEqualToString:@"data_center_2"]) {
-    moEngageDataCenter = MoEngageDataCenterData_center_02;
-  } else {
-    moEngageDataCenter = MoEngageDataCenterData_center_default;
-  }
-  
-  MoEngageSDKConfig* sdkConfig = [[MoEngageSDKConfig alloc] initWithAppId:moEngageAppId dataCenter: moEngageDataCenter];
-  sdkConfig.consoleLogConfig = [[MoEngageConsoleLogConfig alloc] initWithIsLoggingEnabled:false loglevel:MoEngageLoggerTypeVerbose];
-  [[MoEngageInitializer sharedInstance] initializeDefaultSDKConfig:sdkConfig andLaunchOptions:launchOptions];
-#endif
-
-  BOOL result = [super application:application didFinishLaunchingWithOptions:launchOptions];
-  
-  [self showNativeSplash];
-
-  FloatingPreviewControls *previewControls = [[FloatingPreviewControls alloc] initWithParentView:self.window.rootViewController.view];
-  previewControls.delegate = self;
-  
-  return result;
+  return [super application:application
+      didFinishLaunchingWithOptions:launchOptions];
 }
 
 #define ENABLE_NATIVE_SPLASH 1
@@ -125,57 +49,46 @@
   // originated from javascript side in order to remove splash
   NSString *JSReadyNotification = @"JSReadyNotification";
   [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(jsDidLoad:)
-                                                 name:JSReadyNotification
-                                               object:nil];
+                                           selector:@selector(jsDidLoad:)
+                                               name:JSReadyNotification
+                                             object:nil];
   RCTBridge *bridge = self.bridge;
 
   // Load the splash image or first frame of gif from bundle
-  NSURL *pngURL = [[NSBundle mainBundle] URLForResource:@"splash" withExtension:@"png"];
+  NSURL *pngURL = [[NSBundle mainBundle] URLForResource:@"splash"
+                                          withExtension:@"png"];
   NSURLRequest *requestPng = [NSURLRequest requestWithURL:pngURL];
-  RCTImageSource *pngImageSource = [[RCTImageSource alloc] initWithURLRequest:requestPng size:CGSizeZero scale:1.0];
+  RCTImageSource *pngImageSource =
+      [[RCTImageSource alloc] initWithURLRequest:requestPng
+                                            size:CGSizeZero
+                                           scale:1.0];
   RCTImageView *rctImageView = [[RCTImageView alloc] initWithBridge:bridge];
-  rctImageView.imageSources = @[pngImageSource];
+  rctImageView.imageSources = @[ pngImageSource ];
 #endif
 #ifdef ENABLE_NATIVE_SPLASH_WITH_GIF
   // Load the gif from the bundle
-  NSURL *gifURL = [[NSBundle mainBundle] URLForResource:@"splash" withExtension:@"gif"];
+  NSURL *gifURL = [[NSBundle mainBundle] URLForResource:@"splash"
+                                          withExtension:@"gif"];
   NSURLRequest *request = [NSURLRequest requestWithURL:gifURL];
-  RCTImageSource *imageSource = [[RCTImageSource alloc] initWithURLRequest:request size:CGSizeZero scale:1.0];
-  
-  // Replace first frame with gif after 500ms (required for LaunchScreen.storyboard fadeout animation)
+  RCTImageSource *imageSource =
+      [[RCTImageSource alloc] initWithURLRequest:request
+                                            size:CGSizeZero
+                                           scale:1.0];
+
+  // Replace first frame with gif after 500ms (required for
+  // LaunchScreen.storyboard fadeout animation)
   NSTimeInterval delayInSeconds = 0.5;
-  dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-  dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+  dispatch_time_t popTime = dispatch_time(
+      DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+  dispatch_after(popTime, dispatch_get_main_queue(), ^(void) {
     if (self.splash != NULL) {
       [self.splash removeFromSuperview];
-      [self.splash setImageSources:@[imageSource]];
+      [self.splash setImageSources:@[ imageSource ]];
       [self.window.rootViewController.view addSubview:self.splash];
     }
   });
-#endif 
+#endif
 #ifdef ENABLE_NATIVE_SPLASH
-  // Attempt to remove splash after minimum play duration
-  NSTimeInterval minSplashDuration = MIN_SPLASH_DURATION + 0.5;
-  dispatch_time_t minSplashTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(minSplashDuration * NSEC_PER_SEC));
-  dispatch_after(minSplashTime, dispatch_get_main_queue(), ^(void){
-    self.minDurationPassed = YES;
-    if (self.splash != NULL && self.jsLoaded == YES) {
-      [self.splash removeFromSuperview];
-      self.splash = NULL;
-    }
-  });
-  
-  // Remove the splash after max duration if its not removed yet
-  NSTimeInterval maxSplashDuration = MAX_SPLASH_DURATION + 0.5;
-  dispatch_time_t maxSplashTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(maxSplashDuration * NSEC_PER_SEC));
-  dispatch_after(maxSplashTime, dispatch_get_main_queue(), ^(void){
-    if (self.splash != NULL) {
-      [self.splash removeFromSuperview];
-      self.splash = NULL;
-    }
-  });
-  
   // append the splash image or gif to the window
   rctImageView.frame = self.window.frame;
   rctImageView.resizeMode = RCTResizeModeCover;
@@ -185,76 +98,175 @@
 #endif
 }
 
-- (void)jsDidLoad:(NSNotification *) note
-{
+- (void)jsDidLoad:(NSNotification *)note {
 #ifdef ENABLE_NATIVE_SPLASH
   self.jsLoaded = YES;
-  if (self.splash != NULL && self.minDurationPassed == YES) {
+  if (self.splash != NULL) {
     [self.splash removeFromSuperview];
     self.splash = NULL;
   }
 #endif
 }
 
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
-{
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
   return [self getBundleURL];
 }
 
-- (NSURL *)getBundleURL
-{
-#if DEBUG
-  NSURL *url = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
-  NSURL *mainJSBundleURL = [self docsJSBundleUrl];
-  if (mainJSBundleURL == Nil) {
-    mainJSBundleURL = url;
-  }
-  
-  return mainJSBundleURL;
-#else
-  /*
-  // Get the path to the Documents directory
-  NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
+- (NSURL *)getBundleURL {
+  // --- Start: Logic for previewTracker.json ---
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSArray<NSURL *> *documentDirectories =
+      [fileManager URLsForDirectory:NSDocumentDirectory
+                          inDomains:NSUserDomainMask];
   NSURL *documentsDirectory = [documentDirectories firstObject];
+  NSURL *previewTrackerURL =
+      [documentsDirectory URLByAppendingPathComponent:@"previewTracker.json"];
 
-  // Create the file URL for main.jsbundle inside the bundles subdirectory
-  NSURL *docBundlesDirectory = [documentsDirectory URLByAppendingPathComponent:@"bundles"];
-  NSURL *mainJSBundleURL = [docBundlesDirectory URLByAppendingPathComponent:@"main.jsbundle"];
+  if ([fileManager fileExistsAtPath:[previewTrackerURL path]]) {
+    NSError *readError = nil;
+    NSData *trackerData = [NSData dataWithContentsOfURL:previewTrackerURL
+                                                options:0
+                                                  error:&readError];
+    if (trackerData && !readError) {
+      NSError *jsonError = nil;
+      NSDictionary *trackerInfo =
+          [NSJSONSerialization JSONObjectWithData:trackerData
+                                          options:0
+                                            error:&jsonError];
+      if (trackerInfo && [trackerInfo isKindOfClass:[NSDictionary class]] &&
+          !jsonError) {
+        NSString *bundlePathString = trackerInfo[@"previewBundle"];
+        if (bundlePathString &&
+            [bundlePathString isKindOfClass:[NSString class]] &&
+            bundlePathString.length > 0) {
+          NSURL *bundleURL = [NSURL URLWithString:bundlePathString];
+          if (bundleURL && [fileManager fileExistsAtPath:[bundleURL path]]) {
+            NSLog(@"[ApptilePreview] ✅ Using preview bundle from "
+                  @"previewTracker.json: %@",
+                  [bundleURL path]);
+            // Optionally, if using BundleTrackerPrefs, you might want to reset
+            // or set its state here For now, directly returning the preview
+            // bundle.
+            
+            // Add floating controls when the view is ready (with a slight delay to ensure the React view is loaded)
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+              [self addFloatingPreviewControls];
+            });
+            
+            return bundleURL;
+          } else {
+            NSLog(@"[ApptilePreview] ⚠️ Preview bundle specified in "
+                  @"previewTracker.json not found at: %@",
+                  bundlePathString);
+          }
+        } else {
+          NSLog(@"[ApptilePreview] ℹ️ 'previewBundle' not found or invalid in "
+                @"previewTracker.json.");
+        }
+      } else if (jsonError) {
+        NSLog(@"[ApptilePreview] ⚠️ Error parsing previewTracker.json: %@",
+              jsonError.localizedDescription);
+      }
+    } else if (readError) {
+      NSLog(@"[ApptilePreview] ⚠️ Error reading previewTracker.json: %@",
+            readError.localizedDescription);
+    }
+  }
+  // --- End: Logic for previewTracker.json ---
 
-  // Check if the file exists at the specified URL
-  if (![[NSFileManager defaultManager] fileExistsAtPath:[mainJSBundleURL path]]) {
-      mainJSBundleURL = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
-  }
-  return mainJSBundleURL;
-  */
-  NSURL *mainJSBundleURL = [self docsJSBundleUrl];
-  if (mainJSBundleURL == Nil) {
-    mainJSBundleURL = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
-  }
-  return mainJSBundleURL;
-#endif
-}
-
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
-{
-#if ENABLE_FBSDK
-  if ([[FBSDKApplicationDelegate sharedInstance] application:app openURL:url options:options]) {
-    return YES;
-  }
-#endif
+#if DEBUG
+  // Remove any existing floating controls since we're not in preview mode
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (self.floatingControls) {
+      [self.floatingControls removeFromSuperview];
+      self.floatingControls = nil;
+    }
+  });
   
-#if ENABLE_APPSFLYER
-  [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];
+  return
+      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+#else
+
+  // Get the path to the Documents directory
+  // NSArray<NSURL *> *documentDirectories = [[NSFileManager defaultManager]
+  // URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask]; NSURL
+  // *documentsDirectory = [documentDirectories firstObject];
+
+  // Construct the local bundle path
+  NSURL *bundlesDir =
+      [documentsDirectory URLByAppendingPathComponent:@"bundles"];
+  NSURL *jsBundleFile =
+      [bundlesDir URLByAppendingPathComponent:@"main.jsbundle"];
+
+  if ([fileManager fileExistsAtPath:[jsBundleFile path]]) {
+    if ([BundleTrackerPrefs isBrokenBundle]) {
+      NSLog(@"[ApptileStartupProcess] ⚠️ Previous local bundle failed. ✅ Using "
+            @"embedded bundle.");
+      [BundleTrackerPrefs resetBundleState];
+      return [[NSBundle mainBundle] URLForResource:@"main"
+                                     withExtension:@"jsbundle"];
+    } else {
+      [BundleTrackerPrefs resetBundleState];
+      NSLog(@"[ApptileStartupProcess] ✅ Using local bundle: %@",
+            [jsBundleFile path]);
+      return jsBundleFile;
+    }
+  }
+
+  NSLog(@"[ApptileStartupProcess] ⚠️ No local bundle found. ✅ Using embedded "
+        @"bundle.");
+  [BundleTrackerPrefs resetBundleState];
+
+  return [[NSBundle mainBundle] URLForResource:@"main"
+                                 withExtension:@"jsbundle"];
 #endif
-  return [RCTLinkingManager application:app openURL:url options:options];
 }
 
-- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
-{
-#if ENABLE_APPSFLYER
-  [[AppsFlyerAttribution shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
-#endif
- return [RCTLinkingManager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+- (void)addFloatingPreviewControls {
+  if (self.floatingControls) {
+    [self.floatingControls removeFromSuperview];
+    self.floatingControls = nil;
+  }
+  
+  UIView *rootView = self.window.rootViewController.view;
+  if (!rootView) {
+    NSLog(@"[ApptilePreview] ⚠️ Cannot add floating controls - root view not available");
+    return;
+  }
+  
+  FloatingPreviewControls *controls = [[FloatingPreviewControls alloc] initWithParentView:rootView];
+  controls.delegate = self;
+  [rootView addSubview:controls];
+  self.floatingControls = controls;
+  
+  NSLog(@"[ApptilePreview] ✅ Added floating preview controls");
+}
+
+#pragma mark - FloatingPreviewControlsDelegate
+
+- (void)resetToDefaultBundle {
+  NSLog(@"[ApptilePreview] 🔄 Resetting to default bundle");
+  
+  // Clear preview tracker
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSArray<NSURL *> *documentDirectories = [fileManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
+  NSURL *documentsDirectory = [documentDirectories firstObject];
+  NSURL *previewTrackerURL = [documentsDirectory URLByAppendingPathComponent:@"previewTracker.json"];
+  
+  if ([fileManager fileExistsAtPath:[previewTrackerURL path]]) {
+    // Create an empty previewTracker.json with previewMode: false
+    NSDictionary *emptyTracker = @{@"previewMode": @NO};
+    NSError *writeError;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:emptyTracker options:NSJSONWritingPrettyPrinted error:&writeError];
+    
+    if (jsonData && !writeError) {
+      [jsonData writeToURL:previewTrackerURL atomically:YES];
+      NSLog(@"[ApptilePreview] ✅ Reset previewTracker.json");
+    }
+  }
+  
+  // Restart the app
+  exit(0);
 }
 
 @end

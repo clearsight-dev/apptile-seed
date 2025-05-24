@@ -10,14 +10,14 @@
 
 #import <UIKit/UIKit.h>
 
-@protocol FloatingPrviewControlsDelegate <NSObject>
+@protocol FloatingPreviewControlsDelegate <NSObject>
 - (void)resetToDefaultBundle;
-- (void)refreshBundle;
+// - (void)refreshBundle;
 @end
 
 @interface FloatingPreviewControls : UIView <UIGestureRecognizerDelegate>
 
-@property(nonatomic, weak) id<FloatingPrviewControlsDelegate> delegate;
+@property(nonatomic, weak) id<FloatingPreviewControlsDelegate> delegate;
 @property(nonatomic, assign, getter=isExpanded) BOOL isExpanded;
 
 - (instancetype)initWithParentView:(UIView *)parentView;

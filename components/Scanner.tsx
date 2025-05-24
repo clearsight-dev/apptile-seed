@@ -15,20 +15,16 @@ import {unzip} from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
 import {defaultBranchName} from '../constants/constant';
 import {ScreenParams} from '../screenParams';
+import {IAppDraftResponse, IForkWithBranches} from '../types/type';
+import {fetchAppDraftApi, fetchBranchesApi, fetchForksApi} from '../utils/api';
 import {
-  IAppDraftResponse,
-  IAppForksResponse,
-  IArtefact,
-  IForkWithBranches,
-} from '../types/type';
-import {
-  fetchAppDraftApi,
-  fetchBranchesApi,
-  fetchCommitApi,
-  fetchManifestApi,
-  fetchPushLogsApi,
-} from '../utils/api';
-import {sendToast} from '../utils/commonUtil';
+  getCustomPreviewBundlePath,
+  getCustomPreviewBundleZipPath,
+  getJSBundleName,
+  sendToast,
+  getPreviewTrackerPath,
+  getAssetsDirPath,
+} from '../utils/commonUtil';
 import DownloadModal from './DownloadModal';
 
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'Scanner'>;
@@ -40,6 +36,7 @@ export function Scanner(props: ScreenProps) {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [failureMessage, setFailureMessage] = useState('');
   const [infoText, setInfoText] = useState('');
+  const appIdRef = React.useRef<string | null>(null);
   const onScan = (e: {data: string}) => {
     // console.log("Camera scan result: ", e);
     // console.log(e.data.match(/appId=(.*)&appName/));
@@ -48,7 +45,14 @@ export function Scanner(props: ScreenProps) {
     // console.log(e.data.match(/forkId=(.*)&branchName/));
     // console.log(e.data.match(/branchName=(.*)$/));
     // const appName = e.data.match(/appName=(.*)&orgName/)[1];
-    const appId = e.data.match(/APP_ID=(.*)&appName/)[1];
+    const matchResult = e.data.match(/APP_ID=(.*)/);
+    const appId = matchResult && matchResult[1] ? matchResult[1] : null;
+    appIdRef.current = appId;
+
+    if (!appId) {
+      sendToast('No App ID found', toast);
+      return;
+    }
     // const forkId = parseInt(e.data.match(/forkId=(.*)&branchName/)[1]);
     // const orgName = e.data.match(/orgName=(.*)&appApi/)[1];
     setIsDownloading(true);
@@ -61,76 +65,85 @@ export function Scanner(props: ScreenProps) {
   };
 
   async function downloadForPreviewNonCache(
-    cdnlink: string,
-    iosBundleId: number | null,
-    androidBundleId: number | null,
+    appConfigLink: string,
+    iosBundleUrl: string | null,
+    androidBundleUrl: string | null,
   ) {
     setIsDownloading(true);
     setShowDownloadModal(true);
-    const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
-    const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
-      if (exists) {
-        return RNFetchBlob.fs.unlink(appConfigPath);
-      }
-    });
-    const jsBundlePath =
-      RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
-    const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
-      if (exists) {
-        return RNFetchBlob.fs.unlink(jsBundlePath);
-      }
-    });
-    const assetsFolderPath =
-      RNFetchBlob.fs.dirs.DocumentDir + '/bundles/assets';
-    const delAssetsFolder = RNFetchBlob.fs
-      .exists(assetsFolderPath)
-      .then(exists => {
-        if (exists) {
-          return RNFetchBlob.fs.unlink(assetsFolderPath);
+
+    const jsBundleDownloadPath = getCustomPreviewBundleZipPath(
+      appIdRef.current!,
+    );
+    const jsBundleUnzipDirPath = getCustomPreviewBundlePath(appIdRef.current!);
+    const jsBundlePath = `${jsBundleUnzipDirPath}/${getJSBundleName()}`;
+    const appConfigDownloadPath = `${RNFetchBlob.fs.dirs.DocumentDir}/appConfig.json`;
+
+    try {
+      // Ensure the target directory for unzipping exists
+      await RNFetchBlob.fs.mkdir(jsBundleUnzipDirPath).catch(err => {
+        if (
+          err &&
+          err.message &&
+          (err.message.includes('already exists') || err.code === 'EEXIST')
+        ) {
+          console.log(
+            'Unzip directory already exists or is a file, proceeding:',
+            jsBundleUnzipDirPath,
+          );
+        } else {
+          console.error(
+            'Failed to create unzip directory:',
+            jsBundleUnzipDirPath,
+            err,
+          );
+          throw err; // Re-throw if it's another error
         }
       });
-    await setItem('generateCache', 'YES');
-    try {
+
+      const delAppConfig = RNFetchBlob.fs
+        .exists(appConfigDownloadPath)
+        .then(exists => {
+          if (exists) {
+            return RNFetchBlob.fs.unlink(appConfigDownloadPath);
+          }
+        });
+      const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
+        if (exists) {
+          return RNFetchBlob.fs.unlink(jsBundlePath);
+        }
+      });
+      const assetsFolderPath = getAssetsDirPath();
+      const delAssetsFolder = RNFetchBlob.fs
+        .exists(assetsFolderPath)
+        .then(exists => {
+          if (exists) {
+            return RNFetchBlob.fs.unlink(assetsFolderPath);
+          }
+        });
+
       await Promise.all([delAppConfig, delJsBundle, delAssetsFolder]);
+
       setInfoText('Downloading AppConfig and JavaScript Bundle In-Progress');
-      const appconfigUrl = cdnlink;
+      // check if appConfig.json exists in the documents dir
+      const appConfigExists = await RNFetchBlob.fs.exists(
+        appConfigDownloadPath,
+      );
+      if (appConfigExists) {
+        console.log('AppConfig already exists');
+        return;
+      }
+
       const appConfigDownload = RNFetchBlob.config({
         fileCache: true,
-        path: RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json',
-      }).fetch('GET', appconfigUrl);
-
-      // Fetch push logs from API
-      let artefacts: IArtefact[] = [];
-      try {
-        const appId = await getItem('appId');
-        if (appId) {
-          const pushLogs = await fetchPushLogsApi(appId);
-          artefacts = pushLogs.artefacts;
-        }
-      } catch (err) {
-        console.error(
-          '[downloadForPreviewNonCache] Failed to fetch push logs',
-          err,
-        );
-      }
+        path: appConfigDownloadPath,
+      }).fetch('GET', appConfigLink);
 
       let bundleUrl = null;
       if (Platform.OS === 'ios') {
-        const artefact = artefacts.find(asset => {
-          return asset.type === 'ios-jsbundle' && asset.id === iosBundleId;
-        });
-        if (artefact) {
-          bundleUrl = artefact.cdnlink;
-        }
+        bundleUrl = iosBundleUrl;
       } else if (Platform.OS === 'android') {
-        const artefact = artefacts.find(asset => {
-          return (
-            asset.type === 'android-jsbundle' && asset.id === androidBundleId
-          );
-        });
-        if (artefact) {
-          bundleUrl = artefact.cdnlink;
-        }
+        bundleUrl = androidBundleUrl;
       } else {
         console.error('[downloadForPreviewNonCache] Unsupported platform!');
       }
@@ -139,21 +152,59 @@ export function Scanner(props: ScreenProps) {
       if (bundleUrl) {
         bundleDownload = RNFetchBlob.config({
           fileCache: true,
-          path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip',
+          path: jsBundleDownloadPath,
         }).fetch('GET', bundleUrl);
+      } else {
+        sendToast('No Draft available', toast);
+        setShowDownloadModal(false);
+        setIsDownloading(false);
+        navigation.navigate('PreviewHome');
       }
 
+      console.log('going to download appConfig and bundle');
       await Promise.all([appConfigDownload, bundleDownload]);
       setInfoText('Setting up new files In-Progress');
       try {
-        const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-        await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
+        await unzip(jsBundleDownloadPath, jsBundleUnzipDirPath, 'UTF-8');
+        console.log('Unzipped successfully');
+        // --- Update previewTracker.json before restarting ---
+        const bundleMainFile = getJSBundleName();
+
+        if (!bundleMainFile) {
+          console.error(
+            '[downloadForPreviewNonCache] Could not determine bundle main file for platform.',
+          );
+          setFailureMessage('Error determining bundle file for platform.');
+          setIsDownloading(false);
+          setShowDownloadModal(false);
+          return;
+        }
+
+        const actualPreviewBundlePath = `${jsBundleUnzipDirPath}/${bundleMainFile}`;
+
+        const previewTrackerFileContent = JSON.stringify({
+          previewMode: true,
+          previewBundle: actualPreviewBundlePath,
+          previewAppConfig: appConfigDownloadPath,
+        });
+
+        const previewTrackerJsonPath = getPreviewTrackerPath();
+        await RNFetchBlob.fs.writeFile(
+          previewTrackerJsonPath,
+          previewTrackerFileContent,
+          'utf8',
+        );
+        console.log(
+          `[downloadForPreviewNonCache] Updated previewTracker.json at ${previewTrackerJsonPath} with content: ${previewTrackerFileContent}`,
+        );
+        // --- End previewTracker.json update logic ---
+
         setInfoText('Restarting App...');
         RNRestart.Restart();
       } catch (err) {
         setFailureMessage('Error in setting up new files');
         console.error(
-          '[downloadForPreviewNonCache] Failed to unzip files',
+          '[downloadForPreviewNonCache] Failed to unzip files or update tracker',
           err,
         );
       }
@@ -170,14 +221,7 @@ export function Scanner(props: ScreenProps) {
     try {
       setShowDownloadModal(true);
       setIsDownloading(true);
-      const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-      const response = await fetch(
-        `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/forks`,
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const forkData: IAppForksResponse = await response.json();
+      const forkData = await fetchForksApi(appId);
       if (forkData.forks.length > 1) {
         navigation.navigate('Fork', {
           appId: appId,
@@ -188,6 +232,7 @@ export function Scanner(props: ScreenProps) {
           appId,
           forkData?.forks[0].id,
         );
+        console.log('Branch data:', branchData);
         if (branchData.branches.length > 1) {
           navigation.navigate('Branch', {
             appId: appId,
@@ -202,22 +247,37 @@ export function Scanner(props: ScreenProps) {
             forkData?.forks[0].id,
             defaultBranchName,
           );
+          console.log('Preview app draft data:', previewAppDraftData);
           if ((previewAppDraftData as IAppDraftResponse)?.appDraft?.commitId) {
-            const getCommitURL = await fetchCommitApi(
-              (previewAppDraftData as IAppDraftResponse).appDraft.commitId,
+            // const getCommitURL = await fetchCommitApi(
+            //   appId,
+            //   (previewAppDraftData as IAppDraftResponse).appDraft.commitId,
+            // );
+            // console.log('Commit URL:', getCommitURL);
+            // if (getCommitURL?.url) {
+            //   const manifestData = await fetchManifestApi(appId);
+            //   downloadForPreviewNonCache(
+            //     getCommitURL.url,
+            //     manifestData.iosBundleId,
+            //     manifestData.androidBundleId,
+            //   );
+            // } else {
+            //   sendToast('No Draft available', toast);
+            //   setShowDownloadModal(false);
+            //   setIsDownloading(false);
+            //   navigation.navigate('PreviewHome');
+            // }
+            const commitUrl = previewAppDraftData.appDraft.commitId;
+            await downloadForPreviewNonCache(
+              `https://dev-appconfigs.apptile.io/${appId}/main/main/${commitUrl}.json`,
+              previewAppDraftData.appDraft.iosBundleUrl,
+              previewAppDraftData.appDraft.androidBundleUrl,
             );
-            if (getCommitURL.url) {
-              const manifestData = await fetchManifestApi(appId);
-              downloadForPreviewNonCache(
-                getCommitURL.url,
-                manifestData.iosBundleId,
-                manifestData.androidBundleId,
-              );
-            } else {
-              sendToast('No Draft available', toast);
-            }
           } else {
             sendToast('No Draft available', toast);
+            setShowDownloadModal(false);
+            setIsDownloading(false);
+            navigation.navigate('PreviewHome');
           }
         }
       }
@@ -231,15 +291,6 @@ export function Scanner(props: ScreenProps) {
   const qrBoxWidth = Math.min(screenWidth * 0.8, 400);
   const qrBoxTop = (screenHeight - qrBoxWidth) * 0.5;
   const qrBoxLeft = (screenWidth - qrBoxWidth) * 0.5;
-
-  if (!hasPermission) {
-    requestPermission();
-    return;
-  }
-
-  if (device === null) {
-    return <Text>No camera available</Text>;
-  }
 
   return (
     <View

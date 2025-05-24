@@ -1,24 +1,37 @@
-import { useIsFocused } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {useIsFocused} from '@react-navigation/native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   getConfigValue,
   getLocalStorageItem as getItem,
-  setLocalStorageItem as setItem
+  setLocalStorageItem as setItem,
 } from 'apptile-core';
-import React, { useEffect, useReducer } from 'react';
-import { Linking, Platform } from 'react-native';
-import { unzip } from 'react-native-zip-archive';
+import React, {useEffect, useReducer} from 'react';
+import {Linking, Platform} from 'react-native';
+import {unzip} from 'react-native-zip-archive';
 import RNFetchBlob from 'rn-fetch-blob';
-import { ScreenParams } from '../screenParams';
-import { DispatchFcn, HomeAction, HomeState, IManifestResponse, NavigationProp } from '../types/type';
+import {ScreenParams} from '../screenParams';
+import {
+  DispatchFcn,
+  HomeAction,
+  HomeState,
+  IManifestResponse,
+  NavigationProp,
+} from '../types/type';
 import HomeCard from './HomeCard';
-import { fetchPushLogsApi } from '../utils/api';
+import {fetchPushLogsApi} from '../utils/api';
+import {
+  getAssetsDirPath,
+  getCustomPreviewBundleZipPath,
+  getJSBundleName,
+} from '../utils/commonUtil';
 
 // TODO(gaurav) when artefactId is -1 set it back to null after api call
 type ScreenProps = NativeStackScreenProps<ScreenParams, 'PreviewHome'>;
 
-
-async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | string> {
+async function fetchAppId(
+  dispatch: DispatchFcn,
+  url?: string,
+): Promise<null | string> {
   let appId: string | null = null;
   try {
     appId = await getItem('appId');
@@ -31,11 +44,11 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
       if (initialUrl && initialUrl.startsWith('apptilepreview://locktoapp/')) {
         appId = initialUrl.slice('apptilepreview://locktoapp/'.length);
         try {
-          await setItem("appId", appId);
+          await setItem('appId', appId);
         } catch (err) {
           dispatch({
             type: 'SET_ERROR',
-            payload: err?.toString() || "noerror"
+            payload: err?.toString() || 'noerror',
           });
         }
       }
@@ -48,13 +61,13 @@ async function fetchAppId(dispatch: DispatchFcn, url?: string): Promise<null | s
   } catch (err) {
     dispatch({
       type: 'SET_ERROR',
-      payload: err?.toString() || "noerror"
+      payload: err?.toString() || 'noerror',
     });
   }
 
   dispatch({
     type: 'SET_APP_ID',
-    payload: appId
+    payload: appId,
   });
   return appId;
 }
@@ -64,13 +77,13 @@ async function fetchPushLogs(appId: string, dispatch: DispatchFcn) {
     const pushLogs = await fetchPushLogsApi(appId);
     dispatch({
       type: 'SET_PUSHLOGS',
-      payload: pushLogs
+      payload: pushLogs,
     });
   } catch (err) {
-    console.error("Failed to fetch pushLogs: " + (err || "noerror").toString());
+    console.error('Failed to fetch pushLogs: ' + (err || 'noerror').toString());
     dispatch({
       type: 'SET_ERROR',
-      payload: "failed to fetch pushLogs: " + (err || "noerror").toString()
+      payload: 'failed to fetch pushLogs: ' + (err || 'noerror').toString(),
     });
   }
 }
@@ -79,7 +92,9 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
   try {
     const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
     const url = `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/manifest`;
-    const manifestData: IManifestResponse = await fetch(url).then(res => res.json());
+    const manifestData: IManifestResponse = await fetch(url).then(res =>
+      res.json(),
+    );
 
     let manifest: HomeState['manifest'] = {
       name: manifestData.name,
@@ -93,15 +108,15 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
           publishedCommitId: f.publishedCommitId,
           mainBranchLatestSave: {
             commitId: -1,
-            cdnlink: ''
-          }
+            cdnlink: '',
+          },
         };
-      })
+      }),
     };
 
     dispatch({
       type: 'SET_MANIFEST',
-      payload: manifest
+      payload: manifest,
     });
 
     for (let i = 0; i < manifest.forks.length; ++i) {
@@ -111,14 +126,14 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
         type: 'UPDATE_FORK_IN_MANIFEST',
         payload: {
           forkId: fork.id,
-          mainBranchLatestSave
-        }
+          mainBranchLatestSave,
+        },
       });
     }
   } catch (err) {
     dispatch({
       type: 'SET_ERROR',
-      payload: "failed to fetch manifest: " + (err || "noerror").toString()
+      payload: 'failed to fetch manifest: ' + (err || 'noerror').toString(),
     });
   }
 }
@@ -126,19 +141,21 @@ async function fetchManifest(appId: string, dispatch: DispatchFcn) {
 async function fetchLastSavedConfig(appId: string, forkId: number | string) {
   const result = {
     commitId: -1,
-    cdnlink: ''
+    cdnlink: '',
   };
 
   try {
     const APPTILE_API_ENDPOINT = await getConfigValue('APPTILE_API_ENDPOINT');
-    const { url } = await fetch(`${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`).then(res => res.json())
+    const {url} = await fetch(
+      `${APPTILE_API_ENDPOINT}/api/v2/app/${appId}/${forkId}/main/noRedirect`,
+    ).then(res => res.json());
     const commitId = url.match(/\/([0-9]+)\.json$/);
     if (commitId && commitId[1]) {
       result.cdnlink = url;
       result.commitId = parseInt(commitId[1]);
     }
   } catch (err) {
-    console.error("Failed to get the lastest save");
+    console.error('Failed to get the lastest save');
   }
   return result;
 }
@@ -157,45 +174,46 @@ function reducer(state: HomeState, action: HomeAction): HomeState {
   let result: HomeState;
   switch (action.type) {
     case 'SET_APP_ID':
-      result = { ...state, appId: action.payload };
+      result = {...state, appId: action.payload};
       break;
     case 'SET_ERROR':
-      result = { ...state, hasError: true, errorMessage: action.payload };
+      result = {...state, hasError: true, errorMessage: action.payload};
       break;
     case 'SET_PUSHLOGS':
-      result = { ...state, pushLogs: action.payload };
+      result = {...state, pushLogs: action.payload};
       break;
     case 'SET_MANIFEST':
-      result = { ...state, manifest: action.payload };
+      result = {...state, manifest: action.payload};
       break;
     case 'SET_LAUNCH_SEQUENCE':
-      result = { ...state, launchSequence: action.payload };
+      result = {...state, launchSequence: action.payload};
       break;
     case 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY':
-      result = { ...state, showLaunchSequence: action.payload };
+      result = {...state, showLaunchSequence: action.payload};
       break;
-    case 'UPDATE_FORK_IN_MANIFEST':
-      {
-        // TODO(gaurav): add immer
-        const existingForkIndex = state.manifest.forks.findIndex(fork => fork.id === action.payload.forkId);
-        if (existingForkIndex >= 0) {
-          let forks = state.manifest.forks;
-          forks[existingForkIndex] = {
-            ...forks[existingForkIndex],
-            mainBranchLatestSave: action.payload.mainBranchLatestSave
-          }
-          result = {
-            ...state,
-            manifest: {
-              ...state.manifest,
-              forks
-            }
-          };
-        } else {
-          result = state;
-        }
-        break;
+    case 'UPDATE_FORK_IN_MANIFEST': {
+      // TODO(gaurav): add immer
+      const existingForkIndex = state.manifest.forks.findIndex(
+        fork => fork.id === action.payload.forkId,
+      );
+      if (existingForkIndex >= 0) {
+        let forks = state.manifest.forks;
+        forks[existingForkIndex] = {
+          ...forks[existingForkIndex],
+          mainBranchLatestSave: action.payload.mainBranchLatestSave,
+        };
+        result = {
+          ...state,
+          manifest: {
+            ...state.manifest,
+            forks,
+          },
+        };
+      } else {
+        result = state;
       }
+      break;
+    }
     default:
       result = state;
   }
@@ -207,38 +225,36 @@ async function downloadForPreviewNonCache(
   dispatch: DispatchFcn,
   cdnlink: string,
   iosBundleId: number | null,
-  androidBundleId: number | null) {
+  androidBundleId: number | null,
+) {
   // check for existing bundle and config and delete them
-  dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
-  const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
+  dispatch({type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true});
+  const appConfigPath = `${getCustomPreviewBundleZipPath(
+    store.appId!,
+  )}appConfig.json`;
   const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
     if (exists) {
       return RNFetchBlob.fs.unlink(appConfigPath);
     }
   });
 
-  let jsBundlePath;
-  if (Platform.OS === 'ios') {
-    jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
-  } else {
-    jsBundlePath =
-      RNFetchBlob.fs.dirs.DocumentDir + '/bundles/index.android.bundle';
-  }
-
+  const jsBundlePath = `${getCustomPreviewBundleZipPath(
+    store.appId!,
+  )}${getJSBundleName()}`;
   const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
     if (exists) {
       return RNFetchBlob.fs.unlink(jsBundlePath);
     }
   });
 
-  const assetsFolderPath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/assets';
-  const delAssetsFolder = RNFetchBlob.fs.exists(assetsFolderPath).then(exists => {
-    if (exists) {
-      return RNFetchBlob.fs.unlink(assetsFolderPath);
-    }
-  });
-
-  await setItem('generateCache', 'YES');
+  const assetsFolderPath = getAssetsDirPath();
+  const delAssetsFolder = RNFetchBlob.fs
+    .exists(assetsFolderPath)
+    .then(exists => {
+      if (exists) {
+        return RNFetchBlob.fs.unlink(assetsFolderPath);
+      }
+    });
 
   try {
     await Promise.all([delAppConfig, delJsBundle, delAssetsFolder]);
@@ -247,61 +263,60 @@ async function downloadForPreviewNonCache(
       payload: [
         {
           label: 'Clear old files',
-          status: 'success'
+          status: 'success',
         },
         {
           label: 'Download appconfig',
-          status: 'inprogress'
+          status: 'inprogress',
         },
         {
           label: 'Download javascript bundle',
-          status: 'inprogress'
+          status: 'inprogress',
         },
         {
           label: 'Setup new files',
-          status: 'notstarted'
-        }
-      ]
+          status: 'notstarted',
+        },
+      ],
     });
 
     const appconfigUrl = cdnlink;
 
     const appConfigDownload = RNFetchBlob.config({
       fileCache: true,
-      path: RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json'
-    })
-      .fetch('GET', appconfigUrl);
+      path: `${getCustomPreviewBundleZipPath(store.appId!)}/appConfig.json`,
+    }).fetch('GET', appconfigUrl);
 
     let bundleUrl = null;
     if (Platform.OS === 'ios') {
       const artefact = store.pushLogs.artefacts.find(asset => {
-        return (asset.type === 'ios-jsbundle') && (asset.id === iosBundleId);
+        return asset.type === 'ios-jsbundle' && asset.id === iosBundleId;
       });
 
       if (artefact) {
         bundleUrl = artefact.cdnlink;
       }
-
     } else if (Platform.OS === 'android') {
       const artefact = store.pushLogs.artefacts.find(asset => {
-        return (asset.type === 'android-jsbundle') && (asset.id === androidBundleId)
+        return (
+          asset.type === 'android-jsbundle' && asset.id === androidBundleId
+        );
       });
 
       if (artefact) {
         bundleUrl = artefact.cdnlink;
       }
     } else {
-      logger.error("Unspported platform!");
+      logger.error('Unspported platform!');
     }
 
     let bundleDownload: any = null;
     if (bundleUrl) {
-      logger.info("Downloading bundle from: ", bundleUrl);
+      logger.info('Downloading bundle from: ', bundleUrl);
       bundleDownload = RNFetchBlob.config({
         fileCache: true,
-        path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip'
-      })
-        .fetch('GET', bundleUrl);
+        path: getCustomPreviewBundleZipPath(store.appId!),
+      }).fetch('GET', bundleUrl);
     }
 
     await Promise.all([appConfigDownload, bundleDownload]);
@@ -310,95 +325,94 @@ async function downloadForPreviewNonCache(
       payload: [
         {
           label: 'Clear old files',
-          status: 'success'
+          status: 'success',
         },
         {
           label: 'Download appconfig',
-          status: 'success'
+          status: 'success',
         },
         {
           label: 'Download javascript bundle',
-          status: 'success'
+          status: 'success',
         },
         {
           label: 'Setup new files',
-          status: 'inprogress'
-        }
-      ]
+          status: 'inprogress',
+        },
+      ],
     });
 
     try {
       const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-      logger.info("bundlesPath: ", bundlesPath);
+      logger.info('bundlesPath: ', bundlesPath);
       await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
         payload: [
           {
             label: 'Clear old files',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download appconfig',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download javascript bundle',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Setup new files',
-            status: 'success'
-          }
-        ]
+            status: 'success',
+          },
+        ],
       });
     } catch (err) {
-      logger.error("Failed to unzip files", err)
+      logger.error('Failed to unzip files', err);
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
         payload: [
           {
             label: 'Clear old files',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download appconfig',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download javascript bundle',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Setup new files',
-            status: 'error'
-          }
-        ]
+            status: 'error',
+          },
+        ],
       });
     }
-
   } catch (err) {
-    logger.error("Failed for some reason: ", err);
+    logger.error('Failed for some reason: ', err);
     dispatch({
       type: 'SET_LAUNCH_SEQUENCE',
       payload: [
         {
           label: 'Clear old files',
-          status: 'error'
+          status: 'error',
         },
         {
           label: 'Download appconfig',
-          status: 'error'
+          status: 'error',
         },
         {
           label: 'Download javascript bundle',
-          status: 'error'
+          status: 'error',
         },
         {
           label: 'Setup new files',
-          status: 'error'
-        }
-      ]
+          status: 'error',
+        },
+      ],
     });
   }
 }
@@ -408,9 +422,10 @@ async function downloadForPreview(
   dispatch: DispatchFcn,
   publishedCommitId: number | null,
   iosBundleId: number | null,
-  androidBundleId: number | null) {
+  androidBundleId: number | null,
+) {
   // check for existing bundle and config and delete them
-  dispatch({ type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true });
+  dispatch({type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY', payload: true});
   const appConfigPath = RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json';
   const delAppConfig = RNFetchBlob.fs.exists(appConfigPath).then(exists => {
     if (exists) {
@@ -418,26 +433,22 @@ async function downloadForPreview(
     }
   });
 
-  let jsBundlePath;
-  if (Platform.OS === 'ios') {
-    jsBundlePath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/main.jsbundle';
-  } else {
-    jsBundlePath =
-      RNFetchBlob.fs.dirs.DocumentDir + '/bundles/index.android.bundle';
-  }
-
+  const jsBundlePath =
+    RNFetchBlob.fs.dirs.DocumentDir + '/bundles/' + getJSBundleName();
   const delJsBundle = RNFetchBlob.fs.exists(jsBundlePath).then(exists => {
     if (exists) {
       return RNFetchBlob.fs.unlink(jsBundlePath);
     }
   });
 
-  const assetsFolderPath = RNFetchBlob.fs.dirs.DocumentDir + '/bundles/assets';
-  const delAssetsFolder = RNFetchBlob.fs.exists(assetsFolderPath).then(exists => {
-    if (exists) {
-      return RNFetchBlob.fs.unlink(assetsFolderPath);
-    }
-  });
+  const assetsFolderPath = getAssetsDirPath();
+  const delAssetsFolder = RNFetchBlob.fs
+    .exists(assetsFolderPath)
+    .then(exists => {
+      if (exists) {
+        return RNFetchBlob.fs.unlink(assetsFolderPath);
+      }
+    });
 
   await setItem('generateCache', 'NO');
 
@@ -448,21 +459,21 @@ async function downloadForPreview(
       payload: [
         {
           label: 'Clear old files',
-          status: 'success'
+          status: 'success',
         },
         {
           label: 'Download appconfig',
-          status: 'inprogress'
+          status: 'inprogress',
         },
         {
           label: 'Download javascript bundle',
-          status: 'inprogress'
+          status: 'inprogress',
         },
         {
           label: 'Setup new files',
-          status: 'notstarted'
-        }
-      ]
+          status: 'notstarted',
+        },
+      ],
     });
     const apptileBackendUrl = await getConfigValue('APPTILE_UPDATE_ENDPOINT');
     if (store.appId && publishedCommitId) {
@@ -470,40 +481,39 @@ async function downloadForPreview(
 
       const appConfigDownload = RNFetchBlob.config({
         fileCache: true,
-        path: RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json'
-      })
-        .fetch('GET', appconfigUrl);
+        path: RNFetchBlob.fs.dirs.DocumentDir + '/appConfig.json',
+      }).fetch('GET', appconfigUrl);
 
       let bundleUrl = null;
       if (Platform.OS === 'ios') {
         const artefact = store.pushLogs.artefacts.find(asset => {
-          return (asset.type === 'ios-jsbundle') && (asset.id === iosBundleId);
+          return asset.type === 'ios-jsbundle' && asset.id === iosBundleId;
         });
 
         if (artefact) {
           bundleUrl = artefact.cdnlink;
         }
-
       } else if (Platform.OS === 'android') {
         const artefact = store.pushLogs.artefacts.find(asset => {
-          return (asset.type === 'android-jsbundle') && (asset.id === androidBundleId)
+          return (
+            asset.type === 'android-jsbundle' && asset.id === androidBundleId
+          );
         });
 
         if (artefact) {
           bundleUrl = artefact.cdnlink;
         }
       } else {
-        logger.error("Unspported platform!");
+        logger.error('Unspported platform!');
       }
 
       let bundleDownload: any = null;
       if (bundleUrl) {
-        logger.info("Downloading bundle from: ", bundleUrl);
+        logger.info('Downloading bundle from: ', bundleUrl);
         bundleDownload = RNFetchBlob.config({
           fileCache: true,
-          path: RNFetchBlob.fs.dirs.DocumentDir + '/bundles/bundle.zip'
-        })
-          .fetch('GET', bundleUrl);
+          path: getCustomPreviewBundleZipPath(store.appId),
+        }).fetch('GET', bundleUrl);
       }
 
       await Promise.all([appConfigDownload, bundleDownload]);
@@ -512,178 +522,123 @@ async function downloadForPreview(
         payload: [
           {
             label: 'Clear old files',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download appconfig',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download javascript bundle',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Setup new files',
-            status: 'inprogress'
-          }
-        ]
+            status: 'inprogress',
+          },
+        ],
       });
 
       try {
         const bundlesPath = `${RNFetchBlob.fs.dirs.DocumentDir}/bundles`;
-        logger.info("bundlesPath: ", bundlesPath);
-        const inBundles = await RNFetchBlob.fs.ls(bundlesPath);
-        console.log('contents of bundles: ', inBundles);
-
+        logger.info('bundlesPath: ', bundlesPath);
         await unzip(`${bundlesPath}/bundle.zip`, `${bundlesPath}`, 'UTF-8');
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
           payload: [
             {
               label: 'Clear old files',
-              status: 'success'
+              status: 'success',
             },
             {
               label: 'Download appconfig',
-              status: 'success'
+              status: 'success',
             },
             {
               label: 'Download javascript bundle',
-              status: 'success'
+              status: 'success',
             },
             {
               label: 'Setup new files',
-              status: 'success'
-            }
-          ]
+              status: 'success',
+            },
+          ],
         });
       } catch (err) {
-        logger.error("Failed to unzip files", err)
+        logger.error('Failed to unzip files', err);
         dispatch({
           type: 'SET_LAUNCH_SEQUENCE',
           payload: [
             {
               label: 'Clear old files',
-              status: 'success'
+              status: 'success',
             },
             {
               label: 'Download appconfig',
-              status: 'error'
+              status: 'error',
             },
             {
               label: 'Download javascript bundle',
-              status: 'error'
+              status: 'error',
             },
             {
               label: 'Setup new files',
-              status: 'error'
-            }
-          ]
+              status: 'error',
+            },
+          ],
         });
       }
     } else {
-      console.error('AppId not found. stopping')
+      console.error('AppId not found. stopping');
       dispatch({
         type: 'SET_LAUNCH_SEQUENCE',
         payload: [
           {
             label: 'Clear old files',
-            status: 'success'
+            status: 'success',
           },
           {
             label: 'Download appconfig',
-            status: 'error'
+            status: 'error',
           },
           {
             label: 'Download javascript bundle',
-            status: 'error'
+            status: 'error',
           },
           {
             label: 'Setup new files',
-            status: 'error'
-          }
-        ]
-      })
+            status: 'error',
+          },
+        ],
+      });
     }
   } catch (err) {
-    logger.error("Failed for some reason: ", err);
+    logger.error('Failed for some reason: ', err);
     dispatch({
       type: 'SET_LAUNCH_SEQUENCE',
       payload: [
         {
           label: 'Clear old files',
-          status: 'error'
+          status: 'error',
         },
         {
           label: 'Download appconfig',
-          status: 'error'
+          status: 'error',
         },
         {
           label: 'Download javascript bundle',
-          status: 'error'
+          status: 'error',
         },
         {
           label: 'Setup new files',
-          status: 'error'
-        }
-      ]
+          status: 'error',
+        },
+      ],
     });
   }
 }
 export function HomePage(props: ScreenProps) {
-  const { navigation, route } = props;
-  const [state, dispatch] = useReducer(
-    reducer,
-    {
-      appId: '',
-      hasError: false,
-      errorMessage: '',
-      pushLogs: {
-        logs: [],
-        artefacts: []
-      },
-      manifest: {
-        name: "",
-        published: false,
-        androidBundleId: null,
-        iosBundleId: null,
-        forks: []
-      },
-      launchSequence: [],
-      showLaunchSequence: false
-    }
-  );
-  const isFocussed = useIsFocused();
+  const {navigation} = props;
 
-  useEffect(() => {
-    initialize(dispatch, navigation);
-    const linkingHandler = Linking.addEventListener('url', ({ url }) => {
-      fetchAppId(dispatch, url);
-    });
-
-    return () => {
-      linkingHandler.remove();
-    };
-  }, [state.appId, isFocussed]);
-
-  const downloadCached = downloadForPreview.bind(null, state, dispatch);
-  const downloadUnCached = downloadForPreviewNonCache.bind(null, state, dispatch);
-
-  const hideLaunchSequence = () => {
-    dispatch({
-      type: 'SET_LAUNCH_SEQUENCE_MODAL_VISIBILITY',
-      payload: false
-    });
-  };
-
-  return (
-    <HomeCard
-      state={state}
-      onDownload={downloadCached}
-      onNonCacheDownload={downloadUnCached}
-      onModalDismiss={hideLaunchSequence}
-      onRefresh={() => initialize(dispatch, navigation)}
-      onScan={() => navigation.push("Scanner")}
-    />
-  );
+  return <HomeCard onScan={() => navigation.push('Scanner')} />;
 }

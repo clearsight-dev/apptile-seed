@@ -2,18 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
-    <key>IS_PREVIEW_APP</key>
-    <string>YES</string>
+    <key>APPSFLYER_APPID</key>
+    <string>xxx</string>
+    <key>APPSFLYER_DEVKEY</key>
+    <string>xxx</string>
     <key>APPTILE_API_ENDPOINT</key>
-    <string>https://api.apptile.io</string>
-    <key>APPTILE_UPDATE_ENDPOINT</key>
-    <string>https://appconfigs.apptile.io</string>
-    <key>APPTILE_URL_SCHEME</key>
-    <string>apptilepreview://</string>
+    <string>https://dev-api.apptile.io</string>
     <key>APPTILE_APP_HOST</key>
     <string>apptile.com</string>
     <key>APPTILE_APP_HOST_2</key>
     <string>apptile.io</string>
+    <key>APPTILE_UPDATE_ENDPOINT</key>
+    <string>https://dev-appconfigs.apptile.io</string>
+    <key>APPTILE_URL_SCHEME</key>
+    <string>apptilepreview://</string>
     <key>APP_ID</key>
     <string/>
     <key>CFBundleDevelopmentRegion</key>
@@ -51,10 +53,36 @@
     </array>
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>CleverTapAccountID</key>
+    <string>xxx</string>
+    <key>CleverTapRegion</key>
+    <string>xxx</string>
+    <key>CleverTapToken</key>
+    <string>xxx</string>
+    <key>FacebookAdvertiserIDCollectionEnabled</key>
+    <string>xxx</string>
+    <key>FacebookAppID</key>
+    <string>xxx</string>
+    <key>FacebookAutoLogAppEventsEnabled</key>
+    <string>xxx</string>
+    <key>FacebookClientToken</key>
+    <string>xxx</string>
+    <key>FacebookDisplayName</key>
+    <string>xxx</string>
+    <key>IS_PREVIEW_APP</key>
+    <string>YES</string>
     <key>LSApplicationCategoryType</key>
     <string/>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>MOENGAGE_APPID</key>
+    <string>xxx</string>
+    <key>MOENGAGE_DATACENTER</key>
+    <string>xxx</string>
+    <key>MoEngage</key>
+    <string>xxx</string>
+    <key>MoEngageAppDelegateProxyEnabled</key>
+    <string>xxx</string>
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>
@@ -63,13 +91,15 @@
       <true/>
     </dict>
     <key>NSCameraUsageDescription</key>
-    <string>Access camera for live streaming</string>
+    <string>Access camera for Scanning</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Microphone for Live Streaming</string>
+    <string>Microphone for Scanning</string>
     <key>NSUserTrackingUsageDescription</key>
     <string>Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement</string>
+    <key>ONESIGNAL_APPID</key>
+    <string>xxx</string>
     <key>UIAppFonts</key>
     <array>
       <string>AntDesign.ttf</string>
@@ -108,35 +138,5 @@
     </array>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
-    <key>FacebookAppID</key>
-    <string>xxx</string>
-    <key>FacebookClientToken</key>
-    <string>xxx</string>
-    <key>FacebookDisplayName</key>
-    <string>xxx</string>
-    <key>FacebookAutoLogAppEventsEnabled</key>
-    <string>xxx</string>
-    <key>FacebookAdvertiserIDCollectionEnabled</key>
-    <string>xxx</string>
-    <key>CleverTapAccountID</key>
-    <string>xxx</string>
-    <key>CleverTapToken</key>
-    <string>xxx</string>
-    <key>CleverTapRegion</key>
-    <string>xxx</string>
-    <key>APPSFLYER_DEVKEY</key>
-    <string>xxx</string>
-    <key>APPSFLYER_APPID</key>
-    <string>xxx</string>
-    <key>MOENGAGE_APPID</key>
-    <string>xxx</string>
-    <key>MOENGAGE_DATACENTER</key>
-    <string>xxx</string>
-    <key>MoEngageAppDelegateProxyEnabled</key>
-    <string>xxx</string>
-    <key>MoEngage</key>
-    <string>xxx</string>
-    <key>ONESIGNAL_APPID</key>
-    <string>xxx</string>
   </dict>
 </plist>

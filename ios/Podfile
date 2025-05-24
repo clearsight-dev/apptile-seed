@@ -105,39 +105,15 @@ print("iosProjectSetup complete\n")
 target 'ImageNotification' do
   use_frameworks!
   pod 'GoogleUtilities'
-  if feature_flags.fetch('ENABLE_MOENGAGE', false)
-    puts "Installing MoEngageRichNotification flag in ImageNotification"
-    pod 'MoEngageRichNotification'
-  end
-  if feature_flags.fetch('ENABLE_ONESIGNAL', false)
-    puts "Installing onesignal core in ImageNotification"
-    pod 'OneSignalXCFramework', '>= 5.0.0', '< 6.0'
-  end
-  if feature_flags.fetch('ENABLE_CLEVERTAP', false)
-    puts "Installing clevertap in ImageNotification"
-    pod 'CTNotificationService'
-  end
 end
 
 target 'NotificationContentExtension' do
   use_frameworks!
-  if feature_flags.fetch('ENABLE_MOENGAGE', false)
-    pod 'MoEngageRichNotification'
-  end
-  if feature_flags.fetch('ENABLE_CLEVERTAP', false)
-    puts "Installing clevertap in ImageNotification"
-    pod 'CTNotificationService'
-  end
 end
 
 target 'apptileSeed' do
   use_frameworks!
   config = use_native_modules!
-  
-  if feature_flags.fetch('ENABLE_CLEVERTAP', false)
-    puts "Setting clevertap path in apptileSeed"
-    pod 'clevertap-react-native', :path => '../node_modules/clevertap-react-native'
-  end
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -155,6 +131,8 @@ target 'apptileSeed' do
   #   inherit! :complete
   #   # Pods for testing
   # end
+  pod 'ZIPFoundation'
+  pod 'Alamofire', '~> 5.0'
   # to avoid GoogleUtilities version conflict since firebase analytics and firebase Messaging can have different version of GoogleUtilities
   pod 'GoogleUtilities', :modular_headers => true
   # pod 'GoogleUtilities'

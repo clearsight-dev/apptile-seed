@@ -44,17 +44,18 @@
   "assets": [],
   "secrets": [],
   "feature_flags": {
-    "ENABLE_ONESIGNAL": true,
+    "ENABLE_ONESIGNAL": false,
     "ENABLE_SEGMENT_ANALYTICS": false,
     "ENABLE_FBSDK": false,
     "ENABLE_CLEVERTAP": false,
     "ENABLE_KALVIYO": false,
     "ENABLE_MOENGAGE": false,
     "ENABLE_APPSFLYER": false,
-    "ENABLE_FIREBASE_ANALYTICS": true
+    "ENABLE_FIREBASE_ANALYTICS": true,
+    "ENABLE_NATIVE_SPLASH": true
   },
-  "SDK_PATH": "/Users/gauravgautam/apptile-cli-home/ReactNativeTSProjeect",
+  "SDK_PATH": "/Users/mak/apptile-cli-home/ReactNativeTSProjeect",
   "APP_ID": "",
-  "APPTILE_BACKEND_URL": "https://api.apptile.io",
-  "APPCONFIG_SERVER_URL": "https://appconfigs.apptile.io"
+  "APPTILE_BACKEND_URL": "https://dev-api.apptile.io",
+  "APPCONFIG_SERVER_URL": "https://dev-appconfigs.apptile.io"
 }
