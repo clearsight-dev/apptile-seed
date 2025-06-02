@@ -84,6 +84,13 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 def configFile = file("../../apptile.config.json")
 def bundleId = "com.apptile.apptilepreviewdemo"
 
+// Load version properties if available
+def versionProps = new Properties()
+def versionPropsFile = file("version.properties")
+if (versionPropsFile.exists()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+}
+
 def enable_onesignal = false
 def enable_moengage = false
 // def enable_clevertap = false
@@ -122,18 +129,28 @@ android {
         applicationId bundleId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode versionProps.getProperty('VERSION_CODE') ? versionProps.getProperty('VERSION_CODE').toInteger() : 1
+        versionName versionProps.getProperty('VERSION_NAME') ?: "1.0"
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general'
     }
 
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            /**
+            * # Default config
+            * storeFile file('debug.keystore')
+            * storePassword 'android'
+            * keyAlias 'androiddebugkey'
+            * keyPassword 'android'
+            */
+            String appUploadStoreFile =  System.getenv("SIGNING_STORE_FILE") ?: 'debug.keystore'
+            if (appUploadStoreFile) {
+                storeFile file(appUploadStoreFile)
+                storePassword System.getenv("SIGNING_STORE_PASSWORD") ?: 'android'
+                keyAlias System.getenv("SIGNING_KEY_ALIAS") ?: 'androiddebugkey'
+                keyPassword System.getenv("SIGNING_KEY_PASSWORD") ?: 'android'
+            }
         }
     }
     buildTypes {
@@ -222,3 +239,60 @@ dependencies {
 
 apply from: "./apptile.gradle"
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+// Custom export path logic for release builds
+def exportPath = System.getenv("exportPath")
+
+android.applicationVariants.all { variant ->
+    if (variant.buildType.name == "release") {
+        variant.outputs.all { output ->
+            // Assemble Release task
+            tasks.named("assemble${variant.name.capitalize()}").configure { task ->
+                doLast {
+                    if (exportPath) {
+                        // Create export directory if it doesn't exist
+                        def exportDir = new File(exportPath)
+                        if (!exportDir.exists()) {
+                            exportDir.mkdirs()
+                        }
+                        
+                        // Copy APK to export path
+                        def apkFile = new File(output.outputFile.absolutePath)
+                        if (apkFile.exists()) {
+                            copy {
+                                from apkFile
+                                into exportDir
+                            }
+                            println "Exported APK to ${exportDir.absolutePath}/${apkFile.name}"
+                        }
+                    }
+                }
+            }
+            
+            // Bundle Release task
+            tasks.matching { it.name == "bundle${variant.name.capitalize()}" }.all { task ->
+                doLast {
+                    if (exportPath) {
+                        // Create export directory if it doesn't exist
+                        def exportDir = new File(exportPath)
+                        if (!exportDir.exists()) {
+                            exportDir.mkdirs()
+                        }
+                        
+                        // Copy AAB to export path
+                        def aabDir = new File("${project.buildDir}/outputs/bundle/${variant.name}")
+                        if (aabDir.exists()) {
+                            aabDir.listFiles().findAll { it.name.endsWith(".aab") }.each { aabFile ->
+                                copy {
+                                    from aabFile
+                                    into exportDir
+                                }
+                                println "Exported AAB to ${exportDir.absolutePath}/${aabFile.name}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

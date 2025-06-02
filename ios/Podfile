@@ -192,11 +192,20 @@ target 'apptileSeed' do
 
   post_install do |installer|
     puts "trying to add preprocessor flag"
+    
+    # Read version and build number from apptile.config.json
+    app_version = apptile_config.dig('ios', 'version') || '1.0.0'
+    build_number = apptile_config.dig('ios', 'build_number') || '1'
+    puts "Setting app version to #{app_version} and build number to #{build_number}"
+    
+    # Update all three targets' xcconfig files
     xcconfig_paths=[
       ["./Pods/Target Support Files/Pods-apptileSeed/Pods-apptileSeed.debug.xcconfig", bundle_id],
+      ["./Pods/Target Support Files/Pods-apptileSeed/Pods-apptileSeed.release.xcconfig", bundle_id],
       ["./Pods/Target Support Files/Pods-ImageNotification/Pods-ImageNotification.debug.xcconfig", bundle_id + '.ImageNotification'],
-      ["./Pods/Target Support Files/Pods-apptileSeed/Pods-apptileSeed.release.xcconfig", bundle_id], 
-      ["./Pods/Target Support Files/Pods-ImageNotification/Pods-ImageNotification.release.xcconfig", bundle_id + '.ImageNotification']
+      ["./Pods/Target Support Files/Pods-ImageNotification/Pods-ImageNotification.release.xcconfig", bundle_id + '.ImageNotification'],
+      ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig", bundle_id + '.NotificationContentExtension'],
+      ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.release.xcconfig", bundle_id + '.NotificationContentExtension']
     ]
     
     xcconfig_paths.each do |path, productBundleIdentifier|
@@ -204,8 +213,10 @@ target 'apptileSeed' do
         puts "Modifying #{path}"
         # Read the current filecontents
         file_contents = File.read(path)
-    
+
         updated_contents = file_contents
+
+        # Process feature flags
         FLAGS.each do |flag|
           flag_enabled = feature_flags[flag]
           puts "Feature flag #{flag}: #{flag_enabled}"
@@ -238,13 +249,14 @@ target 'apptileSeed' do
           end
         end
         
-        updated_contents=updated_contents.gsub(
+        # Update bundle ID
+        updated_contents = updated_contents.gsub(
           /^PRODUCT_BUNDLE_IDENTIFIER = (.+)$/i,
           'PRODUCT_BUNDLE_IDENTIFIER = ' + productBundleIdentifier 
         )
 
         unless updated_contents.include?("PRODUCT_BUNDLE_IDENTIFIER")
-          updated_contents+="\nPRODUCT_BUNDLE_IDENTIFIER = #{productBundleIdentifier}\n"
+          updated_contents += "\nPRODUCT_BUNDLE_IDENTIFIER = #{productBundleIdentifier}\n"
         end
 
         File.write(path, updated_contents)
@@ -253,6 +265,7 @@ target 'apptileSeed' do
       end
       puts "------------"
     end
+    
     
     xcconfig_paths=[
       ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig", bundle_id + '.NotificationContentExtension'],
@@ -320,6 +333,18 @@ target 'apptileSeed' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     ) 
+    
+    # Run the update_versions.rb script as the final step
+    script_path = "./update_versions.rb"
+    if File.exist?(script_path)
+      # Make sure the script is executable
+      File.chmod(0755, script_path) unless File.executable?(script_path)
+      
+      # Run the script
+      system(script_path)
+    else
+      puts "Warning: update_versions.rb script not found at #{script_path}"
+    end
   end
 end
 

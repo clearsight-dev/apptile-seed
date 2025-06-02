@@ -32,6 +32,8 @@ preBuild.dependsOn runAndroidSetup
 // task is run automatically.
 tasks.whenTaskAdded { task ->
     if (task.name == "assembleRelease") {
-        task.dependsOn "runAndroidSetup", "createBundleReleaseJsAndAssets"
+        task.dependsOn "runAndroidSetup"
+        tasks.findByName("createBundleReleaseJsAndAssets")?.dependsOn "runAndroidSetup"
+        task.dependsOn "createBundleReleaseJsAndAssets"
     }
 }

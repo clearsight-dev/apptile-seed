@@ -88,7 +88,7 @@ addCustomEventListener('ApptileAnalyticsSendEvent', (type, name, params) => {
 async function generateAnalytics(analyticsTemplateRef, integrations, featureFlags) {
   integrations = integrations || {};
   let enabledAnalytics = '';
-  if (featureFlags.ENABLE_FBSDK) {
+  if (featureFlags?.ENABLE_FBSDK) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
       `Facebook as FacebookAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
@@ -96,7 +96,7 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
     enabledAnalytics += `FacebookAnalytics,\n      `;
   }
 
-  if (featureFlags.ENABLE_APPSFLYER) {
+  if (featureFlags?.ENABLE_APPSFLYER) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
       `AppsFlyer as AppsFlyerAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
@@ -104,7 +104,7 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
     enabledAnalytics += `AppsFlyerAnalytics,\n      `;
   }
 
-  if (featureFlags.ENABLE_MOENGAGE) {
+  if (featureFlags?.ENABLE_MOENGAGE) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
@@ -113,7 +113,7 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
     enabledAnalytics += `MoengageAnalytics,\n      `;
   }
 
-  if (featureFlags.ENABLE_ONSIGNAL) {
+  if (featureFlags?.ENABLE_ONESIGNAL) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
@@ -122,7 +122,7 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
     enabledAnalytics += `OneSignalAnalytics,\n      `;
   }
 
-  if (featureFlags.ENABLE_CLEVERTAP) {
+  if (featureFlags?.ENABLE_CLEVERTAP) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
@@ -220,9 +220,13 @@ async function addForceUnlinkForNativePackage(packageName, extraModules, parsedR
       path.resolve(__dirname, `stubs/${packageName}`),
       {recursive: true}
     );
+    
+    // Use a default stub if the package doesn't have a specific one defined
+    const stubContent = packageStubs[packageName] || `export default {}; // Default stub for ${packageName}`;
+    
     await writeFile(
       path.resolve(__dirname, `stubs/${packageName}/index.ts`), 
-      packageStubs[packageName]
+      stubContent
     );
   }
 
@@ -332,6 +336,7 @@ function getExtraModules(apptileConfig) {
 
 async function downloadIconAndSplash(apptileConfig) {
   let result = true;
+  apptileConfig.assets = apptileConfig.assets || [];
   for (let i = 0; i < apptileConfig.assets.length; ++i) {
     try {
       const asset = apptileConfig.assets[i];

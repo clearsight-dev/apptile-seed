@@ -6,8 +6,8 @@
 // Make sure this script is idempotent. Meaning you can run it at any time and with any configurations and it should
 // Update the project with the values in the apptile.config.json without having to reason about things in the codebase itself
 // This means you cannot rely on comments in the codebase that will get uncommented or specialized strings that get replaced.
-// If you do that, then when you run the script a second time those comments are gone and the script will fail. 
-// You must guarantee that the developer of the project can run this script with any changes in apptile.config.json and not 
+// If you do that, then when you run the script a second time those comments are gone and the script will fail.
+// You must guarantee that the developer of the project can run this script with any changes in apptile.config.json and not
 // have to worry about getting into an irrecoverable state from which recovery is only possible by checking out another version
 // of the project. This is what used to happen in the /temp folder strategy and that strategy is painful enough to discourage
 // most developers from even running projects with all features specific to the app enabled.
@@ -30,26 +30,32 @@ const {
   readReactNativeConfigJs,
   writeReactNativeConfigJs,
   getExtraModules,
-  downloadIconAndSplash
+  downloadIconAndSplash,
 } = require('./commonProjectSetup');
 
 const exec = util.promisify(exec_);
 
 async function generateIconSet(scriptPath) {
   await exec(
-    `${scriptPath} ${path.resolve(__dirname, 'assets', 'icon.png')} ./android/app/src/main`, 
-    {cwd: path.resolve(__dirname)}
+    `${scriptPath} ${path.resolve(
+      __dirname,
+      'assets',
+      'icon.png',
+    )} ./android/app/src/main`,
+    {cwd: path.resolve(__dirname)},
   );
 }
 
 function upsertInStringsXML(parsedXMLDoc, key, value) {
-  let existingEntry = parsedXMLDoc.resources.string.find(it => it.$.name === key);
+  let existingEntry = parsedXMLDoc.resources.string.find(
+    it => it.$.name === key,
+  );
   if (!existingEntry) {
     parsedXMLDoc.resources.string.push({
-      _: value, 
+      _: value,
       $: {
-        name: key
-      }
+        name: key,
+      },
     });
   } else {
     existingEntry._ = value;
@@ -57,7 +63,9 @@ function upsertInStringsXML(parsedXMLDoc, key, value) {
 }
 
 function removeFromStringsXML(parsedXMLDoc, key) {
-  let existingEntryIndex = parsedXMLDoc.resources.string.findIndex(it => it.$.name === key);
+  let existingEntryIndex = parsedXMLDoc.resources.string.findIndex(
+    it => it.$.name === key,
+  );
   if (existingEntryIndex >= 0) {
     parsedXMLDoc.resources.string.splice(existingEntryIndex, 1);
   }
@@ -87,15 +95,13 @@ function addIntent(activity, actionName, attributes, categories, schemes) {
   activity['intent-filter'] = activity['intent-filter'] || [];
   activity['intent-filter'].push({
     $: attributes,
-    action: [
-      {$: { 'android:name': 'android.intent.action.' + actionName }}
-    ],
+    action: [{$: {'android:name': 'android.intent.action.' + actionName}}],
     category: categories.map(category => {
-      return {$: { 'android:name': 'android.intent.category.' + category }};
+      return {$: {'android:name': 'android.intent.category.' + category}};
     }),
     data: schemes.map(scheme => {
       return {$: {'android:scheme': scheme}};
-    })
+    }),
   });
 }
 
@@ -107,7 +113,7 @@ function deleteIntentByScheme(activity, requiredSchemes) {
         return false;
       } else {
         for (let i = 0; i < intent.data.length; ++i) {
-          const scheme = intent.data[i].$['android:scheme']
+          const scheme = intent.data[i].$['android:scheme'];
           schemes[scheme] = 1;
         }
 
@@ -134,7 +140,7 @@ function deleteIntentByCategory(activity, categories) {
     const index = activity['intent-filter'].findIndex(intent => {
       const categoryNames = {};
       for (let i = 0; i < intent.category.length; ++i) {
-        const categoryName = intent.category[i].$['android:name']
+        const categoryName = intent.category[i].$['android:name'];
         categoryNames[categoryName] = 1;
       }
 
@@ -173,7 +179,7 @@ function addDeeplinkScheme(androidManifest, urlScheme) {
 
     if (
       actions['android.intent.action.VIEW'] &&
-      categories['android.intent.category.DEFAULT'] && 
+      categories['android.intent.category.DEFAULT'] &&
       categories['android.intent.category.BROWSABLE']
     ) {
       targetIntent = intent;
@@ -187,22 +193,22 @@ function addDeeplinkScheme(androidManifest, urlScheme) {
     mainActivity['intent-filter'].push({
       action: [
         {
-          $: {'android:name': 'android.intent.action.VIEW'}
-        }
+          $: {'android:name': 'android.intent.action.VIEW'},
+        },
       ],
       category: [
         {
-          $: {'android:name': 'android.intent.category.DEFAULT'}
+          $: {'android:name': 'android.intent.category.DEFAULT'},
         },
         {
-          $: {'android:name': 'android.intent.category.BROWSABLE'}
-        }
+          $: {'android:name': 'android.intent.category.BROWSABLE'},
+        },
       ],
       data: [
-        { 
-          $: {'android:scheme': urlScheme}
-        }
-      ]
+        {
+          $: {'android:scheme': urlScheme},
+        },
+      ],
     });
   }
 }
@@ -226,13 +232,13 @@ function deleteAndroidScheme(androidManifest) {
 
     if (
       actions['android.intent.action.VIEW'] &&
-      categories['android.intent.category.DEFAULT'] && 
+      categories['android.intent.category.DEFAULT'] &&
       categories['android.intent.category.BROWSABLE']
     ) {
       deepLinkIntentIndex = i;
       break;
     }
-  } 
+  }
   if (deepLinkIntentIndex >= 0) {
     intentFilters.splice(deepLinkIntentIndex, 1);
   }
@@ -255,9 +261,9 @@ function addHttpDeepLinks(androidManifest, hosts) {
    * <data android:host="host2"/>
    */
   const hostDataNodes = hosts.map(host => {
-    return { $: { 'android:host': host } };
+    return {$: {'android:host': host}};
   });
-  
+
   /* <data android:scheme="https"/>
    * <data android:scheme="http"/>
    * <data android:host="host1"/>
@@ -265,12 +271,12 @@ function addHttpDeepLinks(androidManifest, hosts) {
    */
   const deepLinkData = [
     {
-      $: { 'android:scheme': 'https'}
+      $: {'android:scheme': 'https'},
     },
     {
-      $: { 'android:scheme': 'http'}
+      $: {'android:scheme': 'http'},
     },
-    ...hostDataNodes
+    ...hostDataNodes,
   ];
 
   if (existingIntent) {
@@ -286,22 +292,22 @@ function addHttpDeepLinks(androidManifest, hosts) {
      * */
     mainActivity['intent-filter'].push({
       $: {
-        'android:autoVerify': true
+        'android:autoVerify': true,
       },
       action: [
         {
-          $: { 'android:name': 'android.intent.action.VIEW' }
-        }
+          $: {'android:name': 'android.intent.action.VIEW'},
+        },
       ],
       category: [
         {
-          $: { 'android:name': 'android.intent.category.DEFAULT' }
+          $: {'android:name': 'android.intent.category.DEFAULT'},
         },
         {
-          $: { 'android:name': 'android.intent.category.BROWSABLE' }
-        }
+          $: {'android:name': 'android.intent.category.BROWSABLE'},
+        },
       ],
-      data: deepLinkData
+      data: deepLinkData,
     });
   }
 }
@@ -325,39 +331,52 @@ function deleteHttpDeepLinks(androidManifest) {
 }
 
 function addPermission(androidManifest, permissionName) {
-  androidManifest.manifest['uses-permission'] = androidManifest.manifest['uses-permission'] || [];
-  const existingPermission  = androidManifest.manifest['uses-permission'].find(permission => {
-    return permission.$['android:name'] === `android.permission.${permissionName}`;
-  });
+  androidManifest.manifest['uses-permission'] =
+    androidManifest.manifest['uses-permission'] || [];
+  const existingPermission = androidManifest.manifest['uses-permission'].find(
+    permission => {
+      return (
+        permission.$['android:name'] === `android.permission.${permissionName}`
+      );
+    },
+  );
   if (!existingPermission) {
     androidManifest.manifest['uses-permission'].push({
-      $: { 'android:name': `android.permission.${permissionName}` }
+      $: {'android:name': `android.permission.${permissionName}`},
     });
   }
 }
 
 function deletePermission(androidManifest, permissionName) {
-  androidManifest.manifest['uses-permission'] = androidManifest.manifest['uses-permission'] || [];
-  const existingIndex  = androidManifest.manifest['uses-permission'].findIndex(permission => {
-    return permission.$['android:name'] === `android.permission.${permissionName}`;
-  });
+  androidManifest.manifest['uses-permission'] =
+    androidManifest.manifest['uses-permission'] || [];
+  const existingIndex = androidManifest.manifest['uses-permission'].findIndex(
+    permission => {
+      return (
+        permission.$['android:name'] === `android.permission.${permissionName}`
+      );
+    },
+  );
   if (existingIndex >= 0) {
     androidManifest.manifest['uses-permission'].splice(existingIndex, 1);
   }
 }
 
 function addMetadata(androidManifest, androidName, androidValue) {
-  androidManifest.manifest.application[0]['meta-data'] = androidManifest.manifest.application[0]['meta-data'] || [];
+  androidManifest.manifest.application[0]['meta-data'] =
+    androidManifest.manifest.application[0]['meta-data'] || [];
   const metaDataNodes = androidManifest.manifest.application[0]['meta-data'];
-  const existingNode = metaDataNodes.find(node => node.$['android:name'] === androidName);
+  const existingNode = metaDataNodes.find(
+    node => node.$['android:name'] === androidName,
+  );
   if (existingNode) {
     existingNode.$['android:value'] = androidValue;
   } else {
     metaDataNodes.push({
       $: {
         'android:name': androidName,
-        'android:value': androidValue
-      }
+        'android:value': androidValue,
+      },
     });
   }
 }
@@ -365,7 +384,9 @@ function addMetadata(androidManifest, androidName, androidValue) {
 function deleteMetadata(androidManifest, androidName) {
   const metaDataNodes = androidManifest.manifest.application[0]['meta-data'];
   if (metaDataNodes) {
-    const index = metaDataNodes.findIndex(it => it.$['android:name'] === androidName);
+    const index = metaDataNodes.findIndex(
+      it => it.$['android:name'] === androidName,
+    );
     if (index >= 0) {
       metaDataNodes.splice(index, 1);
     }
@@ -373,13 +394,16 @@ function deleteMetadata(androidManifest, androidName) {
 }
 
 function addService(androidManifest, serviceName, attributes, children) {
-  androidManifest.manifest.application[0].service = androidManifest.manifest.application[0].service || [];
-  let existingService = androidManifest.manifest.application[0].service.find(it => {
-    return it.$['android:name'] === serviceName;
-  });
+  androidManifest.manifest.application[0].service =
+    androidManifest.manifest.application[0].service || [];
+  let existingService = androidManifest.manifest.application[0].service.find(
+    it => {
+      return it.$['android:name'] === serviceName;
+    },
+  );
   if (existingService) {
     for (let key in existingService) {
-      delete existingService[key]
+      delete existingService[key];
     }
   } else {
     existingService = {};
@@ -388,7 +412,7 @@ function addService(androidManifest, serviceName, attributes, children) {
 
   existingService.$ = {
     'android:name': serviceName,
-    ...attributes
+    ...attributes,
   };
   if (children !== null) {
     for (let key in children) {
@@ -400,7 +424,9 @@ function addService(androidManifest, serviceName, attributes, children) {
 function deleteService(androidManifest, serviceName) {
   const services = androidManifest.manifest.application[0].service;
   if (services) {
-    const index = services.findIndex(service => service.$['android:name'] === serviceName);
+    const index = services.findIndex(
+      service => service.$['android:name'] === serviceName,
+    );
     if (index >= 0) {
       services.splice(index, 1);
     }
@@ -422,7 +448,9 @@ function deleteMessagingService(androidManifest) {
     const intent = intentFilters.find(intent => {
       intent.action = intent.action || [];
       let actionWithFirebaseMessagingEvent = intent.action.find(action => {
-        return action.$['android:name'] === 'com.google.firebase.MESSAGING_EVENT';
+        return (
+          action.$['android:name'] === 'com.google.firebase.MESSAGING_EVENT'
+        );
       });
       return !!actionWithFirebaseMessagingEvent;
     });
@@ -439,104 +467,256 @@ const firebaseMessagingEventIntent = {
     {
       action: [
         {
-          $: {'android:name': 'com.google.firebase.MESSAGING_EVENT'}
-        }
-      ]
-    }
-  ] 
+          $: {'android:name': 'com.google.firebase.MESSAGING_EVENT'},
+        },
+      ],
+    },
+  ],
 };
 
-async function addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addCleverTap(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   const cleverTapIntegration = apptileConfig.integrations.cleverTap;
-  addMetadata(androidManifest, 'CLEVERTAP_ACCOUNT_ID', cleverTapIntegration.cleverTap_id);
-  addMetadata(androidManifest, 'CLEVERTAP_TOKEN', cleverTapIntegration.cleverTap_token);
-  addMetadata(androidManifest, 'CLEVERTAP_REGION', cleverTapIntegration.cleverTap_region);
+  addMetadata(
+    androidManifest,
+    'CLEVERTAP_ACCOUNT_ID',
+    cleverTapIntegration.cleverTap_id,
+  );
+  addMetadata(
+    androidManifest,
+    'CLEVERTAP_TOKEN',
+    cleverTapIntegration.cleverTap_token,
+  );
+  addMetadata(
+    androidManifest,
+    'CLEVERTAP_REGION',
+    cleverTapIntegration.cleverTap_region,
+  );
   deleteMessagingService(androidManifest);
-  addService(androidManifest, 
-    "com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService", 
-    {'android:exported': true}, 
-    firebaseMessagingEventIntent
+  addService(
+    androidManifest,
+    'com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService',
+    {'android:exported': true},
+    firebaseMessagingEventIntent,
   );
   addPermission(androidManifest, 'ACCESS_NETWORK_STATE');
-  await removeForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage(
+    'clevertap-react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeCleverTap(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   deleteMetadata(androidManifest, 'CLEVERTAP_ACCOUNT_ID');
   deleteMetadata(androidManifest, 'CLEVERTAP_TOKEN');
   deleteMetadata(androidManifest, 'CLEVERTAP_REGION');
-  deleteService(androidManifest, "com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService");
+  deleteService(
+    androidManifest,
+    'com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService',
+  );
   deletePermission(androidManifest, 'ACCESS_NETWORK_STATE');
-  await addForceUnlinkForNativePackage('clevertap-react-native', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage(
+    'clevertap-react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addFacebook(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   const facebookIntegration = apptileConfig.integrations.metaAds;
-  upsertInStringsXML(stringsObj, 'facebook_app_id', facebookIntegration.FacebookAppID);
-  addMetadata(androidManifest, 'com.facebook.sdk.ApplicationId', '@string/facebook_app_id');
+  upsertInStringsXML(
+    stringsObj,
+    'facebook_app_id',
+    facebookIntegration.FacebookAppID,
+  );
+  addMetadata(
+    androidManifest,
+    'com.facebook.sdk.ApplicationId',
+    '@string/facebook_app_id',
+  );
 
-  upsertInStringsXML(stringsObj, 'facebook_client_token', facebookIntegration.FacebookClientToken);
-  addMetadata(androidManifest, 'com.facebook.sdk.ClientToken', '@string/facebook_client_token');
+  upsertInStringsXML(
+    stringsObj,
+    'facebook_client_token',
+    facebookIntegration.FacebookClientToken,
+  );
+  addMetadata(
+    androidManifest,
+    'com.facebook.sdk.ClientToken',
+    '@string/facebook_client_token',
+  );
 
-  await removeForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage(
+    'react-native-fbsdk-next',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeFacebook(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   removeFromStringsXML(stringsObj, 'facebook_app_id');
   deleteMetadata(androidManifest, 'com.facebook.sdk.ApplicationId');
 
   removeFromStringsXML(stringsObj, 'facebook_client_token');
   deleteMetadata(androidManifest, 'com.facebook.sdk.ClientToken');
 
-  await addForceUnlinkForNativePackage('react-native-fbsdk-next', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage(
+    'react-native-fbsdk-next',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addOnesignal(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   const onesignalIntegration = apptileConfig.integrations.oneSignal;
-  upsertInStringsXML(stringsObj, 'ONESIGNAL_APPID', onesignalIntegration.onesignal_app_id);
-  await removeForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
+  upsertInStringsXML(
+    stringsObj,
+    'ONESIGNAL_APPID',
+    onesignalIntegration.onesignal_app_id,
+  );
+  await removeForceUnlinkForNativePackage(
+    'react-native-onesignal',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeOnesignal(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   removeFromStringsXML(stringsObj, 'ONESIGNAL_APPID');
-  await addForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage(
+    'react-native-onesignal',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addMoengage(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   const moengageIntegration = apptileConfig.integrations.moengage;
   upsertInStringsXML(stringsObj, 'moengage_app_id', moengageIntegration.appId);
-  upsertInStringsXML(stringsObj, 'moengage_datacenter', moengageIntegration.datacenter);
+  upsertInStringsXML(
+    stringsObj,
+    'moengage_datacenter',
+    moengageIntegration.datacenter,
+  );
   deleteMessagingService(androidManifest);
-  addService(androidManifest, 
-    "com.moengage.firebase.MoEFireBaseMessagingService", 
-    {'android:exported': true}, 
-    firebaseMessagingEventIntent
+  addService(
+    androidManifest,
+    'com.moengage.firebase.MoEFireBaseMessagingService',
+    {'android:exported': true},
+    firebaseMessagingEventIntent,
   );
   addPermission(androidManifest, 'SCHEDULE_EXACT_ALARM');
-  await removeForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
+  await removeForceUnlinkForNativePackage(
+    'react-native-moengage',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeMoengage(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   removeFromStringsXML(stringsObj, 'moengage_app_id');
   removeFromStringsXML(stringsObj, 'moengage_datacenter');
-  deleteService(androidManifest, "com.moengage.firebase.MoEFireBaseMessagingService");
+  deleteService(
+    androidManifest,
+    'com.moengage.firebase.MoEFireBaseMessagingService',
+  );
   deletePermission(androidManifest, 'SCHEDULE_EXACT_ALARM');
-  await addForceUnlinkForNativePackage('react-native-moengage', extraModules, parsedReactNativeConfig);
+  await addForceUnlinkForNativePackage(
+    'react-native-moengage',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig) {
+async function addKlaviyo(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   const klaviyoCompanyId = apptileConfig.integrations.klaviyo_company_id;
   upsertInStringsXML(stringsObj, 'klaviyo_company_id', klaviyoCompanyId);
-  addService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService", { 'android:exported': false }, firebaseMessagingEventIntent);
-  removeForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
-  await removeForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
+  addService(
+    androidManifest,
+    'com.klaviyo.pushFcm.KlaviyoPushService',
+    {'android:exported': false},
+    firebaseMessagingEventIntent,
+  );
+  removeForceUnlinkForNativePackage(
+    'react-native-klaviyo',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+  await removeForceUnlinkForNativePackage(
+    'react-native-push-notification',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
-async function removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig) {
+async function removeKlaviyo(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   removeFromStringsXML(stringsObj, 'klaviyo_company_id');
-  deleteService(androidManifest, "com.klaviyo.pushFcm.KlaviyoPushService");
-  addForceUnlinkForNativePackage('react-native-klaviyo', extraModules, parsedReactNativeConfig);
-  await addForceUnlinkForNativePackage('react-native-push-notification', extraModules, parsedReactNativeConfig);
+  deleteService(androidManifest, 'com.klaviyo.pushFcm.KlaviyoPushService');
+  addForceUnlinkForNativePackage(
+    'react-native-klaviyo',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+  await addForceUnlinkForNativePackage(
+    'react-native-push-notification',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
 async function main() {
@@ -545,18 +725,26 @@ async function main() {
   const androidFolderLocation = path.resolve(__dirname, 'android');
 
   // Read apptile.config.json
-  console.log("Pulling in configurations from apptile.config.json to Info.plist");
+  console.log(
+    'Pulling in configurations from apptile.config.json to Info.plist',
+  );
   const apptileConfigRaw = await readFile(
-    path.resolve(androidFolderLocation, '../apptile.config.json'), 
-    {encoding: 'utf8'}
+    path.resolve(androidFolderLocation, '../apptile.config.json'),
+    {encoding: 'utf8'},
   );
   const apptileConfig = JSON.parse(apptileConfigRaw);
+  console.log(apptileConfig, 'config');
   try {
     const success = await downloadIconAndSplash(apptileConfig);
     if (success && os.platform() === 'darwin') {
-      await generateIconSet(path.resolve(apptileConfig.SDK_PATH, 'packages/apptile-app/devops/scripts/android/iconset-generator.sh'));
+      await generateIconSet(
+        path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-app/devops/scripts/android/iconset-generator.sh',
+        ),
+      );
     }
-  } catch(err) {
+  } catch (err) {
     console.error(chalk.red('could not download icon and splash'));
   }
   const extraModules = getExtraModules(apptileConfig);
@@ -565,49 +753,117 @@ async function main() {
   const parser = new xml2js.Parser();
   const builder = new xml2js.Builder({headless: true});
 
-  const valuesXmlPath = path.resolve(androidFolderLocation, 'app/src/main/res/values/strings.xml');
+  const valuesXmlPath = path.resolve(
+    androidFolderLocation,
+    'app/src/main/res/values/strings.xml',
+  );
   const rawStrings = await readFile(valuesXmlPath, {encoding: 'utf8'});
   const stringsObj = await parser.parseStringPromise(rawStrings);
 
-  const androidManifestPath = path.resolve(androidFolderLocation, 'app/src/main/AndroidManifest.xml');
+  const androidManifestPath = path.resolve(
+    androidFolderLocation,
+    'app/src/main/AndroidManifest.xml',
+  );
   const rawManifest = await readFile(androidManifestPath, {encoding: 'utf8'});
   const androidManifest = await parser.parseStringPromise(rawManifest);
 
   upsertInStringsXML(stringsObj, 'app_name', apptileConfig.app_name);
-  upsertInStringsXML(stringsObj, 'APPTILE_API_ENDPOINT', apptileConfig.APPTILE_BACKEND_URL);
+  upsertInStringsXML(
+    stringsObj,
+    'APPTILE_API_ENDPOINT',
+    apptileConfig.APPTILE_BACKEND_URL,
+  );
   upsertInStringsXML(stringsObj, 'APP_ID', apptileConfig.APP_ID);
-  upsertInStringsXML(stringsObj, 'APPTILE_UPDATE_ENDPOINT', apptileConfig.APPCONFIG_SERVER_URL);
+  upsertInStringsXML(
+    stringsObj,
+    'APPTILE_UPDATE_ENDPOINT',
+    apptileConfig.APPCONFIG_SERVER_URL,
+  );
 
   const parsedReactNativeConfig = await readReactNativeConfigJs();
 
-  if (apptileConfig.feature_flags.ENABLE_CLEVERTAP) {
-    await addCleverTap(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+  if (apptileConfig.feature_flags?.ENABLE_CLEVERTAP) {
+    await addCleverTap(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   } else {
-    await removeCleverTap(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
+    await removeCleverTap(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   }
-  if (apptileConfig.feature_flags.ENABLE_FBSDK) {
-    await addFacebook(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+  if (apptileConfig.feature_flags?.ENABLE_FBSDK) {
+    await addFacebook(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   } else {
-    await removeFacebook(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
+    await removeFacebook(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   }
 
-  if (apptileConfig.feature_flags.ENABLE_ONESIGNAL) {
-    await addOnesignal(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+  if (apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+    await addOnesignal(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   } else {
-    await removeOnesignal(androidManifest, stringsObj, extraModules, parsedReactNativeConfig); 
+    await removeOnesignal(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   }
 
-  if (apptileConfig.feature_flags.ENABLE_MOENGAGE) {
-    await addMoengage(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig)
+  if (apptileConfig.feature_flags?.ENABLE_MOENGAGE) {
+    await addMoengage(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   } else {
-    await removeMoengage(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
+    await removeMoengage(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   }
 
-  if (apptileConfig.feature_flags.ENABLE_KLAVIYO) {
-    await addKlaviyo(androidManifest, stringsObj, apptileConfig, extraModules, parsedReactNativeConfig);
-  }
-  else {
-    await removeKlaviyo(androidManifest, stringsObj, extraModules, parsedReactNativeConfig);
+  if (apptileConfig.feature_flags?.ENABLE_KLAVIYO) {
+    await addKlaviyo(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  } else {
+    await removeKlaviyo(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
   }
 
   const updatedValuesXml = builder.buildObject(stringsObj);
@@ -615,36 +871,67 @@ async function main() {
   const updatedAndroidManifest = builder.buildObject(androidManifest);
   await writeFile(androidManifestPath, updatedAndroidManifest);
 
+  // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
+  try {
+    const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
+    console.log('Downloading manifest from ' + manifestUrl);
+    const {data: manifest} = await axios.get(manifestUrl);
+    const publishedCommit = manifest.forks[0].publishedCommitId;
+    const androidBundle = manifest.codeArtefacts.find(
+      it => it.type === 'android-bundle',
+    );
+    const bundleTrackerPath = path.resolve(
+      __dirname,
+      'android/app/src/main/assets/localBundleTracker.json',
+    );
 
-  // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json 
-  const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
-  console.log('Downloading manifest from ' + manifestUrl);
-  const {data: manifest} = await axios.get(manifestUrl);
-  // console.log('manifest: ', manifest);
-  const publishedCommit = manifest.forks[0].publishedCommitId;
-  const androidBundle = manifest.codeArtefacts.find((it) => it.type === 'android-bundle');
-
-  const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
-  console.log('Downloading appConfig from: ' + appConfigUrl);
-  if (publishedCommit) {
-    const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
-    await mkdir(assetsDir, {recursive: true});
-    const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
-    await downloadFile(appConfigUrl, appConfigPath);
-    console.log('appConfig downloaded');
-    const bundleTrackerPath = path.resolve(__dirname, 'android/app/src/main/assets/localBundleTracker.json');
-    await writeFile(bundleTrackerPath, `{"publishedCommitId": ${publishedCommit}, "androidBundleId": ${androidBundle?.id ?? "null"}}`)
-  } else {
-    console.error("Published appconfig not found! Stopping build.")
-    process.exit(1);
+    if (publishedCommit) {
+      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+      console.log('Downloading appConfig from: ' + appConfigUrl);
+      const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
+      await mkdir(assetsDir, {recursive: true});
+      const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
+      await downloadFile(appConfigUrl, appConfigPath);
+      console.log('appConfig downloaded');
+      await writeFile(
+        bundleTrackerPath,
+        `{"publishedCommitId": ${
+          publishedCommit || 'null'
+        }, "androidBundleId": ${androidBundle?.id || 'null'}}`,
+      );
+    } else {
+      console.error('Published appconfig not found!');
+      await writeFile(
+        bundleTrackerPath,
+        `{"publishedCommitId": null, "androidBundleId": null}`,
+      );
+    }
+  } catch (err) {
+    console.error('Failed to download appconfig');
+    await writeFile(
+      bundleTrackerPath,
+      `{"publishedCommitId": null, "androidBundleId": null}`,
+    );
   }
-  console.log("Running android project setup");
-  await generateAnalytics(analyticsTemplateRef, apptileConfig.integrations, apptileConfig.feature_flags);
+  console.log('Running android project setup');
+  await generateAnalytics(
+    analyticsTemplateRef,
+    apptileConfig.integrations,
+    apptileConfig.feature_flags,
+  );
   await writeReactNativeConfigJs(parsedReactNativeConfig);
-  await writeFile(path.resolve(__dirname, 'extra_modules.json'), JSON.stringify(extraModules.current, null, 2));
+  await writeFile(
+    path.resolve(__dirname, 'extra_modules.json'),
+    JSON.stringify(extraModules.current, null, 2),
+  );
 
   // Update google-services.json
-  const googleServicesPath = path.resolve(__dirname, 'android', 'app', 'google-services.json');
+  const googleServicesPath = path.resolve(
+    __dirname,
+    'android',
+    'app',
+    'google-services.json',
+  );
   let downloadedGoogleServices = false;
   for (let i = 0; i < apptileConfig.assets.length; ++i) {
     try {
@@ -655,19 +942,59 @@ async function main() {
         break;
       }
     } catch (err) {
-      console.error("failed to download google-services.json");
+      console.error('failed to download google-services.json');
     }
   }
 
   if (!downloadedGoogleServices) {
-    console.log(chalk.red('Failed to download google-services.json. Will try to use the template'));
+    console.log(
+      chalk.red(
+        'Failed to download google-services.json. Will try to use the template',
+      ),
+    );
     const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
     const gsParsed = JSON.parse(gsRaw);
-    gsParsed.client[0].client_info.android_client_info.package_name = apptileConfig.android.bundle_id;
+    gsParsed.client[0].client_info.android_client_info.package_name =
+      apptileConfig.android?.bundle_id;
     await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
 
+  // Update version code and version name in version.properties file
+  if (
+    apptileConfig.android &&
+    (apptileConfig.android.build_number || apptileConfig.android.version)
+  ) {
+    const versionPropsPath = path.resolve(
+      androidFolderLocation,
+      'app/version.properties',
+    );
 
+    // Prepare content for version.properties
+    let propsContent = '';
+
+    // Add version code (build_number) if available
+    if (apptileConfig.android.build_number) {
+      console.log(
+        chalk.green(
+          `Setting app version code to ${apptileConfig.android.build_number}`,
+        ),
+      );
+      propsContent += `VERSION_CODE=${apptileConfig.android.build_number}\n`;
+    }
+
+    // Add version name (semver) if available
+    if (apptileConfig.android.version) {
+      console.log(
+        chalk.green(
+          `Setting app version name to ${apptileConfig.android.version}`,
+        ),
+      );
+      propsContent += `VERSION_NAME=${apptileConfig.android.version}\n`;
+    }
+
+    // Write version.properties file
+    await writeFile(versionPropsPath, propsContent);
+  }
 }
 
 main();
