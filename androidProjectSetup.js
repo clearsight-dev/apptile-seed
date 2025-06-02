@@ -733,6 +733,7 @@ async function main() {
     {encoding: 'utf8'},
   );
   const apptileConfig = JSON.parse(apptileConfigRaw);
+  console.log(apptileConfig, 'config');
   try {
     const success = await downloadIconAndSplash(apptileConfig);
     if (success && os.platform() === 'darwin') {
