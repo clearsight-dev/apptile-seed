@@ -12,6 +12,9 @@
 // of the project. This is what used to happen in the /temp folder strategy and that strategy is painful enough to discourage
 // most developers from even running projects with all features specific to the app enabled.
 
+// Debug log configuration
+const DEBUG = true; // Set to false to disable all debug logs
+
 const chalk = require('chalk');
 const xml2js = require('xml2js');
 const path = require('path');
@@ -20,6 +23,46 @@ const axios = require('axios');
 const util = require('util');
 const {exec: exec_} = require('child_process');
 const {readFile, writeFile, mkdir} = require('node:fs/promises');
+
+// Debug logging function
+function debugLog(type, message, data) {
+  if (!DEBUG) return;
+
+  const timestamp = new Date().toISOString();
+  let logMessage = `[${timestamp}] `;
+
+  switch (type) {
+    case 'info':
+      logMessage += chalk.blue(`[INFO] ${message}`);
+      break;
+    case 'success':
+      logMessage += chalk.green(`[SUCCESS] ${message}`);
+      break;
+    case 'warning':
+      logMessage += chalk.yellow(`[WARNING] ${message}`);
+      break;
+    case 'error':
+      logMessage += chalk.red(`[ERROR] ${message}`);
+      break;
+    case 'function':
+      logMessage += chalk.cyan(`[FUNCTION] ${message}`);
+      break;
+    default:
+      logMessage += chalk.white(`[LOG] ${message}`);
+  }
+
+  console.log(logMessage);
+
+  if (data && type !== 'error') {
+    if (typeof data === 'object') {
+      console.log(chalk.gray(JSON.stringify(data, null, 2)));
+    } else {
+      console.log(chalk.gray(data));
+    }
+  } else if (data && type === 'error') {
+    console.error(chalk.red(data));
+  }
+}
 
 const {
   downloadFile,
@@ -36,21 +79,34 @@ const {
 const exec = util.promisify(exec_);
 
 async function generateIconSet(scriptPath) {
-  await exec(
-    `${scriptPath} ${path.resolve(
+  debugLog('function', 'generateIconSet - Started', {scriptPath});
+  try {
+    const command = `${scriptPath} ${path.resolve(
       __dirname,
       'assets',
       'icon.png',
-    )} ./android/app/src/main`,
-    {cwd: path.resolve(__dirname)},
-  );
+    )} ./android/app/src/main`;
+    debugLog('info', 'Executing command', command);
+
+    const result = await exec(command, {cwd: path.resolve(__dirname)});
+
+    debugLog('success', 'generateIconSet - Completed successfully', result);
+    return result;
+  } catch (error) {
+    debugLog('error', 'generateIconSet - Failed', error);
+    throw error;
+  }
 }
 
 function upsertInStringsXML(parsedXMLDoc, key, value) {
+  debugLog('function', 'upsertInStringsXML - Started', {key, value});
+
   let existingEntry = parsedXMLDoc.resources.string.find(
     it => it.$.name === key,
   );
+
   if (!existingEntry) {
+    debugLog('info', `Adding new string entry with key: ${key}`);
     parsedXMLDoc.resources.string.push({
       _: value,
       $: {
@@ -58,42 +114,101 @@ function upsertInStringsXML(parsedXMLDoc, key, value) {
       },
     });
   } else {
+    debugLog('info', `Updating existing string entry with key: ${key}`, {
+      oldValue: existingEntry._,
+      newValue: value,
+    });
     existingEntry._ = value;
   }
+
+  debugLog('success', 'upsertInStringsXML - Completed');
 }
 
 function removeFromStringsXML(parsedXMLDoc, key) {
+  debugLog('function', 'removeFromStringsXML - Started', {key});
+
   let existingEntryIndex = parsedXMLDoc.resources.string.findIndex(
     it => it.$.name === key,
   );
+
   if (existingEntryIndex >= 0) {
+    debugLog('info', `Removing string entry with key: ${key}`, {
+      removedEntry: parsedXMLDoc.resources.string[existingEntryIndex],
+    });
     parsedXMLDoc.resources.string.splice(existingEntryIndex, 1);
+    debugLog('success', `Successfully removed string with key: ${key}`);
+  } else {
+    debugLog(
+      'warning',
+      `String entry with key: ${key} not found, nothing to remove`,
+    );
   }
+
+  debugLog('success', 'removeFromStringsXML - Completed');
 }
 
 function getMainActivity(androidManifest) {
+  debugLog('function', 'getMainActivity - Started');
+
   const activities = androidManifest.manifest.application[0].activity;
+  debugLog('info', `Found ${activities.length} activities in manifest`);
+
   let mainActivity = null;
   for (let i = 0; i < activities.length; ++i) {
     const activity = activities[i];
+    debugLog('info', `Checking activity: ${activity.$['android:name']}`);
     if (activity.$['android:name'] === '.MainActivity') {
       mainActivity = activity;
+      debugLog('success', 'MainActivity found');
       break;
     }
   }
+
+  if (!mainActivity) {
+    debugLog('warning', 'MainActivity not found in manifest');
+  }
+
+  debugLog('success', 'getMainActivity - Completed');
   return mainActivity;
 }
 
 function getMainActivity(manifest) {
+  debugLog('function', 'getMainActivity - Started');
+
   const application = manifest.manifest.application[0];
-  return application.activity.find(it => {
+  debugLog(
+    'info',
+    `Looking for MainActivity in ${application.activity.length} activities`,
+  );
+
+  const mainActivity = application.activity.find(it => {
     return it.$['android:name'] === '.MainActivity';
   });
+
+  if (mainActivity) {
+    debugLog('success', 'MainActivity found');
+  } else {
+    debugLog('warning', 'MainActivity not found in manifest');
+  }
+
+  debugLog('success', 'getMainActivity - Completed');
+  return mainActivity;
 }
 
 function addIntent(activity, actionName, attributes, categories, schemes) {
-  activity['intent-filter'] = activity['intent-filter'] || [];
-  activity['intent-filter'].push({
+  debugLog('function', 'addIntent - Started', {
+    actionName,
+    attributes,
+    categories,
+    schemes,
+  });
+
+  if (!activity['intent-filter']) {
+    debugLog('info', 'No intent-filter array found, creating new one');
+    activity['intent-filter'] = [];
+  }
+
+  const intent = {
     $: attributes,
     action: [{$: {'android:name': 'android.intent.action.' + actionName}}],
     category: categories.map(category => {
@@ -102,62 +217,148 @@ function addIntent(activity, actionName, attributes, categories, schemes) {
     data: schemes.map(scheme => {
       return {$: {'android:scheme': scheme}};
     }),
-  });
+  };
+
+  debugLog('info', 'Adding new intent-filter', intent);
+  activity['intent-filter'].push(intent);
+
+  debugLog(
+    'success',
+    `Successfully added intent-filter for action: ${actionName}`,
+  );
+  debugLog('success', 'addIntent - Completed');
 }
 
 function deleteIntentByScheme(activity, requiredSchemes) {
-  if (activity['intent-filter']) {
-    const index = activity['intent-filter'].findIndex(intent => {
-      const schemes = {};
-      if (!intent.data) {
-        return false;
-      } else {
-        for (let i = 0; i < intent.data.length; ++i) {
-          const scheme = intent.data[i].$['android:scheme'];
-          schemes[scheme] = 1;
-        }
+  debugLog('function', 'deleteIntentByScheme - Started', {requiredSchemes});
 
-        let allRequiredSchemesExist = true;
-        for (let i = 0; i < requiredSchemes.length; ++i) {
-          if (!schemes[requiredSchemes[i]]) {
-            allRequiredSchemesExist = false;
-            break;
-          }
-        }
-        return allRequiredSchemesExist;
-      }
-    });
-
-    if (index >= 0) {
-      activity['intent-filter'].splice(index, 1);
-    }
+  if (!activity['intent-filter']) {
+    debugLog(
+      'warning',
+      'No intent-filter found in activity, nothing to delete',
+    );
+    return;
   }
+
+  debugLog(
+    'info',
+    `Searching through ${activity['intent-filter'].length} intent filters`,
+  );
+
+  const index = activity['intent-filter'].findIndex(intent => {
+    const schemes = {};
+    if (!intent.data) {
+      debugLog('info', 'Intent has no data, skipping');
+      return false;
+    } else {
+      debugLog(
+        'info',
+        `Checking intent with ${intent.data.length} data elements`,
+      );
+      for (let i = 0; i < intent.data.length; ++i) {
+        const scheme = intent.data[i].$['android:scheme'];
+        schemes[scheme] = 1;
+        debugLog('info', `Found scheme: ${scheme}`);
+      }
+
+      let allRequiredSchemesExist = true;
+      for (let i = 0; i < requiredSchemes.length; ++i) {
+        if (!schemes[requiredSchemes[i]]) {
+          debugLog(
+            'info',
+            `Required scheme ${requiredSchemes[i]} not found, skipping intent`,
+          );
+          allRequiredSchemesExist = false;
+          break;
+        }
+      }
+      return allRequiredSchemesExist;
+    }
+  });
+
+  if (index >= 0) {
+    debugLog(
+      'info',
+      `Found matching intent-filter at index ${index}, removing it`,
+      activity['intent-filter'][index],
+    );
+    activity['intent-filter'].splice(index, 1);
+    debugLog('success', 'Successfully removed intent-filter');
+  } else {
+    debugLog(
+      'warning',
+      'No matching intent-filter found with the required schemes',
+    );
+  }
+
+  debugLog('success', 'deleteIntentByScheme - Completed');
 }
 
 // will delete intent which has all mentioned categories
 function deleteIntentByCategory(activity, categories) {
-  if (activity['intent-filter']) {
-    const index = activity['intent-filter'].findIndex(intent => {
-      const categoryNames = {};
-      for (let i = 0; i < intent.category.length; ++i) {
-        const categoryName = intent.category[i].$['android:name'];
-        categoryNames[categoryName] = 1;
-      }
+  debugLog('function', 'deleteIntentByCategory - Started', {categories});
 
-      let allRequiredCategoriesMatch = true;
-      for (let i = 0; i < categories.length; ++i) {
-        if (!categoryNames[`android.intent.category.${categories[i]}`]) {
-          allRequiredCategoriesMatch = false;
-          break;
-        }
-      }
-      return allRequiredCategoriesMatch;
-    });
-
-    if (index >= 0) {
-      activity['intent-filter'].splice(index, 1);
-    }
+  if (!activity['intent-filter']) {
+    debugLog(
+      'warning',
+      'No intent-filter found in activity, nothing to delete',
+    );
+    return;
   }
+
+  debugLog(
+    'info',
+    `Searching through ${activity['intent-filter'].length} intent filters`,
+  );
+
+  const index = activity['intent-filter'].findIndex(intent => {
+    if (!intent.category || intent.category.length === 0) {
+      debugLog('info', 'Intent has no categories, skipping');
+      return false;
+    }
+
+    debugLog(
+      'info',
+      `Checking intent with ${intent.category.length} categories`,
+    );
+    const categoryNames = {};
+    for (let i = 0; i < intent.category.length; ++i) {
+      const categoryName = intent.category[i].$['android:name'];
+      categoryNames[categoryName] = 1;
+      debugLog('info', `Found category: ${categoryName}`);
+    }
+
+    let allRequiredCategoriesMatch = true;
+    for (let i = 0; i < categories.length; ++i) {
+      const requiredCategory = `android.intent.category.${categories[i]}`;
+      if (!categoryNames[requiredCategory]) {
+        debugLog(
+          'info',
+          `Required category ${requiredCategory} not found, skipping intent`,
+        );
+        allRequiredCategoriesMatch = false;
+        break;
+      }
+    }
+    return allRequiredCategoriesMatch;
+  });
+
+  if (index >= 0) {
+    debugLog(
+      'info',
+      `Found matching intent-filter at index ${index}, removing it`,
+      activity['intent-filter'][index],
+    );
+    activity['intent-filter'].splice(index, 1);
+    debugLog('success', 'Successfully removed intent-filter');
+  } else {
+    debugLog(
+      'warning',
+      'No matching intent-filter found with the required categories',
+    );
+  }
+
+  debugLog('success', 'deleteIntentByCategory - Completed');
 }
 
 function addDeeplinkScheme(androidManifest, urlScheme) {
@@ -736,7 +937,7 @@ async function main() {
   console.log(apptileConfig, 'config');
   try {
     const success = await downloadIconAndSplash(apptileConfig);
-    if (success && os.platform() === 'darwin') {
+    if (success) {
       await generateIconSet(
         path.resolve(
           apptileConfig.SDK_PATH,
@@ -997,7 +1198,14 @@ async function main() {
   }
 }
 
-main();
+debugLog('info', 'Starting Android project setup...');
+main()
+  .then(() => {
+    debugLog('success', 'Android project setup completed successfully');
+  })
+  .catch(error => {
+    debugLog('error', 'Android project setup failed', error);
+  });
 
 /*
  * Usage examples
