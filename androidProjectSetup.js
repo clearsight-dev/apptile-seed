@@ -776,6 +776,11 @@ async function main() {
   upsertInStringsXML(stringsObj, 'APP_ID', apptileConfig.APP_ID);
   upsertInStringsXML(
     stringsObj,
+    'WEB_API_SERVER_ENDPOINT',
+    'https://api.apptile.io',
+  );
+  upsertInStringsXML(
+    stringsObj,
     'APPTILE_UPDATE_ENDPOINT',
     apptileConfig.APPCONFIG_SERVER_URL,
   );
