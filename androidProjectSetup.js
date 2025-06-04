@@ -866,7 +866,9 @@ async function main() {
     );
   }
 
-  const updatedValuesXml = builder.buildObject(stringsObj);
+  const strObj = JSON.parse(JSON.stringify(stringsObj));
+
+  const updatedValuesXml = builder.buildObject(strObj);
   await writeFile(valuesXmlPath, updatedValuesXml);
   const updatedAndroidManifest = builder.buildObject(androidManifest);
   await writeFile(androidManifestPath, updatedAndroidManifest);
