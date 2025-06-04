@@ -298,6 +298,7 @@ async function main() {
     infoPlist.APPTILE_API_ENDPOINT = apptileConfig.APPTILE_BACKEND_URL;
     infoPlist.APPTILE_UPDATE_ENDPOINT = apptileConfig.APPCONFIG_SERVER_URL;
     infoPlist.APP_ID = apptileConfig.APP_ID;
+    infoPlist.WEB_API_SERVER_ENDPOINT = 'https://api.apptile.io';
     infoPlist.CFBundleDisplayName = apptileConfig.app_name || 'Apptile Seed';
 
     const bundle_id = apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
