@@ -736,7 +736,7 @@ async function main() {
   console.log(apptileConfig, 'config');
   try {
     const success = await downloadIconAndSplash(apptileConfig);
-    if (success && os.platform() === 'darwin') {
+    if (success) {
       await generateIconSet(
         path.resolve(
           apptileConfig.SDK_PATH,
