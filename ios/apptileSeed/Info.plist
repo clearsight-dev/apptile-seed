@@ -47,6 +47,14 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>Access camera for live streaming</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Microphone for Live Streaming</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement</string>
     <key>ONESIGNAL_APPID</key>
     <string>2aaedb28-5b4a-4821-ac19-617bdd11221d</string>
     <key>UIAppFonts</key>
@@ -77,6 +85,13 @@
     <key>UISupportedInterfaceOrientations</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+      <string>UIInterfaceOrientationLandscapeLeft</string>
+      <string>UIInterfaceOrientationLandscapeRight</string>
+      <string>UIInterfaceOrientationPortrait</string>
+      <string>UIInterfaceOrientationPortraitUpsideDown</string>
     </array>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
