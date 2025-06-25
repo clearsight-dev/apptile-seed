@@ -47,6 +47,8 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>ITSAppUsesNonExemptEncryption</key>
+	  <false/>
     <key>NSCameraUsageDescription</key>
     <string>Access camera for live streaming</string>
     <key>NSLocationWhenInUseUsageDescription</key>
