@@ -47,12 +47,6 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
-    <key>NSCameraUsageDescription</key>
-    <string>Access camera for live streaming</string>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string/>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Microphone for Live Streaming</string>
     <key>NSUserTrackingUsageDescription</key>
     <string>Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement</string>
     <key>ONESIGNAL_APPID</key>
