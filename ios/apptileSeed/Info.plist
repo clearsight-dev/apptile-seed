@@ -47,6 +47,8 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+     <key>ITSAppUsesNonExemptEncryption</key>
+	  <false/>
     <key>NSUserTrackingUsageDescription</key>
     <string>Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement</string>
     <key>ONESIGNAL_APPID</key>
