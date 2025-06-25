@@ -228,6 +228,33 @@ async function removeOnesignal(
   addForceUnlinkForNativePackage('react-native-onesignal', extraModules, parsedReactNativeConfig);
 }
 
+async function addZego(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  apptileConfig,
+  parsedReactNativeConfig,
+  extraModules
+) {
+  infoPlist.NSCameraUsageDescription = 'Access camera for live streaming';
+  infoPlist.NSLocationWhenInUseUsageDescription = '';
+  infoPlist.NSMicrophoneUsageDescription = 'Microphone for Live Streaming';
+  infoPlist.NSUserTrackingUsageDescription = 'Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement';
+  
+  await removeForceUnlinkForNativePackage('zego-express-engine-reactnative', extraModules, parsedReactNativeConfig);
+}
+
+async function removeZego(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  extraModules,
+  parsedReactNativeConfig
+) {
+  
+  await addForceUnlinkForNativePackage('zego-express-engine-reactnative', extraModules, parsedReactNativeConfig);
+}
+
 async function main() {
   const analyticsTemplateRef = {current: analyticsTemplate};
 
@@ -349,6 +376,13 @@ async function main() {
       await removeKlaviyo(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
     }
 
+    // For zego live streaming
+    if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
+      await addZego(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, apptileConfig, parsedReactNativeConfig, extraModules);
+    } else {
+      await removeZego(infoPlist, imageNotificationPlist, notificationContentExtensionPlist, extraModules, parsedReactNativeConfig);
+    }
+
     const updatedPlist = plist.build(infoPlist);
     await writeFile(infoPlistLocation, updatedPlist);
 
@@ -403,5 +437,3 @@ async function main() {
 }
 
 main();
-
-
