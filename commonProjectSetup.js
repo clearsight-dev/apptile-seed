@@ -1,16 +1,26 @@
 const chalk = require('chalk');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
+const xcode = require('xcode');
+const plist = require('plist');
 const {createWriteStream} = require('fs');
-const {readFile, writeFile, readdir, rmdir, mkdir, cp} = require('node:fs/promises');
+const {
+  readFile,
+  writeFile,
+  readdir,
+  rmdir,
+  mkdir,
+  cp,
+} = require('node:fs/promises');
 
 async function downloadFile(url, destination) {
-  const outputPath = destination 
+  const outputPath = destination;
   try {
     const response = await axios({
-      url, 
+      url,
       method: 'GET',
-      responseType: 'stream'
+      responseType: 'stream',
     });
 
     const writer = createWriteStream(outputPath);
@@ -20,8 +30,8 @@ async function downloadFile(url, destination) {
       writer.on('finish', resolve);
       writer.on('error', reject);
     });
-  } catch(err) {
-    console.error("Failed to download asset to: ", destination);
+  } catch (err) {
+    console.error('Failed to download asset to: ', destination);
     throw err;
   }
 }
@@ -30,8 +40,7 @@ async function downloadFileToAssets(url, fileName) {
   return downloadFile(url, path.resolve(__dirname, 'assets', fileName));
 }
 
-const analyticsTemplate = 
-`// This file is generated at build time based on the integrations added to the app
+const analyticsTemplate = `// This file is generated at build time based on the integrations added to the app
 import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
@@ -85,21 +94,25 @@ addCustomEventListener('ApptileAnalyticsSendEvent', (type, name, params) => {
   ApptileAnalytics.sendEvent(type, name, params);
 });`;
 
-async function generateAnalytics(analyticsTemplateRef, integrations, featureFlags) {
+async function generateAnalytics(
+  analyticsTemplateRef,
+  integrations,
+  featureFlags,
+) {
   integrations = integrations || {};
   let enabledAnalytics = '';
   if (featureFlags?.ENABLE_FBSDK) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
-      `Facebook as FacebookAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Facebook as FacebookAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
     );
     enabledAnalytics += `FacebookAnalytics,\n      `;
   }
 
   if (featureFlags?.ENABLE_APPSFLYER) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
-      `AppsFlyer as AppsFlyerAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `AppsFlyer as AppsFlyerAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
     );
     enabledAnalytics += `AppsFlyerAnalytics,\n      `;
   }
@@ -107,8 +120,8 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
   if (featureFlags?.ENABLE_MOENGAGE) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
-      `Moengage as MoengageAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Moengage as MoengageAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
     );
     enabledAnalytics += `MoengageAnalytics,\n      `;
   }
@@ -116,8 +129,8 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
   if (featureFlags?.ENABLE_ONESIGNAL) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
-      `OneSignal as OneSignalAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `OneSignal as OneSignalAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
     );
     enabledAnalytics += `OneSignalAnalytics,\n      `;
   }
@@ -125,25 +138,31 @@ async function generateAnalytics(analyticsTemplateRef, integrations, featureFlag
   if (featureFlags?.ENABLE_CLEVERTAP) {
     // Update analytics file
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g, 
-      `CleverTap as CleverTapAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `CleverTap as CleverTapAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
     );
     enabledAnalytics += `CleverTapAnalytics,\n      `;
   }
   enabledAnalytics += `// __ENABLED_ANALYTICS__`;
 
-  analyticsTemplateRef.current = analyticsTemplateRef.current.replace(/\/\/ __ENABLED_ANALYTICS__/g, enabledAnalytics); 
+  analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+    /\/\/ __ENABLED_ANALYTICS__/g,
+    enabledAnalytics,
+  );
   if (integrations.shopify) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __EXTRA_LEGACY_INITIALIZERS__/, 
-      `loadShopifyPlugins();\n// __EXTRA_LEGACY_INITIALIZERS__`
+      /\/\/ __EXTRA_LEGACY_INITIALIZERS__/,
+      `loadShopifyPlugins();\n// __EXTRA_LEGACY_INITIALIZERS__`,
     );
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __EXTRA_LEGACY_PLUGIN_IMPORTS__/,
-      `import { loadDatasourcePlugins as loadShopifyPlugins } from 'apptile-shopify';\n// __EXTRA_LEGACY_PLUGIN_IMPORTS__`
+      `import { loadDatasourcePlugins as loadShopifyPlugins } from 'apptile-shopify';\n// __EXTRA_LEGACY_PLUGIN_IMPORTS__`,
     );
   }
-  return writeFile(path.resolve(__dirname, 'analytics/index.ts'), analyticsTemplateRef.current);
+  return writeFile(
+    path.resolve(__dirname, 'analytics/index.ts'),
+    analyticsTemplateRef.current,
+  );
 }
 
 const packageStubs = {
@@ -186,22 +205,28 @@ onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
   'clevertap-react-native': `export default {}`,
   'react-native-klaviyo': `export default {};`,
   '@react-native-community/push-notification-ios': 'export default {}',
-  'zego-express-engine-reactnative': `export default {};`
+  'zego-express-engine-reactnative': `export default {};`,
 };
 
-async function addForceUnlinkForNativePackage(packageName, extraModules, parsedReactNativeConfig) {
+async function addForceUnlinkForNativePackage(
+  packageName,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   // add unlinker in react-native.config.js
   parsedReactNativeConfig.dependencies[packageName] = {
     platforms: {
-      android: null, 
-      ios: null
-    }
+      android: null,
+      ios: null,
+    },
   };
-  
+
   // remove stub file if exists
   let exists = false;
   try {
-    const entries = await readdir(path.resolve(__dirname, 'stubs'), {withFileTypes: true});
+    const entries = await readdir(path.resolve(__dirname, 'stubs'), {
+      withFileTypes: true,
+    });
     for (let i = 0; i < entries.length; ++i) {
       if (entries[i].isDirectory() && entries[i].name === packageName) {
         exists = true;
@@ -217,17 +242,18 @@ async function addForceUnlinkForNativePackage(packageName, extraModules, parsedR
   }
 
   if (!exists) {
-    await mkdir(
-      path.resolve(__dirname, `stubs/${packageName}`),
-      {recursive: true}
-    );
-    
+    await mkdir(path.resolve(__dirname, `stubs/${packageName}`), {
+      recursive: true,
+    });
+
     // Use a default stub if the package doesn't have a specific one defined
-    const stubContent = packageStubs[packageName] || `export default {}; // Default stub for ${packageName}`;
-    
+    const stubContent =
+      packageStubs[packageName] ||
+      `export default {}; // Default stub for ${packageName}`;
+
     await writeFile(
-      path.resolve(__dirname, `stubs/${packageName}/index.ts`), 
-      stubContent
+      path.resolve(__dirname, `stubs/${packageName}/index.ts`),
+      stubContent,
     );
   }
 
@@ -235,18 +261,20 @@ async function addForceUnlinkForNativePackage(packageName, extraModules, parsedR
   const existing = extraModules.current.find(it => it.name == packageName);
   if (!existing) {
     extraModules.current.push({
-      "name": packageName,
-      "path": path.resolve(__dirname, `stubs/${packageName}/index.ts`),
-      "watchPath": path.resolve(extraModules.SDK_PATH, "packages/apptile-core"),
-      "returnKey": "filePath",
-      "returnType": "sourceFile"
+      name: packageName,
+      path: path.resolve(__dirname, `stubs/${packageName}/index.ts`),
+      watchPath: path.resolve(extraModules.SDK_PATH, 'packages/apptile-core'),
+      returnKey: 'filePath',
+      returnType: 'sourceFile',
     });
   }
 }
 
-
-
-async function removeForceUnlinkForNativePackage(packageName, extraModules, parsedReactNativeConfig) {
+async function removeForceUnlinkForNativePackage(
+  packageName,
+  extraModules,
+  parsedReactNativeConfig,
+) {
   // remove unlinker from react-native.config.js
   if (parsedReactNativeConfig.dependencies[packageName]) {
     delete parsedReactNativeConfig.dependencies[packageName];
@@ -255,7 +283,9 @@ async function removeForceUnlinkForNativePackage(packageName, extraModules, pars
   // remove stub file if it exists
   let exists = false;
   try {
-    const entries = await readdir(path.resolve(__dirname, 'stubs'), {withFileTypes: true});
+    const entries = await readdir(path.resolve(__dirname, 'stubs'), {
+      withFileTypes: true,
+    });
     for (let i = 0; i < entries.length; ++i) {
       if (entries[i].isDirectory() && entries[i].name === packageName) {
         exists = true;
@@ -271,20 +301,34 @@ async function removeForceUnlinkForNativePackage(packageName, extraModules, pars
   }
 
   if (exists) {
-    await rmdir(path.resolve(__dirname, 'stubs', packageName), {recursive: true});
+    await rmdir(path.resolve(__dirname, 'stubs', packageName), {
+      recursive: true,
+    });
   }
 
   // remove react-native-fbsdk-next from metro.config.js if it exists
-  extraModules.current = extraModules.current.filter(mod => mod.name !== packageName);
+  extraModules.current = extraModules.current.filter(
+    mod => mod.name !== packageName,
+  );
 }
 
 async function writeReactNativeConfigJs(parsedReactNativeConfig) {
-  const updatedConfig = `module.exports = ${JSON.stringify(parsedReactNativeConfig, null, 2)}`;
-  await writeFile(path.resolve(__dirname, 'react-native.config.js'), updatedConfig);
+  const updatedConfig = `module.exports = ${JSON.stringify(
+    parsedReactNativeConfig,
+    null,
+    2,
+  )}`;
+  await writeFile(
+    path.resolve(__dirname, 'react-native.config.js'),
+    updatedConfig,
+  );
 }
 
 async function readReactNativeConfigJs() {
-  const contents = await readFile(path.resolve(__dirname, 'react-native.config.js'), {encoding: 'utf8'});
+  const contents = await readFile(
+    path.resolve(__dirname, 'react-native.config.js'),
+    {encoding: 'utf8'},
+  );
   const parsable = contents.replace(/module.exports\s?=/, '');
   const parsedConfig = JSON.parse(parsable);
   return parsedConfig;
@@ -295,41 +339,73 @@ function getExtraModules(apptileConfig) {
     SDK_PATH: apptileConfig.SDK_PATH,
     current: [
       {
-        "name": "apptile-core",
-        "path": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-core/sdk.ts"),
-        "watchPath": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-core"),
-        "returnKey": "filePath",
-        "returnType": "sourceFile"
+        name: 'apptile-core',
+        path: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-core/sdk.ts',
+        ),
+        watchPath: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-core',
+        ),
+        returnKey: 'filePath',
+        returnType: 'sourceFile',
       },
       {
-        "name": "apptile-plugins",
-        "path": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-plugins/index.ts"),
-        "watchPath": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-plugins"),
-        "returnKey": "filePath",
-        "returnType": "sourceFile"
+        name: 'apptile-plugins',
+        path: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-plugins/index.ts',
+        ),
+        watchPath: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-plugins',
+        ),
+        returnKey: 'filePath',
+        returnType: 'sourceFile',
       },
       {
-        "name": "asset_placeholder-image",
-        "path": [path.resolve(apptileConfig.SDK_PATH, "packages/apptile-app/app/assets/image-placeholder.png")],
-        "watchPath": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-app/app/assets"),
-        "returnKey": "filePaths",
-        "returnType": "assetFiles"
+        name: 'asset_placeholder-image',
+        path: [
+          path.resolve(
+            apptileConfig.SDK_PATH,
+            'packages/apptile-app/app/assets/image-placeholder.png',
+          ),
+        ],
+        watchPath: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-app/app/assets',
+        ),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
       },
       {
-        "name": "apptile-datasource",
-        "path": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-datasource/index.ts"),
-        "watchPath": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-datasource"),
-        "returnKey": "filePath",
-        "returnType": "sourceFile"
+        name: 'apptile-datasource',
+        path: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-datasource/index.ts',
+        ),
+        watchPath: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-datasource',
+        ),
+        returnKey: 'filePath',
+        returnType: 'sourceFile',
       },
       {
-        "name": "apptile-shopify",
-        "path": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-shopify/index.ts"),
-        "watchPath": path.resolve(apptileConfig.SDK_PATH, "packages/apptile-shopify"),
-        "returnKey": "filePath",
-        "returnType": "sourceFile"
+        name: 'apptile-shopify',
+        path: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-shopify/index.ts',
+        ),
+        watchPath: path.resolve(
+          apptileConfig.SDK_PATH,
+          'packages/apptile-shopify',
+        ),
+        returnKey: 'filePath',
+        returnType: 'sourceFile',
       },
-    ]
+    ],
   };
 
   return extraModules;
@@ -342,23 +418,96 @@ async function downloadIconAndSplash(apptileConfig) {
     try {
       const asset = apptileConfig.assets[i];
       if (asset.assetClass === 'splash') {
-        console.log("Downloading splash");
+        console.log('Downloading splash');
         await downloadFileToAssets(asset.url, asset.fileName);
-        await cp(path.resolve(__dirname, 'assets', asset.fileName), path.resolve(__dirname, 'ios', asset.fileName));
-        await cp(path.resolve(__dirname, 'assets', asset.fileName), 
-          path.resolve(__dirname, 'android', 'app', 'src', 'main', 'res', 'drawable', asset.fileName)
+        await cp(
+          path.resolve(__dirname, 'assets', asset.fileName),
+          path.resolve(__dirname, 'ios', asset.fileName),
+        );
+        await cp(
+          path.resolve(__dirname, 'assets', asset.fileName),
+          path.resolve(
+            __dirname,
+            'android',
+            'app',
+            'src',
+            'main',
+            'res',
+            'drawable',
+            asset.fileName,
+          ),
         );
       } else if (asset.assetClass === 'icon') {
-        console.log("Downloading icon");
+        console.log('Downloading icon');
         await downloadFileToAssets(asset.url, asset.fileName);
       }
     } catch (err) {
-      console.error(chalk.red('Failed to download asset ' + JSON.stringify(apptileConfig.assets[i]), null, 2));
+      console.error(
+        chalk.red(
+          'Failed to download asset ' + JSON.stringify(apptileConfig.assets[i]),
+          null,
+          2,
+        ),
+      );
       // console.error(err);
       result = false;
     }
   }
   return result;
+}
+
+async function updateAppleTeamID(teamID, basePath) {
+  if (!teamID) return;
+
+  const exportPlistPath = path.join(basePath, 'ExportOptions.plist');
+  const pbxprojPath = path.join(
+    basePath,
+    'ios',
+    'apptileSeed.xcodeproj',
+    'project.pbxproj',
+  );
+
+  // Step 1: Update ExportOptions.plist
+  if (fs.existsSync(exportPlistPath)) {
+    try {
+      const rawPlist = fs.readFileSync(exportPlistPath, 'utf8');
+      const parsedPlist = plist.parse(rawPlist);
+
+      parsedPlist.teamID = teamID;
+
+      const updatedPlist = plist.build(parsedPlist);
+      fs.writeFileSync(exportPlistPath, updatedPlist, 'utf8');
+
+      console.log(` ExportOptions.plist updated with teamID = ${teamID}`);
+    } catch (err) {
+      console.error('Failed to update ExportOptions.plist:', err);
+    }
+  } else {
+    console.warn(`ExportOptions.plist not found at: ${exportPlistPath}`);
+  }
+
+  // Step 2: Update DEVELOPMENT_TEAM in project.pbxproj
+  if (fs.existsSync(pbxprojPath)) {
+    try {
+      const project = xcode.project(pbxprojPath);
+      project.parseSync();
+
+      // Update development team in build configs
+      const configs = project.pbxXCBuildConfigurationSection();
+      for (const config of Object.values(configs)) {
+        if (config && config.buildSettings) {
+          config.buildSettings.DEVELOPMENT_TEAM = teamID;
+        }
+      }
+
+      fs.writeFileSync(pbxprojPath, project.writeSync());
+      console.log(`project.pbxproj updated with DEVELOPMENT_TEAM = ${teamID}`);
+    } catch (err) {
+      console.error('Failed to update project.pbxproj:', err);
+    }
+  } else {
+    console.warn(`project.pbxproj not found at: ${pbxprojPath}`);
+  }
 }
 
 module.exports = {
@@ -371,5 +520,6 @@ module.exports = {
   writeReactNativeConfigJs,
   readReactNativeConfigJs,
   getExtraModules,
-  downloadIconAndSplash
+  downloadIconAndSplash,
+  updateAppleTeamID,
 };

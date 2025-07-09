@@ -191,6 +191,72 @@ target 'apptileSeed' do
 #  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   post_install do |installer|
+    puts "in post install"
+
+    require 'rexml/document'
+
+  # Helper method to remove application-groups key from an entitlements file
+  def remove_app_group_if_needed(entitlements_path)
+    return unless File.exist?(entitlements_path)
+
+    is_individual_account = ENV['IS_INDIVIDUAL_ACCOUNT']
+    # If IS_INDIVIDUAL_ACCOUNT is set (not null/empty), remove the security groups
+    if is_individual_account && !is_individual_account.strip.empty?
+      puts "⚠️ Individual account detected. Removing com.apple.security.application-groups from #{entitlements_path}"
+
+      begin
+        xml = REXML::Document.new(File.read(entitlements_path))
+        root = xml.root
+
+        # Find the dict element
+        dict_element = root.elements['dict']
+        return unless dict_element
+
+        key_to_remove = nil
+        array_to_remove = nil
+        
+        # Find the key and its corresponding array
+        dict_element.elements.each do |element|
+          if element.name == 'key' && element.text == 'com.apple.security.application-groups'
+            key_to_remove = element
+            array_to_remove = element.next_element
+            break
+          end
+        end
+
+        if key_to_remove && array_to_remove
+          dict_element.delete(key_to_remove)
+          dict_element.delete(array_to_remove) if array_to_remove.name == 'array'
+
+          File.open(entitlements_path, 'w') do |f|
+            formatter = REXML::Formatters::Pretty.new
+            formatter.compact = true
+            formatter.write(xml, f)
+          end
+
+          puts "✅ Removed com.apple.security.application-groups from #{entitlements_path}"
+        else
+          puts "ℹ️ com.apple.security.application-groups not found in #{entitlements_path}"
+        end
+      rescue => e
+        puts "❌ Error processing #{entitlements_path}: #{e.message}"
+      end
+    else
+      puts "ℹ️ IS_INDIVIDUAL_ACCOUNT not set, keeping application group entitlement in #{entitlements_path}"
+    end
+  end
+
+  # Paths to entitlements
+  entitlements_paths = [
+    'apptileSeed/apptileSeed.entitlements',
+    'ImageNotification/ImageNotification.entitlements'
+  ]
+
+  entitlements_paths.each do |path|
+    full_path = File.join(__dir__, path)
+    remove_app_group_if_needed(full_path)
+  end
+
     puts "trying to add preprocessor flag"
     
     # Read version and build number from apptile.config.json
