@@ -874,7 +874,6 @@ async function main() {
   await writeFile(androidManifestPath, updatedAndroidManifest);
 
   // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
-  try {
     const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
     console.log('Downloading manifest from ' + manifestUrl);
     const {data: manifest} = await axios.get(manifestUrl);
@@ -907,14 +906,9 @@ async function main() {
         bundleTrackerPath,
         `{"publishedCommitId": null, "androidBundleId": null}`,
       );
+      throw new Error('Published appconfig not found!');
     }
-  } catch (err) {
-    console.error('Failed to download appconfig');
-    await writeFile(
-      bundleTrackerPath,
-      `{"publishedCommitId": null, "androidBundleId": null}`,
-    );
-  }
+
   console.log('Running android project setup');
   await generateAnalytics(
     analyticsTemplateRef,
