@@ -1,4 +1,4 @@
-const {exec} = require('child_process');
+const {execSync} = require('child_process');
 const {createReadStream, createWriteStream} = require('fs');
 const {writeFile, mkdir, readdir, readFile, stat} = require('node:fs/promises');
 const path = require('path');
@@ -18,6 +18,9 @@ const forkId = previewConfig.forkId;
 const branchName = previewConfig.branchName;
 const publishedCommitId = previewConfig.publishedCommitId;
 const isStaging = previewConfig.isStaging;
+
+let SDK_SHA = '';
+let GIT_SHA = '';
 
 console.log(
   'Received arguments:',
@@ -60,22 +63,6 @@ return [
 `;
     for (let name of pluginNames) {
       let entry = 'source/widget';
-      const metadataPath = path.resolve(
-        remoteCode,
-        `plugins/${name}/metadata.json`,
-      );
-      try {
-        const metadata = await readFile(metadataPath, {encoding: 'utf8'});
-        console.log('[metroCodegenPlugins] Reading metadata:', metadataPath);
-        const parsedMeta = JSON.parse(metadata);
-        entry = parsedMeta.entry;
-      } catch (err) {
-        console.error(
-          '[metroCodegenPlugins] Metadata file not found for plugin ',
-          name,
-          err,
-        );
-      }
       const camelCasePackageName = toCamelCase(name);
       contents =
         `import ${camelCasePackageName} from "./plugins/${name}/${entry}";\n` +
@@ -171,43 +158,35 @@ const generateIosBundle = async () => {
         '[generateIosBundle] extra_modules.json not found, running iosProjectSetup.js',
       );
       const iosProjectSetupPath = path.resolve(appRoot, 'iosProjectSetup.js');
-      await new Promise((resolve, reject) => {
-        exec(
-          `node ${iosProjectSetupPath}`,
-          {
-            cwd: path.resolve(appRoot),
-          },
-          (err, stdout, stderr) => {
-            if (err) {
-              console.error(
-                '[generateIosBundle] Error running iosProjectSetup.js:',
-                err,
-              );
-              reject(err);
-            } else {
-              resolve({});
-            }
-          },
+      try {
+        const stdout = execSync(`node ${iosProjectSetupPath}`, {
+          cwd: path.resolve(appRoot),
+          encoding: 'utf8',
+        });
+        console.log('[generateIosBundle] Successfully ran iosProjectSetup.js');
+        console.log('[generateIosBundle] stdout:', stdout);
+      } catch (err) {
+        console.error(
+          '[generateIosBundle] Error running iosProjectSetup.js:',
+          err,
         );
-      });
+        console.error('[generateIosBundle] stderr:', err.stderr);
+        throw err;
+      }
     }
 
-    await new Promise((resolve, reject) => {
-      exec(
-        command,
-        {
-          cwd: path.resolve(appRoot),
-        },
-        (err, stdout, stderr) => {
-          if (err) {
-            console.error('[generateIosBundle] Error bundling iOS app:', err);
-            reject(err);
-          } else {
-            resolve({});
-          }
-        },
-      );
-    });
+    try {
+      const stdout = execSync(command, {
+        cwd: path.resolve(appRoot),
+        encoding: 'utf8',
+      });
+      console.log('[generateIosBundle] Successfully bundled iOS app');
+      console.log('[generateIosBundle] stdout:', stdout);
+    } catch (err) {
+      console.error('[generateIosBundle] Error bundling iOS app:', err);
+      console.error('[generateIosBundle] stderr:', err.stderr);
+      throw err;
+    }
 
     const timestamp = Date.now();
     const generatedPath = path.resolve(
@@ -283,46 +262,37 @@ const generateAndroidBundle = async () => {
         appRoot,
         'androidProjectSetup.js',
       );
-      await new Promise((resolve, reject) => {
-        exec(
-          `node ${androidProjectSetupPath}`,
-          {
-            cwd: path.resolve(appRoot),
-          },
-          (err, stdout, stderr) => {
-            if (err) {
-              console.error(
-                '[generateAndroidBundle] Error running androidProjectSetup.js:',
-                err,
-              );
-              reject(err);
-            } else {
-              resolve({});
-            }
-          },
+      try {
+        const stdout = execSync(`node ${androidProjectSetupPath}`, {
+          cwd: path.resolve(appRoot),
+          encoding: 'utf8',
+        });
+        console.log(
+          '[generateAndroidBundle] Successfully ran androidProjectSetup.js',
         );
-      });
+        console.log('[generateAndroidBundle] stdout:', stdout);
+      } catch (err) {
+        console.error(
+          '[generateAndroidBundle] Error running androidProjectSetup.js:',
+          err,
+        );
+        console.error('[generateAndroidBundle] stderr:', err.stderr);
+        throw err;
+      }
     }
 
-    await new Promise((resolve, reject) => {
-      exec(
-        command,
-        {
-          cwd: path.resolve(appRoot),
-        },
-        (err, stdout, stderr) => {
-          if (err) {
-            console.error(
-              '[generateAndroidBundle] Error bundling Android app:',
-              err,
-            );
-            reject(err);
-          } else {
-            resolve({});
-          }
-        },
-      );
-    });
+    try {
+      const stdout = execSync(command, {
+        cwd: path.resolve(appRoot),
+        encoding: 'utf8',
+      });
+      console.log('[generateAndroidBundle] Successfully bundled Android app');
+      console.log('[generateAndroidBundle] stdout:', stdout);
+    } catch (err) {
+      console.error('[generateAndroidBundle] Error bundling Android app:', err);
+      console.error('[generateAndroidBundle] stderr:', err.stderr);
+      throw err;
+    }
 
     const timestamp = Date.now();
     const generatedPath = path.resolve(
@@ -374,29 +344,50 @@ const generateAndroidBundle = async () => {
 };
 
 const getGitShas = async () => {
+  if (SDK_SHA && GIT_SHA) {
+    return {err: false, gitsha: GIT_SHA, sdksha: SDK_SHA};
+  }
   console.log('[getGitShas] Getting Git SHAs');
   try {
-    const {stdout: sdkStdOut, stderr: stderr1} = await exec(
-      'git log -n 1 --format=format:%H',
-      {cwd: path.resolve('../ReactNativeTSProjeect')},
-    );
-    if (stderr1) {
-      throw new Error(stderr1);
+    let sdksha = '';
+    try {
+      const sdkStdOut = execSync('git log -n 1 --format=format:%H', {
+        cwd: path.resolve(appRoot, '../ReactNativeTSProjeect'),
+        encoding: 'utf8',
+      });
+      console.log('[getGitShas] SDK Git SHA:', sdkStdOut);
+      sdksha = sdkStdOut.trim() || '';
+    } catch (err) {
+      console.error(
+        '[getGitShas] Error getting SDK Git SHA:',
+        JSON.stringify(err, null, 2),
+      );
+      throw err;
     }
-    const sdksha = sdkStdOut.toString().trim();
 
-    const {stdout: appStdOut, stderr} = await exec(
-      'git log -n 1 --format=format:%H',
-      {cwd: path.resolve('remoteCode')},
-    );
-    if (stderr) {
-      throw new Error(stderr);
+    let gitsha = '';
+    try {
+      const appStdOut = execSync('git log -n 1 --format=format:%H', {
+        cwd: path.resolve('remoteCode'),
+        encoding: 'utf8',
+      });
+      gitsha = appStdOut.trim() || '';
+    } catch (err) {
+      console.error(
+        '[getGitShas] Error getting app Git SHA:',
+        JSON.stringify(err, null, 2),
+      );
+      throw err;
     }
-    const gitsha = appStdOut.toString().trim();
-    console.log('[getGitShas] Got Git SHAs:', sdksha, gitsha);
+
+    SDK_SHA = sdksha;
+    GIT_SHA = gitsha;
     return {err: false, gitsha, sdksha};
   } catch (err) {
-    console.error('[getGitShas] Error getting Git SHAs:', err);
+    console.error(
+      '[getGitShas] Error getting Git SHAs:',
+      JSON.stringify(err, null, 2),
+    );
     return {err};
   }
 };
@@ -458,7 +449,7 @@ const uploadMobileBundle = async (bundleName, os) => {
     const {err, gitsha, sdksha} = await getGitShas();
     if (err) {
       console.error('[uploadMobileBundle] Failed to retrieve git shas');
-      throw new Error(`Failed to retrieve git shas: ${err}`);
+      throw new Error(`Failed to retrieve git shas: ${err.message}`);
     }
 
     const formData = new FormData();
@@ -471,7 +462,7 @@ const uploadMobileBundle = async (bundleName, os) => {
     formData.append('sdksha', sdksha);
     formData.append('tag', 'sometag');
 
-    const headers = makeHeaders(formData.getHeaders());
+    const headers = makeHeaders(formData.getHeaders?.() || {});
 
     const response = await axios.post(
       `${getBackendUrl(isStaging)}/admin/api/apps/${appId}/upload`,
@@ -502,7 +493,10 @@ const uploadMobileBundle = async (bundleName, os) => {
       data: response.data,
     };
   } catch (error) {
-    console.error('[uploadMobileBundle] Error:', error);
+    console.error(
+      '[uploadMobileBundle] Error:',
+      JSON.stringify(error, null, 2),
+    );
     throw error;
   }
 };
@@ -528,21 +522,26 @@ const main = async (
       JSON.stringify(config, null, 2),
     );
 
-    const [iosBundle, androidBundle] = await Promise.all([
-      generateIosBundle(appRoot),
-      generateAndroidBundle(appRoot),
-    ]);
+    // const [iosBundle, androidBundle] = await Promise.all([
+    //   generateIosBundle(appRoot),
+    //   generateAndroidBundle(appRoot),
+    // ]);
 
+    const iosBundle = await generateIosBundle(appRoot);
     const iosTimestamp = iosBundle.bundleDestination.split('/').at(-2);
+
+    const androidBundle = await generateAndroidBundle(appRoot);
     const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
 
     console.log('[main] Uploading iOS bundle:', iosTimestamp);
     console.log('[main] Uploading Android bundle:', androidTimestamp);
 
-    const [iosResult, androidResult] = await Promise.all([
-      uploadMobileBundle(iosTimestamp, 'ios'),
-      uploadMobileBundle(androidTimestamp, 'android'),
-    ]);
+    // const [iosResult, androidResult] = await Promise.all([
+    //   uploadMobileBundle(iosTimestamp, 'ios'),
+    //   uploadMobileBundle(androidTimestamp, 'android'),
+    // ]);
+    const iosResult = await uploadMobileBundle(iosTimestamp, 'ios');
+    const androidResult = await uploadMobileBundle(androidTimestamp, 'android');
 
     console.log('[main] iOS upload result:', iosResult);
     console.log('[main] Android upload result:', androidResult);
@@ -585,10 +584,14 @@ const main = async (
   }
 };
 
+console.time('Preview Generation');
 main(appId, forkId, branchName, publishedCommitId, isStaging)
   .then(() => {
     console.log('[main] Preview generation finished successfully!');
   })
   .catch(error => {
     console.error('[main] Preview generation failed!', error);
+  })
+  .finally(() => {
+    console.timeEnd('Preview Generation');
   });
