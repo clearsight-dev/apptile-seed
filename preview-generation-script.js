@@ -45,7 +45,7 @@ const toCamelCase = kebabCaseName => {
 
 const getBackendUrl = (isStaging = false) => {
   console.log('[getBackendUrl] Getting backend URL:', isStaging);
-  return isStaging ? 'https://dev-api.apptile.io' : 'https://api.apptile.io';
+  return isStaging ? 'https://dev-api.apptile.io' : 'https://api.tile.dev';
 };
 
 const metroCodegenPlugins = async (remoteCode = '', pluginNames = []) => {
