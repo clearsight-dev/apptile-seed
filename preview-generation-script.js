@@ -1,9 +1,66 @@
-const {execSync} = require('child_process');
+const {spawn} = require('child_process');
 const {createReadStream, createWriteStream} = require('fs');
 const {writeFile, mkdir, readdir, readFile, stat} = require('node:fs/promises');
 const path = require('path');
 const archiver = require('archiver');
 const axios = require('axios');
+
+// Helper function to execute commands with streaming output
+const executeCommand = (command, args = [], options = {}) => {
+  return new Promise((resolve, reject) => {
+    console.log(`[executeCommand] Executing: ${command} ${args.join(' ')}`);
+
+    const child = spawn(command, args, {
+      stdio: 'pipe',
+      ...options,
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    // Stream stdout in real-time with timestamps
+    child.stdout.on('data', data => {
+      const output = data.toString();
+      const lines = output.split('\n');
+      lines.forEach(line => {
+        if (line.trim()) {
+          console.log(`[${new Date().toISOString()}] STDOUT: ${line}`);
+        }
+      });
+      stdout += output;
+    });
+
+    // Stream stderr in real-time with timestamps
+    child.stderr.on('data', data => {
+      const output = data.toString();
+      const lines = output.split('\n');
+      lines.forEach(line => {
+        if (line.trim()) {
+          console.error(`[${new Date().toISOString()}] STDERR: ${line}`);
+        }
+      });
+      stderr += output;
+    });
+
+    child.on('close', code => {
+      console.log(`[executeCommand] Command finished with exit code: ${code}`);
+      if (code === 0) {
+        resolve({stdout, stderr, code});
+      } else {
+        const error = new Error(`Command failed with exit code ${code}`);
+        error.stdout = stdout;
+        error.stderr = stderr;
+        error.code = code;
+        reject(error);
+      }
+    });
+
+    child.on('error', error => {
+      console.error(`[executeCommand] Command error:`, error);
+      reject(error);
+    });
+  });
+};
 
 const previewConfigString = process.env.PREVIEW_CONFIG;
 if (!previewConfigString || previewConfigString.trim() === '') {
@@ -145,11 +202,7 @@ const generateIosBundle = async () => {
     await metroCodegenPlugins(remoteCode, plugins);
     await metroCodegenNavs(remoteCode, navs);
 
-    const command =
-      'node_modules/.bin/react-native bundle --entry-file ./index.js --platform ios --dev false --minify true --bundle-output ./ios/main.jsbundle --assets-dest ./ios/bundleassets';
-    console.log('[generateIosBundle] Executing command:', command);
-
-    const extraModulesPath = path.resolve(remoteCode, 'extra_modules.json');
+    const extraModulesPath = path.resolve('extra_modules.json');
 
     try {
       await stat(extraModulesPath);
@@ -159,32 +212,43 @@ const generateIosBundle = async () => {
       );
       const iosProjectSetupPath = path.resolve(appRoot, 'iosProjectSetup.js');
       try {
-        const stdout = execSync(`node ${iosProjectSetupPath}`, {
+        await executeCommand('node', [iosProjectSetupPath], {
           cwd: path.resolve(appRoot),
-          encoding: 'utf8',
         });
         console.log('[generateIosBundle] Successfully ran iosProjectSetup.js');
-        console.log('[generateIosBundle] stdout:', stdout);
       } catch (err) {
         console.error(
           '[generateIosBundle] Error running iosProjectSetup.js:',
           err,
         );
-        console.error('[generateIosBundle] stderr:', err.stderr);
         throw err;
       }
     }
 
     try {
-      const stdout = execSync(command, {
+      const bundleArgs = [
+        'bundle',
+        '--entry-file',
+        './index.js',
+        '--platform',
+        'ios',
+        '--dev',
+        'false',
+        '--minify',
+        'true',
+        '--bundle-output',
+        './ios/main.jsbundle',
+        '--assets-dest',
+        './ios/bundleassets',
+      ];
+
+      console.log('[generateIosBundle] Starting React Native bundle command');
+      await executeCommand('node_modules/.bin/react-native', bundleArgs, {
         cwd: path.resolve(appRoot),
-        encoding: 'utf8',
       });
       console.log('[generateIosBundle] Successfully bundled iOS app');
-      console.log('[generateIosBundle] stdout:', stdout);
     } catch (err) {
       console.error('[generateIosBundle] Error bundling iOS app:', err);
-      console.error('[generateIosBundle] stderr:', err.stderr);
       throw err;
     }
 
@@ -246,11 +310,7 @@ const generateAndroidBundle = async () => {
     await metroCodegenPlugins(remoteCode, plugins);
     await metroCodegenNavs(remoteCode, navs);
 
-    const command =
-      'node_modules/.bin/react-native bundle --entry-file ./index.js --platform android --dev false --minify true --bundle-output ./android/app/src/main/assets/index.android.bundle --assets-dest ./android/app/src/main/assets/assets';
-    console.log('[generateAndroidBundle] Executing command:', command);
-
-    const extraModulesPath = path.resolve(remoteCode, 'extra_modules.json');
+    const extraModulesPath = path.resolve('extra_modules.json');
 
     try {
       await stat(extraModulesPath);
@@ -263,34 +323,47 @@ const generateAndroidBundle = async () => {
         'androidProjectSetup.js',
       );
       try {
-        const stdout = execSync(`node ${androidProjectSetupPath}`, {
+        await executeCommand('node', [androidProjectSetupPath], {
           cwd: path.resolve(appRoot),
-          encoding: 'utf8',
         });
         console.log(
           '[generateAndroidBundle] Successfully ran androidProjectSetup.js',
         );
-        console.log('[generateAndroidBundle] stdout:', stdout);
       } catch (err) {
         console.error(
           '[generateAndroidBundle] Error running androidProjectSetup.js:',
           err,
         );
-        console.error('[generateAndroidBundle] stderr:', err.stderr);
         throw err;
       }
     }
 
     try {
-      const stdout = execSync(command, {
+      const bundleArgs = [
+        'bundle',
+        '--entry-file',
+        './index.js',
+        '--platform',
+        'android',
+        '--dev',
+        'false',
+        '--minify',
+        'true',
+        '--bundle-output',
+        './android/app/src/main/assets/index.android.bundle',
+        '--assets-dest',
+        './android/app/src/main/assets/assets',
+      ];
+
+      console.log(
+        '[generateAndroidBundle] Starting React Native bundle command',
+      );
+      await executeCommand('node_modules/.bin/react-native', bundleArgs, {
         cwd: path.resolve(appRoot),
-        encoding: 'utf8',
       });
       console.log('[generateAndroidBundle] Successfully bundled Android app');
-      console.log('[generateAndroidBundle] stdout:', stdout);
     } catch (err) {
       console.error('[generateAndroidBundle] Error bundling Android app:', err);
-      console.error('[generateAndroidBundle] stderr:', err.stderr);
       throw err;
     }
 
@@ -351,12 +424,16 @@ const getGitShas = async () => {
   try {
     let sdksha = '';
     try {
-      const sdkStdOut = execSync('git log -n 1 --format=format:%H', {
-        cwd: path.resolve(appRoot, '../ReactNativeTSProjeect'),
-        encoding: 'utf8',
-      });
-      console.log('[getGitShas] SDK Git SHA:', sdkStdOut);
-      sdksha = sdkStdOut.trim() || '';
+      console.log('[getGitShas] Getting SDK Git SHA');
+      const sdkResult = await executeCommand(
+        'git',
+        ['log', '-n', '1', '--format=format:%H'],
+        {
+          cwd: path.resolve(appRoot, '../ReactNativeTSProjeect'),
+        },
+      );
+      sdksha = sdkResult.stdout.trim() || '';
+      console.log('[getGitShas] SDK Git SHA:', sdksha);
     } catch (err) {
       console.error(
         '[getGitShas] Error getting SDK Git SHA:',
@@ -367,11 +444,16 @@ const getGitShas = async () => {
 
     let gitsha = '';
     try {
-      const appStdOut = execSync('git log -n 1 --format=format:%H', {
-        cwd: path.resolve('remoteCode'),
-        encoding: 'utf8',
-      });
-      gitsha = appStdOut.trim() || '';
+      console.log('[getGitShas] Getting app Git SHA');
+      const appResult = await executeCommand(
+        'git',
+        ['log', '-n', '1', '--format=format:%H'],
+        {
+          cwd: path.resolve('remoteCode'),
+        },
+      );
+      gitsha = appResult.stdout.trim() || '';
+      console.log('[getGitShas] App Git SHA:', gitsha);
     } catch (err) {
       console.error(
         '[getGitShas] Error getting app Git SHA:',
