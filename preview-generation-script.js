@@ -512,6 +512,7 @@ const makeHeaders = (extraHeaders = {}) => {
     Authorization: isStaging
       ? process.env.ELEVATED_PREVIEW_TOKEN_STAGING
       : process.env.ELEVATED_PREVIEW_TOKEN_PRODUCTION,
+    fromCodeBuild: true,
     ...extraHeaders,
   };
   console.log('[makeHeaders] Made headers:', header);
