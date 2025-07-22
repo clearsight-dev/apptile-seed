@@ -67,7 +67,7 @@ if (!previewConfigString || previewConfigString.trim() === '') {
   throw new Error('NO PREVIEW CONFIG PASSED IN ENV');
 }
 
-const previewConfig = JSON.parse(previewConfigString);
+const previewConfig = JSON.parse(decodeURIComponent(previewConfigString));
 console.log('Preview config:', previewConfig);
 
 const appId = previewConfig.appId;
