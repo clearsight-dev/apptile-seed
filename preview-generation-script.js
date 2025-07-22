@@ -551,7 +551,7 @@ const uploadMobileBundle = async (bundleName, os) => {
     const headers = makeHeaders(formData.getHeaders?.() || {});
 
     const response = await axios.post(
-      `${getBackendUrl(isStaging)}/api/apps/${appId}/upload`,
+      `${getBackendUrl(isStaging)}/api/v2/app/${appId}/upload`,
       formData,
       headers,
     );
