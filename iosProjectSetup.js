@@ -659,6 +659,11 @@ async function main() {
       updatedNotifContentEntitlements,
     );
 
+    const bundleTrackerPath = path.resolve(
+      __dirname,
+      'ios/localBundleTracker.json',
+    );
+
     // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
     // TODO(gaurav): use the cdn here as well
     try {
@@ -668,10 +673,6 @@ async function main() {
       const publishedCommit = manifest.forks[0].publishedCommitId;
       const iosBundle = manifest.codeArtefacts.find(
         it => it.type === 'ios-jsbundle',
-      );
-      const bundleTrackerPath = path.resolve(
-        __dirname,
-        'ios/localBundleTracker.json',
       );
 
       if (publishedCommit) {

@@ -873,6 +873,11 @@ async function main() {
   const updatedAndroidManifest = builder.buildObject(androidManifest);
   await writeFile(androidManifestPath, updatedAndroidManifest);
 
+  const bundleTrackerPath = path.resolve(
+    __dirname,
+    'android/app/src/main/assets/localBundleTracker.json',
+  );
+
   // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
   try {
     const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
@@ -881,10 +886,6 @@ async function main() {
     const publishedCommit = manifest.forks[0].publishedCommitId;
     const androidBundle = manifest.codeArtefacts.find(
       it => it.type === 'android-bundle',
-    );
-    const bundleTrackerPath = path.resolve(
-      __dirname,
-      'android/app/src/main/assets/localBundleTracker.json',
     );
 
     if (publishedCommit) {
