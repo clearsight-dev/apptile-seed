@@ -509,6 +509,9 @@ const makeHeaders = (extraHeaders = {}) => {
       '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"macOS"',
+    Authorization: isStaging
+      ? process.env.ELEVATED_PREVIEW_TOKEN_STAGING
+      : process.env.ELEVATED_PREVIEW_TOKEN_PRODUCTION,
     ...extraHeaders,
   };
   console.log('[makeHeaders] Made headers:', header);
