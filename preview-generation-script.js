@@ -637,7 +637,7 @@ const main = async (
       const draftResult = await axios.put(
         `${getBackendUrl(
           isStaging,
-        )}/api/apps/${appId}/fork/${forkId}/branch/${branchName}/PreviewAppDraft`,
+        )}/api/v2/app/${appId}/fork/${forkId}/branch/${branchName}/PreviewAppDraft`,
         {
           androidBundleUrlStatus: 'done',
           iosBundleUrlStatus: 'done',
