@@ -173,6 +173,7 @@
     "babel-plugin-transform-inline-environment-variables": "0.4.4",
     "dotenv": "^16.4.5",
     "eslint": "^8.19.0",
+    "form-data": "^4.0.4",
     "jest": "^29.6.3",
     "metro-resolver": "^0.80.9",
     "minimist": "^1.2.8",

@@ -4,6 +4,7 @@ const {writeFile, mkdir, readdir, readFile, stat} = require('node:fs/promises');
 const path = require('path');
 const archiver = require('archiver');
 const axios = require('axios');
+const FormData = require('form-data');
 
 // Helper function to execute commands with streaming output
 const executeCommand = (command, args = [], options = {}) => {
