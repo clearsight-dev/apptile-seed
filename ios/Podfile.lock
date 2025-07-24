@@ -1017,6 +1017,8 @@ PODS:
     - React-Core
   - react-native-get-random-values (1.11.0):
     - React-Core
+  - react-native-image-picker (4.10.3):
+    - React-Core
   - react-native-keep-awake (4.0.0):
     - React
   - react-native-render-html (6.3.4):
@@ -1034,9 +1036,6 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - react-native-zego-express-engine (3.14.5):
-    - React
-    - ZegoExpressEngine (= 3.14.5)
   - React-nativeconfig (0.73.8)
   - React-NativeModulesApple (0.73.8):
     - glog
@@ -1232,7 +1231,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - RNInAppBrowser (3.7.0):
+  - RNIap (12.16.2):
     - React-Core
   - RNPermissions (3.3.1):
     - React-Core
@@ -1275,7 +1274,6 @@ PODS:
     - React-Core
   - SSZipArchive (2.5.5)
   - Yoga (1.14.0)
-  - ZegoExpressEngine (3.14.5)
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
@@ -1319,13 +1317,13 @@ DEPENDENCIES:
   - react-native-compressor (from `../node_modules/react-native-compressor`)
   - react-native-firework-sdk (from `../node_modules/react-native-firework-sdk`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
+  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-keep-awake (from `../node_modules/react-native-keep-awake`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
-  - react-native-zego-express-engine (from `../node_modules/zego-express-engine-reactnative`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1357,7 +1355,7 @@ DEPENDENCIES:
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
-  - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
+  - RNIap (from `../node_modules/react-native-iap`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -1394,7 +1392,6 @@ SPEC REPOS:
     - ShopifyCheckoutSheetKit
     - SocketRocket
     - SSZipArchive
-    - ZegoExpressEngine
 
 EXTERNAL SOURCES:
   boost:
@@ -1465,6 +1462,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-firework-sdk"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
+  react-native-image-picker:
+    :path: "../node_modules/react-native-image-picker"
   react-native-keep-awake:
     :path: "../node_modules/react-native-keep-awake"
   react-native-render-html:
@@ -1477,8 +1476,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-video"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
-  react-native-zego-express-engine:
-    :path: "../node_modules/zego-express-engine-reactnative"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -1541,8 +1538,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
-  RNInAppBrowser:
-    :path: "../node_modules/react-native-inappbrowser-reborn"
+  RNIap:
+    :path: "../node_modules/react-native-iap"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
@@ -1616,13 +1613,13 @@ SPEC CHECKSUMS:
   react-native-compressor: 58eeb2c4c9dc4c898c7085d7e72a02f7ea4cfb64
   react-native-firework-sdk: 36a3711f4488efa986f0bd8e7a75dd9b18c143bf
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06
+  react-native-image-picker: 60f4246eb5bb7187fc15638a8c1f13abd3820695
   react-native-keep-awake: afad8a51dfef9fe9655a6344771be32c8596d774
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-restart: 7595693413fe3ca15893702f2c8306c62a708162
   react-native-safe-area-context: a240ad4b683349e48b1d51fed1611138d1bdad97
   react-native-video: a4c2635d0802f983594b7057e1bce8f442f0ad28
   react-native-webview: ae503c7787c3bd5bdbda622209c45b961241b2fd
-  react-native-zego-express-engine: 0dea531a42c910c9ccbc8647a54c4f68b27192fd
   React-nativeconfig: b42fe8e97a8d164aebeb6821a27076406b64fbb9
   React-NativeModulesApple: 9424cb02357f08c203115aa8cf6afd55cf81e75f
   React-perflogger: f9367428cf475f4606b5965c1d5a71781bb95299
@@ -1654,7 +1651,7 @@ SPEC CHECKSUMS:
   RNFBMessaging: b82ef70d252500d3ad104284c0c7f8e1cd22b51e
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8ff45d9b814f3ceceb1e9f92e5c73c92ab98e4a2
-  RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
+  RNIap: 2fba6c91f79fb7c71fcc44465f606061653caf01
   RNPermissions: 34d678157c800b25b22a488e4d8babb57456e796
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNScreens: 01ab149b5dd5c27f5ff26741b1d2bdf2cee1af35
@@ -1671,8 +1668,7 @@ SPEC CHECKSUMS:
   sovran-react-native: 5f02bd2d111ffe226d00c7b0435290eae6f10934
   SSZipArchive: c69881e8ac5521f0e622291387add5f60f30f3c4
   Yoga: 428500217b7b2dba1074041bd3ccf0cad3555925
-  ZegoExpressEngine: 68629fb936bc779260ce7d5cb3eea5b467dffa18
 
-PODFILE CHECKSUM: 4ccf2ece9d91bbb74cc08766033acb64c2eaf97d
+PODFILE CHECKSUM: 20888007fe101a918b471a9d38e7dba2b4b738df
 
 COCOAPODS: 1.16.2
