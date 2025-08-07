@@ -10,7 +10,10 @@
 @interface AppDelegate : RCTAppDelegate <UNUserNotificationCenterDelegate>
 
 @property (nonatomic, strong) RCTImageView *splash;
+@property (nonatomic, strong) NSDictionary *storedLaunchOptions;
 @property BOOL minDurationPassed;
 @property BOOL jsLoaded;
+
+- (void)startReactNativeApp:(UIApplication *)application withOptions:(NSDictionary *)launchOptions;
 
 @end

@@ -2,24 +2,28 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
-    <key>IS_PREVIEW_APP</key>
-    <string>NO</string>
+    <key>APPSFLYER_APPID</key>
+    <string>xxx</string>
+    <key>APPSFLYER_DEVKEY</key>
+    <string>xxx</string>
     <key>APPTILE_API_ENDPOINT</key>
     <string>https://api.apptile.io</string>
+    <key>APPTILE_APP_FORK</key>
+    <string>main</string>
+    <key>APPTILE_APP_HOST</key>
+    <string>https://shoplazza-test-store1.myshoplaza.com</string>
+    <key>APPTILE_APP_HOST_2</key>
+    <string>https://shoplazza-test-store1.myshoplaza.com</string>
     <key>APPTILE_UPDATE_ENDPOINT</key>
     <string>https://appconfigs.apptile.io</string>
     <key>APPTILE_URL_SCHEME</key>
-    <string></string>
-    <key>APPTILE_APP_HOST</key>
-    <string></string>
-    <key>APPTILE_APP_HOST_2</key>
-    <string></string>
+    <string>shoplazza-test-store1.myshoplaza://</string>
     <key>APP_ID</key>
-    <string></string>
+    <string>a635a23a-7842-4fb5-b62c-8176cc57764e</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleDisplayName</key>
-    <string>Apptile Seed</string>
+    <string>rn-shoplazza-app</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -31,15 +35,43 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>$(MARKETING_VERSION)</string>
+    <string>1.0.0</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleVersion</key>
-    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <string>1</string>
+    <key>CleverTapAccountID</key>
+    <string>xxx</string>
+    <key>CleverTapRegion</key>
+    <string>xxx</string>
+    <key>CleverTapToken</key>
+    <string>xxx</string>
+    <key>FacebookAdvertiserIDCollectionEnabled</key>
+    <string>xxx</string>
+    <key>FacebookAppID</key>
+    <string>xxx</string>
+    <key>FacebookAutoLogAppEventsEnabled</key>
+    <string>xxx</string>
+    <key>FacebookClientToken</key>
+    <string>xxx</string>
+    <key>FacebookDisplayName</key>
+    <string>xxx</string>
+    <key>IS_PREVIEW_APP</key>
+    <string>NO</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>LSApplicationCategoryType</key>
     <string/>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>MOENGAGE_APPID</key>
+    <string>xxx</string>
+    <key>MOENGAGE_DATACENTER</key>
+    <string>xxx</string>
+    <key>MoEngage</key>
+    <string>xxx</string>
+    <key>MoEngageAppDelegateProxyEnabled</key>
+    <string>xxx</string>
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>
@@ -47,12 +79,10 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
-     <key>ITSAppUsesNonExemptEncryption</key>
-	  <false/>
     <key>NSUserTrackingUsageDescription</key>
     <string>Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement</string>
     <key>ONESIGNAL_APPID</key>
-    <string>2aaedb28-5b4a-4821-ac19-617bdd11221d</string>
+    <string>xxx</string>
     <key>UIAppFonts</key>
     <array>
       <string>AntDesign.ttf</string>

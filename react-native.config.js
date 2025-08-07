@@ -23,6 +23,36 @@ module.exports = {
         "android": null,
         "ios": null
       }
+    },
+    "clevertap-react-native": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "react-native-onesignal": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "react-native-klaviyo": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "@react-native-community/push-notification-ios": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "zego-express-engine-reactnative": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
     }
   }
 }

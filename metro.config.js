@@ -19,7 +19,9 @@ IS_EC2=${process.env.IS_EC2}
  * @type {import('metro-config').MetroConfig}
  */
 const defaultConfigs = getDefaultConfig(__dirname);
-let rootPath = path.resolve(__dirname, `../ReactNativeTSProjeect/packages`);
+const text = fs.readFileSync(path.resolve(__dirname, "apptile.config.json"), {encoding: "utf8"});
+// let rootPath = path.resolve(__dirname, `../ReactNativeTSProjeect/packages`);
+let rootPath = JSON.parse(text).SDK_PATH;
 
 let rawExtraModules;
 
@@ -58,6 +60,15 @@ const config = {
           };
           break;
         }
+      }
+
+      if (moduleName.startsWith("@/root/app/assets/")) {
+        const filePath = moduleName.substring("@/root/app/assets/".length)
+        result = {
+          filePaths: [path.resolve(rootPath, "packages/apptile-app/app/assets", filePath)],
+          type: "assetFiles"
+        }
+        // console.log("Resolving: ", moduleName, result);
       }
 
       if (result) {

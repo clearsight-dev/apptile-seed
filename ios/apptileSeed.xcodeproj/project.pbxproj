@@ -10,6 +10,15 @@
 		051B721E2C9086800038A972 /* appConfig.json in Resources */ = {isa = PBXBuildFile; fileRef = 051B721C2C9086800038A972 /* appConfig.json */; };
 		055C1EC32CB7C9C600EE8821 /* ShakeEventModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 055C1EC22CB7C9C600EE8821 /* ShakeEventModule.m */; };
 		05663EE02D1A84B000040215 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 05663EDF2D1A84B000040215 /* GoogleService-Info.plist */; };
+		0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */; };
+		0574CFCC2E4353A800B6D888 /* ActionsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */; };
+		0574CFCE2E4353D600B6D888 /* RestartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCD2E4353D600B6D888 /* RestartHandler.swift */; };
+		0574CFD02E4353FF00B6D888 /* ApiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCF2E4353FF00B6D888 /* ApiManager.swift */; };
+		0574CFD52E43545800B6D888 /* CrashHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD42E43545800B6D888 /* CrashHandler.m */; };
+		0574CFD72E43547A00B6D888 /* StartupHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD62E43547A00B6D888 /* StartupHandler.m */; };
+		0574CFDA2E43550900B6D888 /* AppUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD92E43550900B6D888 /* AppUtils.swift */; };
+		0574CFDC2E43552400B6D888 /* BundleTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFDB2E43552400B6D888 /* BundleTracker.swift */; };
+		0574CFDE2E43553700B6D888 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFDD2E43553700B6D888 /* Logger.swift */; };
 		057DB15F2D5B3B1F0058398E /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 057DDD3F2D48C3E500945100 /* UserNotifications.framework */; };
 		057DB1612D5B3B1F0058398E /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 057DB1602D5B3B1F0058398E /* UserNotificationsUI.framework */; };
 		057DB67C2D60965900CD76F4 /* RNApptile.m in Sources */ = {isa = PBXBuildFile; fileRef = 057DB67B2D60965900CD76F4 /* RNApptile.m */; };
@@ -85,6 +94,19 @@
 		051B721C2C9086800038A972 /* appConfig.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = appConfig.json; sourceTree = "<group>"; };
 		055C1EC22CB7C9C600EE8821 /* ShakeEventModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShakeEventModule.m; sourceTree = "<group>"; };
 		05663EDF2D1A84B000040215 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		0574CFC12E4352D500B6D888 /* SplashScreenViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SplashScreenViewController.h; sourceTree = "<group>"; };
+		0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SplashScreenViewController.m; sourceTree = "<group>"; };
+		0574CFCA2E4353A700B6D888 /* apptileSeed-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "apptileSeed-Bridging-Header.h"; sourceTree = "<group>"; };
+		0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsHandler.swift; sourceTree = "<group>"; };
+		0574CFCD2E4353D600B6D888 /* RestartHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartHandler.swift; sourceTree = "<group>"; };
+		0574CFCF2E4353FF00B6D888 /* ApiManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiManager.swift; sourceTree = "<group>"; };
+		0574CFD32E43543C00B6D888 /* CrashHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashHandler.h; sourceTree = "<group>"; };
+		0574CFD42E43545800B6D888 /* CrashHandler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CrashHandler.m; sourceTree = "<group>"; };
+		0574CFD62E43547A00B6D888 /* StartupHandler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StartupHandler.m; sourceTree = "<group>"; };
+		0574CFD82E43548800B6D888 /* StartupHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StartupHandler.h; sourceTree = "<group>"; };
+		0574CFD92E43550900B6D888 /* AppUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUtils.swift; sourceTree = "<group>"; };
+		0574CFDB2E43552400B6D888 /* BundleTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleTracker.swift; sourceTree = "<group>"; };
+		0574CFDD2E43553700B6D888 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		057DB15E2D5B3B1F0058398E /* NotificationContentExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationContentExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		057DB1602D5B3B1F0058398E /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 		057DB67B2D60965900CD76F4 /* RNApptile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RNApptile.m; path = apptileSeed/RNApptile.m; sourceTree = "<group>"; };
@@ -203,6 +225,80 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0574CFC42E43533C00B6D888 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFC92E43537D00B6D888 /* utils */,
+				0574CFC82E43537400B6D888 /* headers */,
+				0574CFC72E43536800B6D888 /* handlers */,
+				0574CFC62E43534F00B6D888 /* apis */,
+				0574CFC52E43534400B6D888 /* actions */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		0574CFC52E43534400B6D888 /* actions */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFCA2E4353A700B6D888 /* apptileSeed-Bridging-Header.h */,
+				0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */,
+				0574CFCD2E4353D600B6D888 /* RestartHandler.swift */,
+			);
+			path = actions;
+			sourceTree = "<group>";
+		};
+		0574CFC62E43534F00B6D888 /* apis */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFCF2E4353FF00B6D888 /* ApiManager.swift */,
+			);
+			path = apis;
+			sourceTree = "<group>";
+		};
+		0574CFC72E43536800B6D888 /* handlers */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFD22E43541B00B6D888 /* startupHandler */,
+				0574CFD12E43540E00B6D888 /* crashHandler */,
+			);
+			path = handlers;
+			sourceTree = "<group>";
+		};
+		0574CFC82E43537400B6D888 /* headers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = headers;
+			sourceTree = "<group>";
+		};
+		0574CFC92E43537D00B6D888 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFD92E43550900B6D888 /* AppUtils.swift */,
+				0574CFDB2E43552400B6D888 /* BundleTracker.swift */,
+				0574CFDD2E43553700B6D888 /* Logger.swift */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		0574CFD12E43540E00B6D888 /* crashHandler */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFD32E43543C00B6D888 /* CrashHandler.h */,
+				0574CFD42E43545800B6D888 /* CrashHandler.m */,
+			);
+			path = crashHandler;
+			sourceTree = "<group>";
+		};
+		0574CFD22E43541B00B6D888 /* startupHandler */ = {
+			isa = PBXGroup;
+			children = (
+				0574CFD62E43547A00B6D888 /* StartupHandler.m */,
+				0574CFD82E43548800B6D888 /* StartupHandler.h */,
+			);
+			path = startupHandler;
+			sourceTree = "<group>";
+		};
 		05AB70E22D59EDF9007FE7AB /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
@@ -233,6 +329,7 @@
 		13B07FAE1A68108700A75B9A /* apptileSeed */ = {
 			isa = PBXGroup;
 			children = (
+				0574CFC42E43533C00B6D888 /* src */,
 				051B71A02C8EFE670038A972 /* apptileSeed.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
@@ -245,6 +342,8 @@
 				05A846D82CF09CD600784D02 /* RNGetValues.h */,
 				057DB67B2D60965900CD76F4 /* RNApptile.m */,
 				057DB67D2D60968E00CD76F4 /* RNApptile.h */,
+				0574CFC12E4352D500B6D888 /* SplashScreenViewController.h */,
+				0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */,
 			);
 			name = apptileSeed;
 			sourceTree = "<group>";
@@ -401,7 +500,7 @@
 						CreatedOnToolsVersion = 16.2;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1620;
 					};
 				};
 			};
@@ -628,11 +727,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0574CFD72E43547A00B6D888 /* StartupHandler.m in Sources */,
+				0574CFD52E43545800B6D888 /* CrashHandler.m in Sources */,
 				057DB67C2D60965900CD76F4 /* RNApptile.m in Sources */,
+				0574CFDA2E43550900B6D888 /* AppUtils.swift in Sources */,
+				0574CFD02E4353FF00B6D888 /* ApiManager.swift in Sources */,
 				05A846D52CF09C9400784D02 /* RNGetValues.m in Sources */,
+				0574CFCE2E4353D600B6D888 /* RestartHandler.swift in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
+				0574CFCC2E4353A800B6D888 /* ActionsHandler.swift in Sources */,
 				055C1EC32CB7C9C600EE8821 /* ShakeEventModule.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				0574CFDE2E43553700B6D888 /* Logger.swift in Sources */,
+				0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */,
+				0574CFDC2E43552400B6D888 /* BundleTracker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -681,7 +789,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -724,7 +832,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -764,7 +872,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -804,7 +912,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -822,7 +930,7 @@
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8SQ493N52G;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -854,6 +962,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "src/actions/apptileSeed-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -870,7 +979,7 @@
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8SQ493N52G;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -900,6 +1009,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "src/actions/apptileSeed-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -937,6 +1047,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = 8SQ493N52G;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
@@ -986,10 +1097,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
@@ -1027,6 +1135,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = 8SQ493N52G;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
@@ -1068,10 +1177,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;

@@ -164,6 +164,8 @@ target 'apptileSeed' do
   #   inherit! :complete
   #   # Pods for testing
   # end
+  pod 'ZIPFoundation'
+  pod 'Alamofire', '~> 5.0'
   # to avoid GoogleUtilities version conflict since firebase analytics and firebase Messaging can have different version of GoogleUtilities
   pod 'GoogleUtilities', :modular_headers => true
   # pod 'GoogleUtilities'

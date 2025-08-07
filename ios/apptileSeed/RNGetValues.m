@@ -18,7 +18,7 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(getKey:(NSString *)key callback:(RCTResponseSenderBlock)callback)
 {
   NSString *value = [[NSBundle mainBundle].infoDictionary objectForKey:key];
-   callback(@[[NSNull null], value]);
+  callback(@[[NSNull null], value ?: [NSNull null]]);
 }
 
 + (BOOL)requiresMainQueueSetup

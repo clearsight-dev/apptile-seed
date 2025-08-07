@@ -1,5 +1,5 @@
 import React from 'react';
-import {NativeModules} from 'react-native';
+// import {NativeModules} from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { 
@@ -9,10 +9,10 @@ import {
   useStartApptile
 } from 'apptile-core';
 
-import JSSplash from './components/JSSplash';
+// import JSSplash from './components/JSSplash';
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
-import FloatingUpdateModal from './components/FloatingUpdateModal';
+// import FloatingUpdateModal from './components/FloatingUpdateModal';
 
 export type ScreenParams = {
   NocodeRoot: undefined;
@@ -24,16 +24,11 @@ export type ScreenParams = {
 import {init as initAnalytics} from './analytics';
 
 const Stack = createNativeStackNavigator<ScreenParams>();
-const {RNApptile} = NativeModules;
 
 function App(): React.JSX.Element {
-  const status = useStartApptile(initAnalytics);
+  const status = useStartApptile(initAnalytics, true);
 
-  let body = null;
-  if (status.isDownloading) {
-    body = <JSSplash/>;
-  } else {
-    body = (
+  let body = (
       <NavigationContainer
         ref={apptileNavigationRef}
         theme={{
@@ -41,12 +36,17 @@ function App(): React.JSX.Element {
           colors: status.theme
         }}
         linking={status.linking}
-        onReady={() => {
-          RNApptile.notifyJSReady();
-        }}
       >
-        <Stack.Navigator>
-          <Stack.Screen name="NocodeRoot" component={ApptileAppRoot} options={{headerShown: false}} /> 
+        <Stack.Navigator
+          screenOptions={{
+            animation: 'none',
+          }}
+        >
+          <Stack.Screen 
+            name="NocodeRoot" 
+            component={ApptileAppRoot} 
+            options={{headerShown: false}} 
+          /> 
           <Stack.Screen 
             name="NativeUtils" 
             component={UpdateModal} 
@@ -62,22 +62,6 @@ function App(): React.JSX.Element {
         </Stack.Navigator>
       </NavigationContainer>
     );
-  }
-
-  let updateModal = null;
-  if (status.hasUpdate === "yes") {
-    // Note that you can use status.updateDownloaded === "yes" to show this, 
-    // if you want to wait till the update is fully downloaded. In that case the
-    // app will restart as soon as the modal is dismissed
-    // If you want to show the update modal as soon as you have determined that there
-    // is an update and want the download to happen while the modal is being 
-    // displayed then use the status.hasUpdate
-    updateModal = (<FloatingUpdateModal 
-      navigationRef={apptileNavigationRef}
-      appId={status.appId}
-      updateDownloaded={status.updateDownloaded}
-    />);
-  }
 
   // The nocode layer will not do navigation to these screens so you can handle those navigations in the onNavigationEvent
   return (
@@ -89,7 +73,6 @@ function App(): React.JSX.Element {
       }}
     >
       {body}
-      {updateModal}
     </ApptileWrapper>
   );
 }
