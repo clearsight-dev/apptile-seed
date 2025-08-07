@@ -461,8 +461,11 @@ async function main() {
 
     infoPlist.APPTILE_API_ENDPOINT = apptileConfig.APPTILE_BACKEND_URL;
     infoPlist.APPTILE_UPDATE_ENDPOINT = apptileConfig.APPCONFIG_SERVER_URL;
-    infoPlist.APP_ID = apptileConfig.APP_ID;
+    infoPlist.APP_ID = apptileConfig.APP_ID; 
     infoPlist.CFBundleDisplayName = apptileConfig.app_name || 'Apptile Seed';
+    infoPlist.APPTILE_APP_HOST = `https://${apptileConfig.app_host}` || "apptile.com"
+    infoPlist.APPTILE_APP_HOST_2 = `https://${apptileConfig.app_host_2}` || "apptile.io"
+    infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`
 
     const bundle_id =
       apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';

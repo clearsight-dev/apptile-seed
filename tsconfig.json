@@ -1,6 +1,7 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
+    "jsx": "preserve",
     "paths": {
       "apptile-core": ["../ReactNativeTSProjeect/packages/apptile-core/sdk.ts"],
       "apptile-plugins": ["../ReactNativeTSProjeect/packages/apptile-plugins/index.ts"],
