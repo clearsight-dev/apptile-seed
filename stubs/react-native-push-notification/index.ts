@@ -1,0 +1,1 @@
+export default {}; // Default stub for react-native-push-notification
