@@ -62,14 +62,16 @@ const config = {
         }
       }
 
-      if (moduleName.startsWith("@/root/app/assets/")) {
-        const filePath = moduleName.substring("@/root/app/assets/".length)
-        result = {
-          filePaths: [path.resolve(rootPath, "packages/apptile-app/app/assets", filePath)],
-          type: "assetFiles"
-        }
-        // console.log("Resolving: ", moduleName, result);
-      }
+      // if (moduleName.includes("/app/assets/") && moduleName.endsWith(".png")) {
+      //   const filePath = moduleName.substring("@/root/app/assets/".length)
+      //   const fullPath = path.resolve(rootPath, "packages/apptile-app/app/assets", filePath)
+      //   console.log("Resolving: ", moduleName, " to ", fullPath)
+      //   result = {
+      //     filePaths: [fullPath],
+      //     type: "assetFiles"
+      //   }
+      //   // console.log("Resolving: ", moduleName, result);
+      // }
 
       if (result) {
         // console.log(result);
