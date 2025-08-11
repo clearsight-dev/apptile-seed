@@ -125,15 +125,24 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "com.apptileseed"
-    defaultConfig {
-        applicationId bundleId
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode versionProps.getProperty('VERSION_CODE') ? versionProps.getProperty('VERSION_CODE').toInteger() : 1
-        versionName versionProps.getProperty('VERSION_NAME') ?: "1.0"
-        multiDexEnabled true
-        missingDimensionStrategy 'react-native-camera', 'general'
-    }
+   defaultConfig {
+    applicationId bundleId
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+
+    def vc = versionProps.getProperty('VERSION_CODE') ? versionProps.getProperty('VERSION_CODE').toInteger() : 1
+    def vn = versionProps.getProperty('VERSION_NAME') ?: "1.0"
+
+    println "==== APK VERSION INFO ===="
+    println "Version Code: ${vc}"
+    println "Version Name: ${vn}"
+    println "=========================="
+
+    versionCode vc
+    versionName vn
+    multiDexEnabled true
+    missingDimensionStrategy 'react-native-camera', 'general'
+}
 
     signingConfigs {
         debug {
@@ -152,10 +161,26 @@ android {
                 keyPassword System.getenv("SIGNING_KEY_PASSWORD") ?: 'android'
             }
         }
+        release {
+    def storeFilePath     = project.findProperty("MYAPP_UPLOAD_STORE_FILE") ?: "default-release.keystore"
+    def storePass         = project.findProperty("MYAPP_UPLOAD_STORE_PASSWORD") ?: "defaultStorePass"
+    def alias             = project.findProperty("MYAPP_UPLOAD_KEY_ALIAS") ?: "defaultAlias"
+    def keyPass           = project.findProperty("MYAPP_UPLOAD_KEY_PASSWORD") ?: "defaultKeyPass"
+
+    println "Release signing store file: ${storeFilePath}"
+    println "Release signing store password: ${storePass}"
+    println "Release signing key alias: ${alias}"
+    println "Release signing key password: ${keyPass}"
+
+    storeFile file(storeFilePath)
+    storePassword storePass
+    keyAlias alias
+    keyPassword keyPass
+}
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
