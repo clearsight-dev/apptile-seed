@@ -342,11 +342,13 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-core',
         path: path.resolve(
           apptileConfig.SDK_PATH,
-          'packages/apptile-core/sdk.ts',
+          'packages/apptile-libs/dist/apptile-core/index.mobile.js',
+          // 'packages/apptile-core/sdk.ts',
         ),
         watchPath: path.resolve(
           apptileConfig.SDK_PATH,
-          'packages/apptile-core',
+          'packages/apptile-libs/dist/apptile-core',
+          // 'packages/apptile-core',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -355,10 +357,12 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-plugins',
         path: path.resolve(
           apptileConfig.SDK_PATH,
+          // 'packages/apptile-libs/dist/apptile-plugins/index.mobile.js',
           'packages/apptile-plugins/index.ts',
         ),
         watchPath: path.resolve(
           apptileConfig.SDK_PATH,
+          // 'packages/apptile-libs/dist/apptile-plugins',
           'packages/apptile-plugins',
         ),
         returnKey: 'filePath',
@@ -383,11 +387,13 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-datasource',
         path: path.resolve(
           apptileConfig.SDK_PATH,
-          'packages/apptile-datasource/index.ts',
+          'packages/apptile-libs/dist/apptile-datasource/index.mobile.js',
+          // 'packages/apptile-datasource/index.ts',
         ),
         watchPath: path.resolve(
           apptileConfig.SDK_PATH,
-          'packages/apptile-datasource',
+          'packages/apptile-libs/dist/apptile-datasource',
+          // 'packages/apptile-datasource',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -396,11 +402,13 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-shopify',
         path: path.resolve(
           apptileConfig.SDK_PATH,
-          'packages/apptile-shopify/index.ts',
+          'packages/apptile-libs/dist/apptile-shopify/index.mobile.js',
+          // 'packages/apptile-shopify/index.ts',
         ),
         watchPath: path.resolve(
           apptileConfig.SDK_PATH,
-          'packages/apptile-shopify',
+          'packages/apptile-libs/dist/apptile-shopify',
+          // 'packages/apptile-shopify',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
