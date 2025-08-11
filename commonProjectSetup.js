@@ -357,13 +357,13 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-plugins',
         path: path.resolve(
           apptileConfig.SDK_PATH,
-          // 'packages/apptile-libs/dist/apptile-plugins/index.mobile.js',
-          'packages/apptile-plugins/index.ts',
+          'packages/apptile-libs/dist/apptile-plugins/index.mobile.js',
+          // 'packages/apptile-plugins/index.ts',
         ),
         watchPath: path.resolve(
           apptileConfig.SDK_PATH,
-          // 'packages/apptile-libs/dist/apptile-plugins',
-          'packages/apptile-plugins',
+          'packages/apptile-libs/dist/apptile-plugins',
+          // 'packages/apptile-plugins',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -372,13 +372,68 @@ function getExtraModules(apptileConfig) {
         name: 'asset_placeholder-image',
         path: [
           path.resolve(
-            apptileConfig.SDK_PATH,
-            'packages/apptile-app/app/assets/image-placeholder.png',
+            __dirname,
+            'assets/image-placeholder.png',
           ),
         ],
         watchPath: path.resolve(
-          apptileConfig.SDK_PATH,
-          'packages/apptile-app/app/assets',
+          __dirname,
+        ),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
+      },
+      {
+        name: 'asset_auction-stars',
+        path: [
+          path.resolve(
+            __dirname,
+            'assets/auction-stars.png',
+          ),
+        ],
+        watchPath: path.resolve(
+          __dirname,
+        ),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
+      },
+      {
+        name: 'asset_auction-crown',
+        path: [
+          path.resolve(
+            __dirname,
+            './assets/auction-crown.png',
+          ),
+        ],
+        watchPath: path.resolve(
+          __dirname,
+        ),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
+      },
+      {
+        name: 'asset_auction-gavel',
+        path: [
+          path.resolve(
+            __dirname,
+            './assets/auction-gavel.png',
+          ),
+        ],
+        watchPath: path.resolve(
+          __dirname,
+        ),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
+      },
+      {
+        name: 'asset_gold-flare',
+        path: [
+          path.resolve(
+            __dirname,
+            'assets/gold-flare.png',
+          ),
+        ],
+        watchPath: path.resolve(
+          __dirname,
         ),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
