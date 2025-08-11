@@ -71,3 +71,5 @@ ios/main.jsbundle
 ios/bundleassets
 remoteCode/generated
 extra_modules.json
+
+!apptile-libs/dist
