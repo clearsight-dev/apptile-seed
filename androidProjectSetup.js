@@ -739,8 +739,8 @@ async function main() {
     if (success) {
       await generateIconSet(
         path.resolve(
-          apptileConfig.SDK_PATH,
-          'packages/apptile-app/devops/scripts/android/iconset-generator.sh',
+          __dirname,
+          'scripts/android/iconset-generator.sh',
         ),
       );
     }
