@@ -362,8 +362,8 @@ async function main() {
     if (success && os.platform() === 'darwin') {
       await generateIconSet(
         path.resolve(
-          apptileConfig.SDK_PATH,
-          'packages/apptile-app/devops/scripts/ios/iconset-generator.sh',
+          __dirname,
+          'scripts/ios/iconset-generator.sh',
         ),
       );
     }
