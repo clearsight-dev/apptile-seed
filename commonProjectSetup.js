@@ -263,7 +263,7 @@ async function addForceUnlinkForNativePackage(
     extraModules.current.push({
       name: packageName,
       path: path.resolve(__dirname, `stubs/${packageName}/index.ts`),
-      watchPath: path.resolve(extraModules.SDK_PATH, 'packages/apptile-core'),
+      watchPath: path.resolve(__dirname, 'stubs'),
       returnKey: 'filePath',
       returnType: 'sourceFile',
     });
