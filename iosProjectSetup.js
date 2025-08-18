@@ -689,6 +689,9 @@ async function main() {
         );
       } else {
         console.error('Published appconfig not found!');
+        if (process.env.IS_BUILD_SYSTEM) {
+          throw new Error('Published appconfig not found in CI build system');
+        }
         await writeFile(
           bundleTrackerPath,
           `{"publishedCommitId": null, "iosBundleId": null}`,
@@ -696,6 +699,11 @@ async function main() {
       }
     } catch (err) {
       console.error('Failed to download appconfig');
+      if (process.env.IS_BUILD_SYSTEM) {
+        throw new Error(
+          `Failed to download appconfig in CI build system: ${err.message}`,
+        );
+      }
       await writeFile(
         bundleTrackerPath,
         `{"publishedCommitId": null, "iosBundleId": null}`,
