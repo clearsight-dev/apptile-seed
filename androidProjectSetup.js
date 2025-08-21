@@ -919,6 +919,42 @@ async function main() {
     apptileConfig.APPCONFIG_SERVER_URL,
   );
 
+  // Update app hosts
+  if (apptileConfig.app_host) {
+    upsertInStringsXML(
+      stringsObj,
+      'APPTILE_APP_HOST',
+      `https://${apptileConfig.app_host}`,
+    );
+  }
+
+  if (apptileConfig.app_host_2) {
+    upsertInStringsXML(
+      stringsObj,
+      'APPTILE_APP_HOST_2',
+      `https://${apptileConfig.app_host_2}`,
+    );
+  }
+
+  // Update URL scheme
+  if (apptileConfig.url_scheme) {
+    // Update strings.xml with URL scheme
+    upsertInStringsXML(
+      stringsObj,
+      'APPTILE_URL_SCHEME',
+      `${apptileConfig.url_scheme}://`,
+    );
+
+    // Update AndroidManifest.xml with URL scheme
+    addDeeplinkScheme(androidManifest, apptileConfig.url_scheme);
+  } else {
+    // If no URL scheme, set empty string in strings.xml
+    upsertInStringsXML(stringsObj, 'APPTILE_URL_SCHEME', '');
+
+    // Remove deeplink scheme from AndroidManifest.xml
+    deleteAndroidScheme(androidManifest);
+  }
+
   const parsedReactNativeConfig = await readReactNativeConfigJs();
 
   if (apptileConfig.feature_flags?.ENABLE_CLEVERTAP) {
