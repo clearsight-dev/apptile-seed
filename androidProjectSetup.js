@@ -362,47 +362,6 @@ function deletePermission(androidManifest, permissionName) {
   }
 }
 
-function addFeature(androidManifest, featureAttributes) {
-  androidManifest.manifest['uses-feature'] =
-    androidManifest.manifest['uses-feature'] || [];
-
-  // Check if feature already exists by comparing all attributes
-  const existingFeature = androidManifest.manifest['uses-feature'].find(
-    feature => {
-      // Compare all attributes to determine if it's the same feature
-      const featureAttrs = feature.$;
-      return Object.keys(featureAttributes).every(
-        key => featureAttrs[key] === featureAttributes[key],
-      );
-    },
-  );
-
-  if (!existingFeature) {
-    androidManifest.manifest['uses-feature'].push({
-      $: featureAttributes,
-    });
-  }
-}
-
-function deleteFeature(androidManifest, featureAttributes) {
-  androidManifest.manifest['uses-feature'] =
-    androidManifest.manifest['uses-feature'] || [];
-
-  const existingIndex = androidManifest.manifest['uses-feature'].findIndex(
-    feature => {
-      // Compare all attributes to determine if it's the same feature
-      const featureAttrs = feature.$;
-      return Object.keys(featureAttributes).every(
-        key => featureAttrs[key] === featureAttributes[key],
-      );
-    },
-  );
-
-  if (existingIndex >= 0) {
-    androidManifest.manifest['uses-feature'].splice(existingIndex, 1);
-  }
-}
-
 function addMetadata(androidManifest, androidName, androidValue) {
   androidManifest.manifest.application[0]['meta-data'] =
     androidManifest.manifest.application[0]['meta-data'] || [];
@@ -760,63 +719,6 @@ async function removeKlaviyo(
   );
 }
 
-async function addZego(
-  androidManifest,
-  stringsObj,
-  apptileConfig,
-  extraModules,
-  parsedReactNativeConfig,
-) {
-  // Add permissions for live streaming (matching old script)
-  addPermission(androidManifest, 'ACCESS_WIFI_STATE');
-  addPermission(androidManifest, 'RECORD_AUDIO');
-  addPermission(androidManifest, 'MODIFY_AUDIO_SETTINGS');
-  addPermission(androidManifest, 'BLUETOOTH');
-  addPermission(androidManifest, 'WRITE_EXTERNAL_STORAGE');
-  addPermission(androidManifest, 'READ_PHONE_STATE');
-  addPermission(androidManifest, 'WAKE_LOCK');
-
-  // Add OpenGL ES 2.0 feature for video rendering (example usage)
-  addFeature(androidManifest, {
-    'android:glEsVersion': '0x00020000',
-    'android:required': 'true',
-  });
-
-  await removeForceUnlinkForNativePackage(
-    'zego-express-engine-reactnative',
-    extraModules,
-    parsedReactNativeConfig,
-  );
-}
-
-async function removeZego(
-  androidManifest,
-  stringsObj,
-  extraModules,
-  parsedReactNativeConfig,
-) {
-  // Remove permissions
-  deletePermission(androidManifest, 'ACCESS_WIFI_STATE');
-  deletePermission(androidManifest, 'RECORD_AUDIO');
-  deletePermission(androidManifest, 'MODIFY_AUDIO_SETTINGS');
-  deletePermission(androidManifest, 'BLUETOOTH');
-  deletePermission(androidManifest, 'WRITE_EXTERNAL_STORAGE');
-  deletePermission(androidManifest, 'READ_PHONE_STATE');
-  deletePermission(androidManifest, 'WAKE_LOCK');
-
-  // Remove OpenGL ES 2.0 feature
-  deleteFeature(androidManifest, {
-    'android:glEsVersion': '0x00020000',
-    'android:required': 'true',
-  });
-
-  await addForceUnlinkForNativePackage(
-    'zego-express-engine-reactnative',
-    extraModules,
-    parsedReactNativeConfig,
-  );
-}
-
 async function main() {
   const analyticsTemplateRef = {current: analyticsTemplate};
   // Get location of ios folder in project
@@ -836,7 +738,10 @@ async function main() {
     const success = await downloadIconAndSplash(apptileConfig);
     if (success) {
       await generateIconSet(
-        path.resolve(__dirname, 'scripts/android/iconset-generator.sh'),
+        path.resolve(
+          __dirname,
+          'scripts/android/iconset-generator.sh',
+        ),
       );
     }
   } catch (err) {
@@ -954,23 +859,6 @@ async function main() {
     );
   } else {
     await removeKlaviyo(
-      androidManifest,
-      stringsObj,
-      extraModules,
-      parsedReactNativeConfig,
-    );
-  }
-
-  if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
-    await addZego(
-      androidManifest,
-      stringsObj,
-      apptileConfig,
-      extraModules,
-      parsedReactNativeConfig,
-    );
-  } else {
-    await removeZego(
       androidManifest,
       stringsObj,
       extraModules,
@@ -1118,26 +1006,21 @@ main();
  * Usage examples
   const mainActivity = getMainActivity(manifest);
   // check intents
-  addIntent(mainActivity,
-    "VIEW",
-    {'android:autoVerify': true},
+  addIntent(mainActivity, 
+    "VIEW", 
+    {'android:autoVerify': true}, 
     ["BROWSABLE", "DEFAULT"], ["http", "https"]);
 
   deleteIntentByScheme(mainActivity, ["http", "https"]);
 
-  addIntent(mainActivity,
-    "VIEW",
-    {'android:autoVerify': true},
+  addIntent(mainActivity, 
+    "VIEW", 
+    {'android:autoVerify': true}, 
     ["BROWSABLE", "DEFAULT"], ["http", "https"]);
 
   // check permissions
   addPermission(manifest, 'CAMERA');
   deletePermission(manifest, 'CAMERA');
-
-  // check features
-  addFeature(manifest, {'android:glEsVersion': '0x00020000', 'android:required': 'true'});
-  addFeature(manifest, {'android:name': 'android.hardware.camera', 'android:required': 'true'});
-  deleteFeature(manifest, {'android:glEsVersion': '0x00020000', 'android:required': 'true'});
 
   // check service
   addService(manifest, ".MyFirebaseMessagingService", {'android:exported': true}, {
@@ -1149,7 +1032,7 @@ main();
           }
         ]
       }
-    ]
+    ] 
   });
   deleteService(manifest, ".MyFirebaseMessagingService");
 
@@ -1163,8 +1046,6 @@ module.exports = {
   deleteHttpDeepLinks,
   addPermission,
   deletePermission,
-  addFeature,
-  deleteFeature,
   addService,
   deleteService,
   addMetadata,
