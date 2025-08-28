@@ -13,4 +13,5 @@
   <string name="MOENGAGE_DATACENTER">data_center_3</string>
   <string name="APPSFLYER_DEVKEY">xxx</string>
   <string name="APPSFLYER_APPID">xxx</string>
+  <string name="APPTILE_ANALYTICS_SEGMENT_KEY"></string>
 </resources>
