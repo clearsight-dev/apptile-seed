@@ -1020,6 +1020,17 @@ async function main() {
       extraModules,
       parsedReactNativeConfig,
     );
+  if (
+    apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS &&
+    apptileConfig.apptile_analytics_segment_key
+  ) {
+    upsertInStringsXML(
+      stringsObj,
+      'APPTILE_ANALYTICS_SEGMENT_KEY',
+      apptileConfig.apptile_analytics_segment_key,
+    );
+  } else {
+    removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
   }
 
   const strObj = JSON.parse(JSON.stringify(stringsObj));
