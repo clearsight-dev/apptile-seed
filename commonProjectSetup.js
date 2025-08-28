@@ -143,6 +143,15 @@ async function generateAnalytics(
     );
     enabledAnalytics += `CleverTapAnalytics,\n      `;
   }
+
+  if (featureFlags?.ENABLE_SEGMENT_ANALYTICS) {
+    // Update analytics file
+    analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Segment as SegmentAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
+    );
+    enabledAnalytics += `SegmentAnalytics,\n      `;
+  }
   enabledAnalytics += `// __ENABLED_ANALYTICS__`;
 
   analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
