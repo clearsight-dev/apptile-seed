@@ -44,7 +44,7 @@ const analyticsTemplate = `// This file is generated at build time based on the 
 import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
-  Firebase as FirebaseAnalytics, 
+  Firebase as FirebaseAnalytics,
   // __ENABLED_ANALYTICS_IMPORTS__
 } from 'apptile-core';
 
@@ -67,7 +67,7 @@ initNavs();
 
 // The plugins initialized here will not be available in the web
 // as an addon. This is only meant for toggling exsiting plugins which
-// are tightly integrated with apptile-core. Use remoteCode folder for 
+// are tightly integrated with apptile-core. Use remoteCode folder for
 // everything else
 // __EXTRA_LEGACY_INITIALIZERS__
 
@@ -77,12 +77,12 @@ export async function init() {
       await checkATTPermission();
     } catch (err) {
       console.log('Failure in att check', err);
-    } 
+    }
   }
 
   try {
     await ApptileAnalytics.initialize([
-      FirebaseAnalytics, 
+      FirebaseAnalytics,
       // __ENABLED_ANALYTICS__
     ]);
   } catch (err) {
@@ -143,6 +143,15 @@ async function generateAnalytics(
     );
     enabledAnalytics += `CleverTapAnalytics,\n      `;
   }
+
+  if (featureFlags?.ENABLE_SEGMENT_ANALYTICS) {
+    // Update analytics file
+    analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Segment as SegmentAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
+    );
+    enabledAnalytics += `SegmentAnalytics,\n      `;
+  }
   enabledAnalytics += `// __ENABLED_ANALYTICS__`;
 
   analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
@@ -175,7 +184,7 @@ export const AppEventsLogger = {
     NumItems: {},
     SearchString: {},
     ContentID: {}
-  }, 
+  },
   AppEvents: {
     AddedToCart: {},
     InitiatedCheckout: {},
@@ -189,16 +198,16 @@ export const AppEventsLogger = {
 export default {};
 `,
   'react-native-moengage': `
-export const MoEProperties = {};  
-export const MoEInitConfig = {}; 
-export const MoEPushConfig = {}; 
-export const MoEngageLogConfig = {}; 
-export const MoEngageLogLevel = {}; 
-export const MoEAppStatus = {}; 
+export const MoEProperties = {};
+export const MoEInitConfig = {};
+export const MoEPushConfig = {};
+export const MoEngageLogConfig = {};
+export const MoEngageLogLevel = {};
+export const MoEAppStatus = {};
 export const Platform = {};
 export default {}`,
 
-  'react-native-appsflyer': `export default { 
+  'react-native-appsflyer': `export default {
 onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
 };`,
   'react-native-onesignal': `export default {};`,

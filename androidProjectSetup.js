@@ -738,10 +738,7 @@ async function main() {
     const success = await downloadIconAndSplash(apptileConfig);
     if (success) {
       await generateIconSet(
-        path.resolve(
-          __dirname,
-          'scripts/android/iconset-generator.sh',
-        ),
+        path.resolve(__dirname, 'scripts/android/iconset-generator.sh'),
       );
     }
   } catch (err) {
@@ -864,6 +861,19 @@ async function main() {
       extraModules,
       parsedReactNativeConfig,
     );
+  }
+
+  if (
+    apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS &&
+    apptileConfig.apptile_analytics_segment_key
+  ) {
+    upsertInStringsXML(
+      stringsObj,
+      'APPTILE_ANALYTICS_SEGMENT_KEY',
+      apptileConfig.apptile_analytics_segment_key,
+    );
+  } else {
+    removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
   }
 
   const strObj = JSON.parse(JSON.stringify(stringsObj));
@@ -1006,16 +1016,16 @@ main();
  * Usage examples
   const mainActivity = getMainActivity(manifest);
   // check intents
-  addIntent(mainActivity, 
-    "VIEW", 
-    {'android:autoVerify': true}, 
+  addIntent(mainActivity,
+    "VIEW",
+    {'android:autoVerify': true},
     ["BROWSABLE", "DEFAULT"], ["http", "https"]);
 
   deleteIntentByScheme(mainActivity, ["http", "https"]);
 
-  addIntent(mainActivity, 
-    "VIEW", 
-    {'android:autoVerify': true}, 
+  addIntent(mainActivity,
+    "VIEW",
+    {'android:autoVerify': true},
     ["BROWSABLE", "DEFAULT"], ["http", "https"]);
 
   // check permissions
@@ -1032,7 +1042,7 @@ main();
           }
         ]
       }
-    ] 
+    ]
   });
   deleteService(manifest, ".MyFirebaseMessagingService");
 
