@@ -44,7 +44,7 @@ const analyticsTemplate = `// This file is generated at build time based on the 
 import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
-  Firebase as FirebaseAnalytics, 
+  Firebase as FirebaseAnalytics,
   // __ENABLED_ANALYTICS_IMPORTS__
 } from 'apptile-core';
 
@@ -67,7 +67,7 @@ initNavs();
 
 // The plugins initialized here will not be available in the web
 // as an addon. This is only meant for toggling exsiting plugins which
-// are tightly integrated with apptile-core. Use remoteCode folder for 
+// are tightly integrated with apptile-core. Use remoteCode folder for
 // everything else
 // __EXTRA_LEGACY_INITIALIZERS__
 
@@ -77,12 +77,12 @@ export async function init() {
       await checkATTPermission();
     } catch (err) {
       console.log('Failure in att check', err);
-    } 
+    }
   }
 
   try {
     await ApptileAnalytics.initialize([
-      FirebaseAnalytics, 
+      FirebaseAnalytics,
       // __ENABLED_ANALYTICS__
     ]);
   } catch (err) {
@@ -175,7 +175,7 @@ export const AppEventsLogger = {
     NumItems: {},
     SearchString: {},
     ContentID: {}
-  }, 
+  },
   AppEvents: {
     AddedToCart: {},
     InitiatedCheckout: {},
@@ -189,16 +189,16 @@ export const AppEventsLogger = {
 export default {};
 `,
   'react-native-moengage': `
-export const MoEProperties = {};  
-export const MoEInitConfig = {}; 
-export const MoEPushConfig = {}; 
-export const MoEngageLogConfig = {}; 
-export const MoEngageLogLevel = {}; 
-export const MoEAppStatus = {}; 
+export const MoEProperties = {};
+export const MoEInitConfig = {};
+export const MoEPushConfig = {};
+export const MoEngageLogConfig = {};
+export const MoEngageLogLevel = {};
+export const MoEAppStatus = {};
 export const Platform = {};
 export default {}`,
 
-  'react-native-appsflyer': `export default { 
+  'react-native-appsflyer': `export default {
 onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
 };`,
   'react-native-onesignal': `export default {};`,
@@ -306,10 +306,12 @@ async function removeForceUnlinkForNativePackage(
     });
   }
 
-  // remove react-native-fbsdk-next from metro.config.js if it exists
-  extraModules.current = extraModules.current.filter(
-    mod => mod.name !== packageName,
-  );
+  //TODO:HANDLE THIS LOGIC IN A BETTER WAY.
+  if (packageName !== 'zego-express-engine-reactnative') {
+    extraModules.current = extraModules.current.filter(
+      mod => mod.name !== packageName,
+    );
+  }
 }
 
 async function writeReactNativeConfigJs(parsedReactNativeConfig) {
@@ -470,6 +472,53 @@ function getExtraModules(apptileConfig) {
       },
     ],
   };
+
+  // Handle ENABLE_LIVELY_PIP for zego-express-engine-reactnative
+  if (
+    apptileConfig.feature_flags?.ENABLE_LIVELY &&
+    apptileConfig.feature_flags?.ENABLE_LIVELY_PIP
+  ) {
+    // Use local copy when both ENABLE_LIVELY and ENABLE_LIVELY_PIP are true
+    extraModules.current.push({
+      name: 'zego-express-engine-reactnative',
+      path: path.resolve(
+        __dirname,
+        'zego-express-engine-reactnative/lib/index.js',
+      ),
+      watchPath: path.resolve(__dirname, 'zego-express-engine-reactnative'),
+      returnKey: 'filePath',
+      returnType: 'sourceFile',
+    });
+  }
+  // Note: When ENABLE_LIVELY is true but ENABLE_LIVELY_PIP is false,
+  // zego uses node_modules (no entry in extraModules)
+  // When ENABLE_LIVELY is false, zego uses stub (handled by addForceUnlinkForNativePackage)
+
+  // Handle PIPActivityRoot based on ENABLE_LIVELY and ENABLE_LIVELY_PIP flags
+  if (
+    apptileConfig.feature_flags?.ENABLE_LIVELY &&
+    apptileConfig.feature_flags?.ENABLE_LIVELY_PIP
+  ) {
+    // With PIP: Use PIPActivityRoot.tsx
+    extraModules.current.push({
+      name: 'PIPActivityRoot',
+      path: path.resolve(__dirname, './PIPActivityRoot.tsx'),
+      watchPath: path.resolve(__dirname),
+      returnKey: 'filePath',
+      returnType: 'sourceFile',
+    });
+  } else {
+    // Without PIP: Use PIPActivityWithoutRoot.tsx
+    extraModules.current.push({
+      name: 'PIPActivityRoot',
+      path: path.resolve(__dirname, './PIPActivityRootWithoutPIP.tsx'),
+      watchPath: path.resolve(__dirname),
+      returnKey: 'filePath',
+      returnType: 'sourceFile',
+    });
+  }
+
+  // Note: When ENABLE_LIVELY is false, PIPActivityRoot is not added to extraModules
 
   return extraModules;
 }

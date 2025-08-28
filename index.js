@@ -5,7 +5,7 @@
 import {AppRegistry, Platform} from 'react-native';
 import App from './App';
 import {name as appName, pipactivityname} from './app.json';
-import PIPActivity from './PIPActivityRoot';
+import PIPActivity from 'PIPActivityRoot';
 
 AppRegistry.registerComponent(appName, () => App);
 
