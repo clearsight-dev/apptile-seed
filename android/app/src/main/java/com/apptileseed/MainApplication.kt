@@ -32,6 +32,7 @@ class MainApplication : Application(), ReactApplication {
             add(RNGetValuesPackage())
             add(RNApptilePackage())
             add(InAppReviewPackage())
+            add(PIPPackage())
         }
 
         override fun getJSMainModuleName(): String = "index"

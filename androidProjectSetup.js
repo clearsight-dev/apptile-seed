@@ -782,11 +782,51 @@ async function addZego(
     'android:required': 'true',
   });
 
-  await removeForceUnlinkForNativePackage(
-    'zego-express-engine-reactnative',
-    extraModules,
-    parsedReactNativeConfig,
-  );
+  // Add ENABLE_LIVELY_PIP string when both flags are true
+  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+    upsertInStringsXML(stringsObj, 'ENABLE_LIVELY_PIP', 'true');
+  }
+
+  // Check if we should use local PIP version
+  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+    // Use local copy instead of node_modules
+    parsedReactNativeConfig.dependencies['zego-express-engine-reactnative'] = {
+      root: path.resolve(__dirname, './zego-express-engine-reactnative'),
+      platforms: {
+        ios: {
+          podspecPath: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/react-native-zego-express-engine.podspec',
+          ),
+          version: '3.14.5',
+          configurations: [],
+          scriptPhases: [],
+        },
+        android: {
+          sourceDir: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/android',
+          ),
+          packageImportPath:
+            'import im.zego.reactnative.RCTZegoExpressEnginePackage;',
+          packageInstance: 'new RCTZegoExpressEnginePackage()',
+          buildTypes: [],
+          componentDescriptors: [],
+          cmakeListsPath: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/android/build/generated/source/codegen/jni/CMakeLists.txt',
+          ),
+        },
+      },
+    };
+  } else {
+    // Use regular node_modules version
+    await removeForceUnlinkForNativePackage(
+      'zego-express-engine-reactnative',
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  }
 }
 
 async function removeZego(
@@ -810,6 +850,10 @@ async function removeZego(
     'android:required': 'true',
   });
 
+  // Remove ENABLE_LIVELY_PIP string
+  removeFromStringsXML(stringsObj, 'ENABLE_LIVELY_PIP');
+
+  // Always force unlink when removing zego (regardless of PIP setting)
   await addForceUnlinkForNativePackage(
     'zego-express-engine-reactnative',
     extraModules,
@@ -1006,6 +1050,7 @@ async function main() {
       const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
       await mkdir(assetsDir, {recursive: true});
       const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
+      console.log('Writing appConfig to: ' + appConfigPath);
       await downloadFile(appConfigUrl, appConfigPath);
       console.log('appConfig downloaded');
       await writeFile(
