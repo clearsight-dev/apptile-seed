@@ -26,6 +26,7 @@
       </intent-filter>
     </activity>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode" android:exported="true" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize"/>
+    <activity android:name=".PIPActivity" android:theme="@style/Theme.Transparent" android:label="@string/pip_name" android:supportsPictureInPicture="true" android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:exported="true"/>
   </application>
   <queries>
     <intent>
