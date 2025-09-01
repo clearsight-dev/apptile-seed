@@ -863,10 +863,17 @@ async function main() {
     );
   }
 
-  if (
-    apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS &&
-    apptileConfig.apptile_analytics_segment_key
-  ) {
+  // Handle Segment Analytics key for strings.xml
+  if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
+    if (
+      !apptileConfig.apptile_analytics_segment_key ||
+      !process.env.apptile_analytics_segment_key
+    ) {
+      throw new Error(
+        'ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing from apptile.config.json',
+      );
+    }
+
     upsertInStringsXML(
       stringsObj,
       'APPTILE_ANALYTICS_SEGMENT_KEY',
