@@ -30,7 +30,6 @@ def swap_package_json_for_appclip
   end
 end
 
-# Resolve react_native_pods.rb with node to allow for hoisting
 # def node_require(script)
 #   # Resolve script with node to allow for hoisting
 #   require Pod::Executable.execute_command('node', ['-p',
@@ -64,27 +63,18 @@ end
 #   # 'StoreKit',
 # ])
 
+# Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
-'require.resolve(
-  "react-native/scripts/react_native_pods.rb",
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
     {paths: [process.argv[1]]},
-)', __dir__]).strip
-platform :ios, 15.6
+  )', __dir__]).strip
+ 
+platform :ios, '15.5'
 prepare_react_native_project!
 
-# use_modular_headers!
-
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-#
-# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-# ```
-flipper_config = FlipperConfiguration.disabled 
-
+$RNFirebaseAsStaticFramework = true
+ 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -97,10 +87,10 @@ feature_flags = apptile_config.fetch('feature_flags', {})
 bundle_id = apptile_config.dig('ios', 'bundle_id') || 'com.apptile.apptilepreviewdemo'
 FLAGS = feature_flags.select { |_key, value| [true,false].include?(value) }.keys
 
-  print("running iosProjectSetup")
-  setupResult = Pod::Executable.execute_command('node', ['../iosProjectSetup.js'])
-  print(setupResult)
-  print("iosProjectSetup complete\n")
+print("running iosProjectSetup")
+setupResult = Pod::Executable.execute_command('node', ['../iosProjectSetup.js'])
+print(setupResult)
+print("iosProjectSetup complete\n")
 
 target 'ImageNotification' do
   use_frameworks!
@@ -134,6 +124,7 @@ target 'NotificationContentExtension' do
   end
 end
 
+
 target 'apptileSeed' do
   use_frameworks!
   config = use_native_modules!
@@ -150,22 +141,14 @@ target 'apptileSeed' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => FlipperConfiguration.disabled,
+
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
+
+    # to enable hermes on iOS, change `false` to `true` and then install pods
     :hermes_enabled => false
   )
 
-  # target 'apptileSeedTests' do
-  #   inherit! :complete
-  #   # Pods for testing
-  # end
-  pod 'ZIPFoundation'
-  pod 'Alamofire', '~> 5.0'
   # to avoid GoogleUtilities version conflict since firebase analytics and firebase Messaging can have different version of GoogleUtilities
   pod 'GoogleUtilities', :modular_headers => true
   # pod 'GoogleUtilities'
@@ -173,8 +156,8 @@ target 'apptileSeed' do
   pod 'Firebase', :modular_headers => true
   pod 'FirebaseCoreInternal', :modular_headers => true
   pod 'FirebaseCore', :modular_headers => true
-  $RNFirebaseAsStaticFramework = true
   #END to avoid GoogleUtilities version conflict since firebase analytics and firebase Messaging can have different version of GoogleUtilities
+  # pod 'RNSentry', :path => '../node_modules/@sentry/react-native/RNSentry.podspec'
 
   pre_install do |installer|
     Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
@@ -190,14 +173,14 @@ target 'apptileSeed' do
   end
   permissions_path = '../node_modules/react-native-permissions/ios'
   pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
-#  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
+  # pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   post_install do |installer|
     puts "in post install"
 
     require 'rexml/document'
 
-  # Helper method to remove application-groups key from an entitlements file
+    # Helper method to remove application-groups key from an entitlements file
   def remove_app_group_if_needed(entitlements_path)
     return unless File.exist?(entitlements_path)
 
@@ -250,7 +233,7 @@ target 'apptileSeed' do
 
   # Paths to entitlements
   entitlements_paths = [
-    'apptileSeed/apptileSeed.entitlements',
+    './apptileSeed.entitlements',
     'ImageNotification/ImageNotification.entitlements'
   ]
 
@@ -394,14 +377,22 @@ target 'apptileSeed' do
       end
       puts "------------"
     end
-     
+
+    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    installer.pods_project.targets.each do |target|
+      if target.name == 'RNZipArchive'
+        target.build_configurations.each do |config|
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.6'
+        end
+      end
+    end
+
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false
-    ) 
-    
+    )
     # Run the update_versions.rb script as the final step
     script_path = "./update_versions.rb"
     if File.exist?(script_path)
@@ -414,22 +405,9 @@ target 'apptileSeed' do
       puts "Warning: update_versions.rb script not found at #{script_path}"
     end
   end
+  
+  # ...but if you bump iOS deployment target, Flipper barfs again "Time.h:52:17: error: typedef redefinition with different types"
+  # We need to make one crude patch to RCT-Folly - set `__IPHONE_10_0` to our iOS target + 1
+  # https://github.com/facebook/flipper/issues/834 - 84 comments and still going...
+  `sed -i -e  $'s/__IPHONE_10_0/__IPHONE_12_0/' Pods/RCT-Folly/folly/portability/Time.h`
 end
-
-# target 'apptileSeedClip' do
-#   swap_package_json_for_appclip do
-#     config = use_native_modules!
-#
-#     use_react_native!(
-#       :path => config[:reactNativePath],
-#       # Enables Flipper.
-#       #
-#       # Note that if you have use_frameworks! enabled, Flipper will not work and
-#       # you should disable the next line.
-#       :flipper_configuration => flipper_config,
-#       # An absolute path to your application root.
-#       :app_path => "#{Pod::Config.instance.installation_root}/..",
-#       :hermes_enabled => false
-#     )
-#   end
-# end

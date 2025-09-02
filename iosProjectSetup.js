@@ -397,7 +397,6 @@ async function main() {
     // Entitlements
     const apptileSeedEntitlementsLocation = path.resolve(
       iosFolderLocation,
-      'apptileSeed',
       'apptileSeed.entitlements',
     );
     const rawApptileSeedEntitlements = await readFile(

@@ -13,5 +13,5 @@
 @interface RNGetValues : NSObject <RCTBridgeModule>
 
 @end
- 
+
 #endif /* RNGetValues_h */

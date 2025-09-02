@@ -1,5 +1,0 @@
-package com.apptileseed
-
-interface MoengageIntegrationInterface {
-  fun initialize()
-}

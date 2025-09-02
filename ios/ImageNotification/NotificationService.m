@@ -1,10 +1,3 @@
-//
-//  NotificationService.m
-//  ImageNotification
-//
-//  Created by Gaurav Gautam on 13/01/25.
-//
-
 #import "NotificationService.h"
 
 #if ENABLE_MOENGAGE
@@ -17,9 +10,10 @@
 
 @interface NotificationService ()
 
-@property (nonatomic, strong) void (^contentHandler)(UNNotificationContent *contentToDeliver);
-@property (nonatomic, strong) UNMutableNotificationContent *bestAttemptContent;
-@property (nonatomic, strong) UNNotificationRequest *receivedRequest;
+@property(nonatomic, strong) void (^contentHandler)
+    (UNNotificationContent *contentToDeliver);
+@property(nonatomic, strong) UNMutableNotificationContent *bestAttemptContent;
+@property(nonatomic, strong) UNNotificationRequest *receivedRequest;
 
 @end
 
@@ -45,7 +39,11 @@
 
     if (self.bestAttemptContent) {
       // Modify the notification content here...
-      self.bestAttemptContent.title = [NSString stringWithFormat:@"%@", self.bestAttemptContent.title ?: [NSBundle mainBundle].infoDictionary[@"APPTILE_DEFAULT_NOTIFICATION_TITLE"]];
+      self.bestAttemptContent.title = [NSString
+          stringWithFormat:@"%@",
+                           self.bestAttemptContent.title
+                               ?: [NSBundle mainBundle].infoDictionary
+                                      [@"APPTILE_DEFAULT_NOTIFICATION_TITLE"]];
 
       // Check for image attachment
       NSString *imageUrlString = request.content.userInfo[@"rich-media"];
@@ -142,36 +140,47 @@
 
 @implementation NotificationService
 
-- (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
+- (void)didReceiveNotificationRequest:(UNNotificationRequest *)request
+                   withContentHandler:
+                       (void (^)(UNNotificationContent *_Nonnull))
+                           contentHandler {
   self.contentHandler = contentHandler;
   self.bestAttemptContent = [request.content mutableCopy];
-  
+
 #if ENABLE_MOENGAGE
   @try {
     // TODO(gaurav) get this from info.plist of notification service
-    [MoEngageSDKRichNotification setAppGroupID: @"group.com.discoverpilgrimindia.notification"];
-    [MoEngageSDKRichNotification handleWithRichNotificationRequest:request withContentHandler:contentHandler];
+    [MoEngageSDKRichNotification
+        setAppGroupID:@"group.com.discoverpilgrimindia.notification"];
+    [MoEngageSDKRichNotification
+        handleWithRichNotificationRequest:request
+                       withContentHandler:contentHandler];
   } @catch (NSException *exception) {
-    NSLog(@"MoEngage : exception : %@",exception);
+    NSLog(@"MoEngage : exception : %@", exception);
   }
 #endif
-  
+
 #if ENABLE_ONESIGNAL
   self.receivedRequest = request;
-  [OneSignalExtension didReceiveNotificationExtensionRequest:self.receivedRequest withMutableNotificationContent:self.bestAttemptContent withContentHandler:self.contentHandler];
+  [OneSignalExtension
+      didReceiveNotificationExtensionRequest:self.receivedRequest
+              withMutableNotificationContent:self.bestAttemptContent
+                          withContentHandler:self.contentHandler];
 #endif
 }
 
 - (void)serviceExtensionTimeWillExpire {
 #if ENABLE_ONESIGNAL
-  [OneSignalExtension serviceExtensionTimeWillExpireRequest:self.receivedRequest withMutableNotificationContent:self.bestAttemptContent];
+  [OneSignalExtension
+      serviceExtensionTimeWillExpireRequest:self.receivedRequest
+             withMutableNotificationContent:self.bestAttemptContent];
 #endif
   // Called just before the extension will be terminated by the system.
-  // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
+  // Use this as an opportunity to deliver your "best attempt" at modified
+  // content, otherwise the original push payload will be used.
   self.contentHandler(self.bestAttemptContent);
 }
 
 @end
-
 
 #endif

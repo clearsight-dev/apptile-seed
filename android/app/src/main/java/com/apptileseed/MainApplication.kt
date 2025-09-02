@@ -42,13 +42,14 @@ class MainApplication : Application(), ReactApplication {
         override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
         override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
 
-        override fun getJavaScriptExecutorFactory(): JavaScriptExecutorFactory = V8ExecutorFactory(
-            applicationContext,
-            packageName,
-            AndroidInfoHelpers.getFriendlyDeviceName(),
-            useDeveloperSupport
-        )
-
+        // override fun getJavaScriptExecutorFactory(): JavaScriptExecutorFactory =
+        //     V8ExecutorFactory(
+        //         applicationContext,
+        //         packageName,
+        //         AndroidInfoHelpers.getFriendlyDeviceName(),
+        //         useDeveloperSupport
+        //     )
+            
         override fun getJSBundleFile(): String? {
             val documentsDir = applicationContext.filesDir.absolutePath
             val bundlesDir = "$documentsDir/bundles"
@@ -78,7 +79,32 @@ class MainApplication : Application(), ReactApplication {
                 }
             }
         }
+      }
+
+  override val reactHost: ReactHost
+    get() = getDefaultReactHost(this.applicationContext, reactNativeHost)
+
+  override fun onCreate() {
+    super.onCreate()
+    // createCleverTapIntegration(this).initialize(intent)
+    SoLoader.init(this, false)
+    // disable RTL
+    val sharedI18nUtilInstance = I18nUtil.getInstance()
+    sharedI18nUtilInstance.forceRTL(this, false)
+    sharedI18nUtilInstance.allowRTL(this, false)
+
+    createMoengageIntegration(this).initialize();
+
+    createKlaviyoIntegration(this).initialize();
+
+    if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
+      // If you opted-in for the New Architecture, we load the native entry point for this app.
+      load(true, true)
     }
+    else {
+      loadReactNative(this)
+    }
+  }
 
     override val reactHost: ReactHost
         get() = getDefaultReactHost(this.applicationContext, reactNativeHost)
