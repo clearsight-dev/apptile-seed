@@ -123,7 +123,6 @@
     "react-native-linear-gradient": "2.8.3",
     "react-native-onesignal": "5.2.0",
     "react-native-orientation-locker": "^1.7.0",
-    "react-native-pager-view": "^6.4.1",
     "react-native-paper": "^5.0.2",
     "react-native-permissions": "3.3.1",
     "react-native-popover-view": "5.1.8",
@@ -184,6 +183,7 @@
     "@react-native-community/cli-platform-android": "19.0.0",
     "@react-native-community/cli-platform-ios": "19.0.0",
     "@react-native/babel-preset": "0.80.0",
+    "@react-native/codegen": "^0.80.2",
     "@react-native/eslint-config": "0.80.0",
     "@react-native/gradle-plugin": "^0.80.2",
     "@react-native/metro-config": "0.80.0",
@@ -238,7 +238,8 @@
     "webpack": "^5.51.1",
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.0.0",
-    "webpack-watch-files-plugin": "^1.2.1"
+    "webpack-watch-files-plugin": "^1.2.1",
+    "xml2js": "^0.6.2"
   },
   "engines": {
     "node": ">=18"

@@ -159,6 +159,9 @@ android {
 dependencies {
     implementation("com.facebook.react:react-android")
 
+    implementation('com.github.bumptech.glide:glide:4.16.0')
+    annotationProcessor('com.github.bumptech.glide:compiler:4.16.0')
+
     // Add these dependencies for new architecture support
     implementation 'com.facebook.fbjni:fbjni:0.2.2'
     implementation("com.facebook.fresco:fresco:3.6.0")
