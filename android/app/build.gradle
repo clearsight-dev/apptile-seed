@@ -71,13 +71,6 @@ android {
         }
     }
     
-    // Add packaging options for 16 KB compatibility
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging false
-        }
-    }
-    
     signingConfigs {
         debug {
             String appUploadStoreFile =  System.getenv("SIGNING_STORE_FILE") ?: 'debug.keystore'
