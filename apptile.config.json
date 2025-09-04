@@ -23,7 +23,7 @@
     "splash_path": "a69a34b8-af20-4f68-92ab-9f862474f690/splash/92ca84c6-2189-4c78-8e36-07235ed14913/splash.png",
     "bundle_id": "com.moderna.app",
     "expected_output": "apk&aab",
-    "version_number": "2",
+    "version_number": "1",
     "version_semver": "1.0.0"
   },
   "both": {
