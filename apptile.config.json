@@ -22,7 +22,9 @@
     "icon_path": "a69a34b8-af20-4f68-92ab-9f862474f690/icon/7bd09d5a-d597-4d15-90a3-3d970ead2f03/icon.png",
     "splash_path": "a69a34b8-af20-4f68-92ab-9f862474f690/splash/92ca84c6-2189-4c78-8e36-07235ed14913/splash.png",
     "bundle_id": "com.moderna.app",
-    "expected_output": "apk&aab"
+    "expected_output": "apk&aab",
+    "version_number": "2",
+    "version_semver": "1.0.0"
   },
   "both": {
     "buildSourceGitHeadName": "origin/main",

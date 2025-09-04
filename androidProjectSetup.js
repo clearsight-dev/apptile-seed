@@ -1118,44 +1118,7 @@ async function main() {
       apptileConfig.android?.bundle_id;
     await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
-
-  // Update version code and version name in version.properties file
-  if (
-    apptileConfig.android &&
-    (apptileConfig.android.build_number || apptileConfig.android.version)
-  ) {
-    const versionPropsPath = path.resolve(
-      androidFolderLocation,
-      'app/version.properties',
-    );
-
-    // Prepare content for version.properties
-    let propsContent = '';
-
-    // Add version code (build_number) if available
-    if (apptileConfig.android.build_number) {
-      console.log(
-        chalk.green(
-          `Setting app version code to ${apptileConfig.android.build_number}`,
-        ),
-      );
-      propsContent += `VERSION_CODE=${apptileConfig.android.build_number}\n`;
-    }
-
-    // Add version name (semver) if available
-    if (apptileConfig.android.version) {
-      console.log(
-        chalk.green(
-          `Setting app version name to ${apptileConfig.android.version}`,
-        ),
-      );
-      propsContent += `VERSION_NAME=${apptileConfig.android.version}\n`;
-    }
-
-    // Write version.properties file
-    await writeFile(versionPropsPath, propsContent);
-  }
-}
+  
 
 main();
 
