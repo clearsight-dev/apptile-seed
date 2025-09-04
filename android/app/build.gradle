@@ -96,12 +96,14 @@ if (configFile.exists()) {
         appBundleId = json.android.bundle_id
     }
 
-    if(json.android && json.android.version_code){
-        appVersionCode = json.android.version_code
+    if(json.android && json.android.version_number){
+        appVersionCode = json.android.version_number.toInteger()
+        println "Setting version number to: ${appVersionCode}"
     }
 
-    if(json.android && json.android.version_name){
-        appVersionName = json.android.version_name
+    if(json.android && json.android.version_semver){
+        appVersionName = json.android.version_semver
+        println "Setting version semver to: ${appVersionName}"
     }
 
     if (json.feature_flags.ENABLE_ONESIGNAL) {
