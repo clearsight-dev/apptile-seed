@@ -1126,8 +1126,7 @@ async function main() {
       apptileConfig.android?.bundle_id;
     await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
-  
-
+}
 main();
 
 /*
