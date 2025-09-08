@@ -76,7 +76,7 @@ function getMainActivity(androidManifest) {
   let mainActivity = null;
   for (let i = 0; i < activities.length; ++i) {
     const activity = activities[i];
-    if (activity.$['android:name'] === '.MainActivity') {
+    if (activity.$['android:name'] === '.LauncherActivity') {
       mainActivity = activity;
       break;
     }
@@ -84,12 +84,12 @@ function getMainActivity(androidManifest) {
   return mainActivity;
 }
 
-function getMainActivity(manifest) {
-  const application = manifest.manifest.application[0];
-  return application.activity.find(it => {
-    return it.$['android:name'] === '.MainActivity';
-  });
-}
+// function getMainActivity(manifest) {
+//   const application = manifest.manifest.application[0];
+//   return application.activity.find(it => {
+//     return it.$['android:name'] === '.LauncherActivity';
+//   });
+// }
 
 function addIntent(activity, actionName, attributes, categories, schemes) {
   activity['intent-filter'] = activity['intent-filter'] || [];
@@ -250,6 +250,9 @@ function addHttpDeepLinks(androidManifest, hosts) {
     mainActivity['intent-filter'] = [];
   }
   let existingIntent = mainActivity['intent-filter'].find(intent => {
+    if (!intent.data) {
+      return false;
+    }
     const schemes = intent.data.reduce((schemes, data) => {
       schemes[data.$['android:scheme']] = 1;
       return schemes;
@@ -318,6 +321,9 @@ function deleteHttpDeepLinks(androidManifest) {
     mainActivity['intent-filter'] = [];
   }
   let existingIntentIndex = mainActivity['intent-filter'].findIndex(intent => {
+    if (!intent.data) {
+      return false;
+    }
     const schemes = intent.data.reduce((schemes, data) => {
       schemes[data.$['android:scheme']] = 1;
       return schemes;
@@ -953,6 +959,22 @@ async function main() {
 
     // Remove deeplink scheme from AndroidManifest.xml
     deleteAndroidScheme(androidManifest);
+  }
+
+  // Handle HTTP deep links for app_host and app_host_2
+  if (apptileConfig.app_host || apptileConfig.app_host_2) {
+    const hosts = [];
+    if (apptileConfig.app_host) {
+      hosts.push(apptileConfig.app_host);
+    }
+    if (apptileConfig.app_host_2) {
+      hosts.push(apptileConfig.app_host_2);
+    }
+    // Add HTTP/HTTPS deep links for the hosts
+    addHttpDeepLinks(androidManifest, hosts);
+  } else {
+    // Remove HTTP deep links if no hosts are configured
+    deleteHttpDeepLinks(androidManifest);
   }
 
   const parsedReactNativeConfig = await readReactNativeConfigJs();
