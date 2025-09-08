@@ -719,6 +719,107 @@ async function removeKlaviyo(
   );
 }
 
+async function addZego(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // Add permissions for live streaming (matching old script)
+  addPermission(androidManifest, 'ACCESS_WIFI_STATE');
+  addPermission(androidManifest, 'RECORD_AUDIO');
+  addPermission(androidManifest, 'MODIFY_AUDIO_SETTINGS');
+  addPermission(androidManifest, 'BLUETOOTH');
+  addPermission(androidManifest, 'WRITE_EXTERNAL_STORAGE');
+  addPermission(androidManifest, 'READ_PHONE_STATE');
+  addPermission(androidManifest, 'WAKE_LOCK');
+
+  // Add OpenGL ES 2.0 feature for video rendering (example usage)
+  addFeature(androidManifest, {
+    'android:glEsVersion': '0x00020000',
+    'android:required': 'true',
+  });
+
+  // Add ENABLE_LIVELY_PIP string when both flags are true
+  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+    upsertInStringsXML(stringsObj, 'ENABLE_LIVELY_PIP', 'true');
+  }
+
+  // Check if we should use local PIP version
+  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+    // Use local copy instead of node_modules
+    parsedReactNativeConfig.dependencies['zego-express-engine-reactnative'] = {
+      root: path.resolve(__dirname, './zego-express-engine-reactnative'),
+      platforms: {
+        ios: {
+          podspecPath: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/react-native-zego-express-engine.podspec',
+          ),
+          version: '3.14.5',
+          configurations: [],
+          scriptPhases: [],
+        },
+        android: {
+          sourceDir: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/android',
+          ),
+          packageImportPath:
+            'import im.zego.reactnative.RCTZegoExpressEnginePackage;',
+          packageInstance: 'new RCTZegoExpressEnginePackage()',
+          buildTypes: [],
+          componentDescriptors: [],
+          cmakeListsPath: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/android/build/generated/source/codegen/jni/CMakeLists.txt',
+          ),
+        },
+      },
+    };
+  } else {
+    // Use regular node_modules version
+    await removeForceUnlinkForNativePackage(
+      'zego-express-engine-reactnative',
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  }
+}
+
+async function removeZego(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // Remove permissions
+  deletePermission(androidManifest, 'ACCESS_WIFI_STATE');
+  deletePermission(androidManifest, 'RECORD_AUDIO');
+  deletePermission(androidManifest, 'MODIFY_AUDIO_SETTINGS');
+  deletePermission(androidManifest, 'BLUETOOTH');
+  deletePermission(androidManifest, 'WRITE_EXTERNAL_STORAGE');
+  deletePermission(androidManifest, 'READ_PHONE_STATE');
+  deletePermission(androidManifest, 'WAKE_LOCK');
+
+  // Remove OpenGL ES 2.0 feature
+  deleteFeature(androidManifest, {
+    'android:glEsVersion': '0x00020000',
+    'android:required': 'true',
+  });
+
+  // Remove ENABLE_LIVELY_PIP string
+  removeFromStringsXML(stringsObj, 'ENABLE_LIVELY_PIP');
+
+  // Always force unlink when removing zego (regardless of PIP setting)
+  await addForceUnlinkForNativePackage(
+    'zego-express-engine-reactnative',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
 async function main() {
   const analyticsTemplateRef = {current: analyticsTemplate};
   // Get location of ios folder in project
@@ -908,6 +1009,7 @@ async function main() {
       const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
       await mkdir(assetsDir, {recursive: true});
       const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
+      console.log('Writing appConfig to: ' + appConfigPath);
       await downloadFile(appConfigUrl, appConfigPath);
       console.log('appConfig downloaded');
       await writeFile(
@@ -975,45 +1077,7 @@ async function main() {
       apptileConfig.android?.bundle_id;
     await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
-
-  // Update version code and version name in version.properties file
-  if (
-    apptileConfig.android &&
-    (apptileConfig.android.build_number || apptileConfig.android.version)
-  ) {
-    const versionPropsPath = path.resolve(
-      androidFolderLocation,
-      'app/version.properties',
-    );
-
-    // Prepare content for version.properties
-    let propsContent = '';
-
-    // Add version code (build_number) if available
-    if (apptileConfig.android.build_number) {
-      console.log(
-        chalk.green(
-          `Setting app version code to ${apptileConfig.android.build_number}`,
-        ),
-      );
-      propsContent += `VERSION_CODE=${apptileConfig.android.build_number}\n`;
-    }
-
-    // Add version name (semver) if available
-    if (apptileConfig.android.version) {
-      console.log(
-        chalk.green(
-          `Setting app version name to ${apptileConfig.android.version}`,
-        ),
-      );
-      propsContent += `VERSION_NAME=${apptileConfig.android.version}\n`;
-    }
-
-    // Write version.properties file
-    await writeFile(versionPropsPath, propsContent);
-  }
 }
-
 main();
 
 /*
