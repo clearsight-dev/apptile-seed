@@ -1097,106 +1097,102 @@ async function main() {
     } else {
       removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
     }
+  }
+  const strObj = JSON.parse(JSON.stringify(stringsObj));
 
-    const strObj = JSON.parse(JSON.stringify(stringsObj));
+  const updatedValuesXml = builder.buildObject(strObj);
+  await writeFile(valuesXmlPath, updatedValuesXml);
+  const updatedAndroidManifest = builder.buildObject(androidManifest);
+  await writeFile(androidManifestPath, updatedAndroidManifest);
 
-    const updatedValuesXml = builder.buildObject(strObj);
-    await writeFile(valuesXmlPath, updatedValuesXml);
-    const updatedAndroidManifest = builder.buildObject(androidManifest);
-    await writeFile(androidManifestPath, updatedAndroidManifest);
+  const bundleTrackerPath = path.resolve(
+    __dirname,
+    'android/app/src/main/assets/localBundleTracker.json',
+  );
 
-    const bundleTrackerPath = path.resolve(
-      __dirname,
-      'android/app/src/main/assets/localBundleTracker.json',
+  // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
+  try {
+    const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
+    console.log('Downloading manifest from ' + manifestUrl);
+    const {data: manifest} = await axios.get(manifestUrl);
+    const publishedCommit = manifest.forks[0].publishedCommitId;
+    const androidBundle = manifest.codeArtefacts.find(
+      it => it.type === 'android-bundle',
     );
 
-    // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
-    try {
-      const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
-      console.log('Downloading manifest from ' + manifestUrl);
-      const {data: manifest} = await axios.get(manifestUrl);
-      const publishedCommit = manifest.forks[0].publishedCommitId;
-      const androidBundle = manifest.codeArtefacts.find(
-        it => it.type === 'android-bundle',
+    if (publishedCommit) {
+      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+      console.log('Downloading appConfig from: ' + appConfigUrl);
+      const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
+      await mkdir(assetsDir, {recursive: true});
+      const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
+      console.log('Writing appConfig to: ' + appConfigPath);
+      await downloadFile(appConfigUrl, appConfigPath);
+      console.log('appConfig downloaded');
+      await writeFile(
+        bundleTrackerPath,
+        `{"publishedCommitId": ${
+          publishedCommit || 'null'
+        }, "androidBundleId": ${androidBundle?.id || 'null'}}`,
       );
-
-      if (publishedCommit) {
-        const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
-        console.log('Downloading appConfig from: ' + appConfigUrl);
-        const assetsDir = path.resolve(
-          __dirname,
-          'android/app/src/main/assets',
-        );
-        await mkdir(assetsDir, {recursive: true});
-        const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
-        console.log('Writing appConfig to: ' + appConfigPath);
-        await downloadFile(appConfigUrl, appConfigPath);
-        console.log('appConfig downloaded');
-        await writeFile(
-          bundleTrackerPath,
-          `{"publishedCommitId": ${
-            publishedCommit || 'null'
-          }, "androidBundleId": ${androidBundle?.id || 'null'}}`,
-        );
-      } else {
-        console.error('Published appconfig not found!');
-        await writeFile(
-          bundleTrackerPath,
-          `{"publishedCommitId": null, "androidBundleId": null}`,
-        );
-      }
-    } catch (err) {
-      console.error('Failed to download appconfig');
+    } else {
+      console.error('Published appconfig not found!');
       await writeFile(
         bundleTrackerPath,
         `{"publishedCommitId": null, "androidBundleId": null}`,
       );
     }
-    console.log('Running android project setup');
-    await generateAnalytics(
-      analyticsTemplateRef,
-      apptileConfig.integrations,
-      apptileConfig.feature_flags,
-    );
-    await writeReactNativeConfigJs(parsedReactNativeConfig);
+  } catch (err) {
+    console.error('Failed to download appconfig');
     await writeFile(
-      path.resolve(__dirname, 'extra_modules.json'),
-      JSON.stringify(extraModules.current, null, 2),
+      bundleTrackerPath,
+      `{"publishedCommitId": null, "androidBundleId": null}`,
     );
+  }
+  console.log('Running android project setup');
+  await generateAnalytics(
+    analyticsTemplateRef,
+    apptileConfig.integrations,
+    apptileConfig.feature_flags,
+  );
+  await writeReactNativeConfigJs(parsedReactNativeConfig);
+  await writeFile(
+    path.resolve(__dirname, 'extra_modules.json'),
+    JSON.stringify(extraModules.current, null, 2),
+  );
 
-    // Update google-services.json
-    const googleServicesPath = path.resolve(
-      __dirname,
-      'android',
-      'app',
-      'google-services.json',
-    );
-    let downloadedGoogleServices = false;
-    for (let i = 0; i < apptileConfig.assets.length; ++i) {
-      try {
-        const asset = apptileConfig.assets[i];
-        if (asset.assetClass === 'androidFirebaseServiceFile') {
-          await downloadFile(asset.url, googleServicesPath);
-          downloadedGoogleServices = true;
-          break;
-        }
-      } catch (err) {
-        console.error('failed to download google-services.json');
+  // Update google-services.json
+  const googleServicesPath = path.resolve(
+    __dirname,
+    'android',
+    'app',
+    'google-services.json',
+  );
+  let downloadedGoogleServices = false;
+  for (let i = 0; i < apptileConfig.assets.length; ++i) {
+    try {
+      const asset = apptileConfig.assets[i];
+      if (asset.assetClass === 'androidFirebaseServiceFile') {
+        await downloadFile(asset.url, googleServicesPath);
+        downloadedGoogleServices = true;
+        break;
       }
+    } catch (err) {
+      console.error('failed to download google-services.json');
     }
+  }
 
-    if (!downloadedGoogleServices) {
-      console.log(
-        chalk.red(
-          'Failed to download google-services.json. Will try to use the template',
-        ),
-      );
-      const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
-      const gsParsed = JSON.parse(gsRaw);
-      gsParsed.client[0].client_info.android_client_info.package_name =
-        apptileConfig.android?.bundle_id;
-      await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
-    }
+  if (!downloadedGoogleServices) {
+    console.log(
+      chalk.red(
+        'Failed to download google-services.json. Will try to use the template',
+      ),
+    );
+    const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
+    const gsParsed = JSON.parse(gsRaw);
+    gsParsed.client[0].client_info.android_client_info.package_name =
+      apptileConfig.android?.bundle_id;
+    await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
 }
 
