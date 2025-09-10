@@ -1064,6 +1064,7 @@ async function main() {
   }
 
   if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
+    console.log('Lively is getting enabled...');
     await addZego(
       androidManifest,
       stringsObj,
@@ -1072,6 +1073,7 @@ async function main() {
       parsedReactNativeConfig,
     );
   } else {
+    console.log('Lively is getting disabled...');
     await removeZego(
       androidManifest,
       stringsObj,
@@ -1160,7 +1162,11 @@ async function main() {
     path.resolve(__dirname, 'extra_modules.json'),
     JSON.stringify(extraModules.current, null, 2),
   );
-
+  console.log(extraModules.current, 'this is the extra_modules.json');
+  console.log(
+    JSON.stringify(parsedReactNativeConfig),
+    'thiis is the react-native.config.js',
+  );
   // Update google-services.json
   const googleServicesPath = path.resolve(
     __dirname,
