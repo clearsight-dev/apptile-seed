@@ -1115,40 +1115,51 @@ async function main() {
       bundleTrackerPath,
       `{"publishedCommitId": null, "androidBundleId": null}`,
     );
+  }
+  console.log('Running android project setup');
+  await generateAnalytics(
+    analyticsTemplateRef,
+    apptileConfig.integrations,
+    apptileConfig.feature_flags,
+  );
+  await writeReactNativeConfigJs(parsedReactNativeConfig);
+  await writeFile(
+    path.resolve(__dirname, 'extra_modules.json'),
+    JSON.stringify(extraModules.current, null, 2),
+  );
 
-    // Update google-services.json
-    const googleServicesPath = path.resolve(
-      __dirname,
-      'android',
-      'app',
-      'google-services.json',
-    );
-    let downloadedGoogleServices = false;
-    for (let i = 0; i < apptileConfig.assets.length; ++i) {
-      try {
-        const asset = apptileConfig.assets[i];
-        if (asset.assetClass === 'androidFirebaseServiceFile') {
-          await downloadFile(asset.url, googleServicesPath);
-          downloadedGoogleServices = true;
-          break;
-        }
-      } catch (err) {
-        console.error('failed to download google-services.json');
+  // Update google-services.json
+  const googleServicesPath = path.resolve(
+    __dirname,
+    'android',
+    'app',
+    'google-services.json',
+  );
+  let downloadedGoogleServices = false;
+  for (let i = 0; i < apptileConfig.assets.length; ++i) {
+    try {
+      const asset = apptileConfig.assets[i];
+      if (asset.assetClass === 'androidFirebaseServiceFile') {
+        await downloadFile(asset.url, googleServicesPath);
+        downloadedGoogleServices = true;
+        break;
       }
+    } catch (err) {
+      console.error('failed to download google-services.json');
     }
+  }
 
-    if (!downloadedGoogleServices) {
-      console.log(
-        chalk.red(
-          'Failed to download google-services.json. Will try to use the template',
-        ),
-      );
-      const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
-      const gsParsed = JSON.parse(gsRaw);
-      gsParsed.client[0].client_info.android_client_info.package_name =
-        apptileConfig.android?.bundle_id;
-      await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
-    }
+  if (!downloadedGoogleServices) {
+    console.log(
+      chalk.red(
+        'Failed to download google-services.json. Will try to use the template',
+      ),
+    );
+    const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
+    const gsParsed = JSON.parse(gsRaw);
+    gsParsed.client[0].client_info.android_client_info.package_name =
+      apptileConfig.android?.bundle_id;
+    await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
 }
 
