@@ -3,6 +3,7 @@ const fs = require("fs");
 
 function constructExternals(extra = []) {
   const libs = [
+    "@segment/analytics-react-native",
     "@gorhom/portal",
     "react",
     "lodash",
@@ -29,7 +30,8 @@ function constructExternals(extra = []) {
     "@react-navigation/native-stack",
     "@react-navigation/stack",
     "jsan",
-    "moment","graphql",
+    "moment",
+    "graphql",
     "react-dom",
     "react-native-web",
     "redux-logger",
@@ -78,7 +80,7 @@ function constructExternals(extra = []) {
     "asset_auction-stars",
     "asset_gold-flare",
     "tslib",
-    ...extra
+    ...extra,
   ];
 
   return libs.reduce((externals, libName) => {
@@ -117,14 +119,12 @@ function constructExternalsWithSubpaths(baseExternals = {}) {
   };
 }
 
-
-
 module.exports = ({ entryFile, outputDir, externals = [] }) => {
   fs.mkdirSync(outputDir, { recursive: true });
 
   const { externalsObject, externalsRegexes } = constructExternalsWithSubpaths(
-  constructExternals(externals)
-);
+    constructExternals(externals)
+  );
 
   return {
     entry: {
@@ -148,33 +148,32 @@ module.exports = ({ entryFile, outputDir, externals = [] }) => {
       minimize: true,
     },
     module: {
-    rules: [
-      {
-        test: /.(ts|tsx|js|jsx)$/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            cacheDirectory: true,
-            cacheCompression: false,
-            presets: ['module:@react-native/babel-preset'],//['module:@react-native/babel-preset', { enableBabelRuntime: false} ]]
+      rules: [
+        {
+          test: /.(ts|tsx|js|jsx)$/,
+          use: {
+            loader: "babel-loader",
+            options: {
+              cacheDirectory: true,
+              cacheCompression: false,
+              presets: ["module:@react-native/babel-preset"], //['module:@react-native/babel-preset', { enableBabelRuntime: false} ]]
+            },
           },
         },
-      },
-      {
-        test: /\.(ttf|otf|eot|woff|woff2)$/,
-        use: {
-          loader: 'url-loader',
+        {
+          test: /\.(ttf|otf|eot|woff|woff2)$/,
+          use: {
+            loader: "url-loader",
+          },
+          include: [
+            path.join(__dirname, "node_modules", "react-native-vector-icons"),
+          ],
         },
-        include: [
-          path.join(__dirname, 'node_modules', 'react-native-vector-icons')
-        ],
-      },
-      {
-        type: 'asset/resource',
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
-      },
-    ]
+        {
+          type: "asset/resource",
+          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        },
+      ],
     },
   };
 };
-
