@@ -164,15 +164,10 @@ object Actions {
         var updateUrl: String? = null
 
         val latestBuildNumberAndroid = manifest.latestBuildNumberAndroid
-        if (latestBuildNumberAndroid == null) {
-            Log.d(APPTILE_LOG_TAG, "OTA Check: No latestBuildNumberAndroid in manifest.")
-            return@withContext Pair(updateRequired, updateUrl) // Return false, null URL if no Android build number
-        }
-
         val currentBuildNumber = BuildConfig.VERSION_CODE
 
-        // *** Core Check ***
-        if (currentBuildNumber < latestBuildNumberAndroid) {
+        // *** Core Check for Build Number (Hard Update) ***
+        if (latestBuildNumberAndroid != null && currentBuildNumber < latestBuildNumberAndroid) {
             Log.i(APPTILE_LOG_TAG, "OTA Check: Found newer build ($latestBuildNumberAndroid > $currentBuildNumber). App restart will be prevented.")
             // Indicate update needed, return the app store URL from manifest
             updateRequired = true
@@ -180,9 +175,14 @@ object Actions {
             return@withContext Pair(updateRequired, updateUrl)
         }
 
-        Log.d(APPTILE_LOG_TAG, "OTA Check: Current build ($currentBuildNumber) is up-to-date or newer than manifest ($latestBuildNumberAndroid). Checking bundle/commit.")
+        // Log appropriate message based on build number availability
+        if (latestBuildNumberAndroid == null) {
+            Log.d(APPTILE_LOG_TAG, "OTA Check: No latestBuildNumberAndroid in manifest. Proceeding with bundle/commit check.")
+        } else {
+            Log.d(APPTILE_LOG_TAG, "OTA Check: Current build ($currentBuildNumber) is up-to-date or newer than manifest ($latestBuildNumberAndroid). Checking bundle/commit.")
+        }
 
-        // Continue with commit/bundle check ONLY if build number is sufficient
+        // Continue with commit/bundle check (soft OTA)
         val trackerData =
             readFileContent(File(context.filesDir, BUNDLE_TRACKER_FILE_NAME).absolutePath)
 
@@ -203,7 +203,7 @@ object Actions {
                 "OTA Check: latestCommitId=$latestCommitId, localCommitId=$localCommitId, " + "localAndroidBundleId=$localBundleId, latestAndroidBundleId=$latestBundleId"
             )
 
-            if (latestCommitId != null && latestBundleId != null) {
+            if (latestCommitId != null || latestBundleId != null) {
 
                 val shouldUpdateCommit = latestCommitId != localCommitId
                 val shouldUpdateBundle =
@@ -218,7 +218,7 @@ object Actions {
                             latestCommitId
                         )
                     )
-                    if (shouldUpdateBundle) updateStatus.add(
+                    if (shouldUpdateBundle && latestBundleId != null) updateStatus.add(
                         updateBundle(
                             context, latestBundleId, latestBundleUrl
                         )
