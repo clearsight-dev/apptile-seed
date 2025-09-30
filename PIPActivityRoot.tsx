@@ -14,6 +14,19 @@ import ZegoExpressEngine, {
 
 const {PIPModule} = NativeModules;
 const ScreenDims = Dimensions.get('screen');
+const clampAspectRatio = (w, h) => {
+  const ratio = w / h;
+  const min = 0.41841;
+  const max = 2.39;
+
+  if (ratio < min) {
+    return {width: 167.364, height: 380}; // ~0.41841
+  }
+  if (ratio > max) {
+    return {width: 355, height: 150}; // ~2.39
+  }
+  return {width: w, height: h};
+};
 
 export default function PIPActivity() {
   const zgViewRef = useRef(null);
@@ -47,7 +60,9 @@ export default function PIPActivity() {
         0xffffff,
       );
       console.log('Entering PIP mode IN JS');
-      PIPModule.enterPictureInPictureMode(ScreenDims.width, ScreenDims.height);
+
+      const safeDims = clampAspectRatio(ScreenDims.width, ScreenDims.height);
+      PIPModule.enterPictureInPictureMode(safeDims.width, safeDims.height);
       zegoInstance.startPlayingStream(streamId, zegoViewInstance, undefined);
     }
     return () => {
