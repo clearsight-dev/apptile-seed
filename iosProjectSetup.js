@@ -361,10 +361,7 @@ async function main() {
     const success = await downloadIconAndSplash(apptileConfig);
     if (success && os.platform() === 'darwin') {
       await generateIconSet(
-        path.resolve(
-          __dirname,
-          'scripts/ios/iconset-generator.sh',
-        ),
+        path.resolve(__dirname, 'scripts/ios/iconset-generator.sh'),
       );
     }
 
@@ -461,11 +458,13 @@ async function main() {
 
     infoPlist.APPTILE_API_ENDPOINT = apptileConfig.APPTILE_BACKEND_URL;
     infoPlist.APPTILE_UPDATE_ENDPOINT = apptileConfig.APPCONFIG_SERVER_URL;
-    infoPlist.APP_ID = apptileConfig.APP_ID; 
+    infoPlist.APP_ID = apptileConfig.APP_ID;
     infoPlist.CFBundleDisplayName = apptileConfig.app_name || 'Apptile Seed';
-    infoPlist.APPTILE_APP_HOST = `https://${apptileConfig.app_host}` || "apptile.com"
-    infoPlist.APPTILE_APP_HOST_2 = `https://${apptileConfig.app_host_2}` || "apptile.io"
-    infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`
+    infoPlist.APPTILE_APP_HOST =
+      `https://${apptileConfig.app_host}` || 'apptile.com';
+    infoPlist.APPTILE_APP_HOST_2 =
+      `https://${apptileConfig.app_host_2}` || 'apptile.io';
+    infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`;
 
     const bundle_id =
       apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
@@ -621,6 +620,24 @@ async function main() {
         extraModules,
         parsedReactNativeConfig,
       );
+    }
+
+    // For Segment Analytics
+    if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
+      // Handle Segment Analytics key for Info.plist
+      if (
+        apptileConfig.apptile_analytics_segment_key ||
+        process.env.apptile_analytics_segment_key
+      ) {
+        const segment_analyticsKey =
+          apptileConfig.apptile_analytics_segment_key ||
+          process.env.apptile_analytics_segment_key;
+        infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segment_analyticsKey;
+      } else {
+        infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
+      }
+    } else {
+      infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
     }
 
     const updatedPlist = plist.build(infoPlist);
