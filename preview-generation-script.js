@@ -109,69 +109,6 @@ const getBackendUrl = (isStaging = false) => {
   return isStaging ? 'https://dev-api.apptile.io' : 'https://api.tile.dev';
 };
 
-const metroCodegenPlugins = async (remoteCode = '', pluginNames = []) => {
-  console.log(
-    '[metroCodegenPlugins] Generating plugins:',
-    remoteCode,
-    pluginNames,
-  );
-  try {
-    let contents = `export function initPlugins() {
-return [
-`;
-    for (let name of pluginNames) {
-      let entry = 'source/widget';
-      const camelCasePackageName = toCamelCase(name);
-      contents =
-        `import ${camelCasePackageName} from "./plugins/${name}/${entry}";\n` +
-        contents;
-      contents += `    ${camelCasePackageName},\n`;
-    }
-    contents =
-      '// This file is generated. Do not edit.\n' + contents + '  ];\n}';
-    const iosRemoteEntryPath = path.resolve(remoteCode, 'index.js');
-    await writeFile(iosRemoteEntryPath, contents);
-    console.log('[metroCodegenPlugins] Wrote plugins to:', iosRemoteEntryPath);
-  } catch (error) {
-    console.error('[metroCodegenPlugins] Error:', error);
-    throw error;
-  }
-};
-
-const metroCodegenNavs = async (remoteCode = '', navNames = []) => {
-  console.log(
-    '[metroCodegenNavs] Generating navigators:',
-    remoteCode,
-    navNames,
-  );
-  try {
-    let contents = `import {registerCreator} from 'apptile-core';
-export const navs = [
-`;
-    for (let name of navNames) {
-      const camelCasePackageName = toCamelCase(name);
-      contents =
-        `import ${camelCasePackageName} from "./navigators/${name}/source";\n` +
-        contents;
-      contents += `  {creator: ${camelCasePackageName}, name: "${name}" },\n`;
-    }
-    contents += `];\n
-export function initNavs() {
-  for (let nav of navs) {
-    registerCreator(nav.name, nav.creator);
-  }
-}
-  `;
-    contents = `// This file is generated. Do not edit.\n` + contents;
-    const iosRemoteNavEntry = path.resolve(remoteCode, 'indexNav.js');
-    await writeFile(iosRemoteNavEntry, contents);
-    console.log('[metroCodegenNavs] Wrote navigators to:', iosRemoteNavEntry);
-  } catch (error) {
-    console.error('[metroCodegenNavs] Error:', error);
-    throw error;
-  }
-};
-
 const ensurePlugins = async path => {
   console.log('[ensurePlugins] Ensuring plugins directory exists:', path);
   try {
@@ -185,113 +122,22 @@ const ensurePlugins = async path => {
   }
 };
 
-const generateIosBundle = async () => {
+const generateIosBundle = async (appRoot) => {
   console.log('[generateIosBundle] Generating iOS bundle');
   try {
-    const remoteCode = path.resolve('remoteCode');
-    const pluginsDir = path.resolve(remoteCode, 'plugins');
-    await ensurePlugins(pluginsDir);
-    const pluginEntries = await readdir(pluginsDir, {withFileTypes: true});
-    const plugins = pluginEntries
-      .filter(it => it.isDirectory())
-      .map(it => it.name);
-    const navDir = path.resolve(remoteCode, 'navigators');
-    await ensurePlugins(navDir);
-    const navEntries = await readdir(navDir, {withFileTypes: true});
-    const navs = navEntries.filter(it => it.isDirectory()).map(it => it.name);
-
-    await metroCodegenPlugins(remoteCode, plugins);
-    await metroCodegenNavs(remoteCode, navs);
-
-    const extraModulesPath = path.resolve('extra_modules.json');
-
-    try {
-      await stat(extraModulesPath);
-    } catch (error) {
-      console.log(
-        '[generateIosBundle] extra_modules.json not found, running iosProjectSetup.js',
-      );
-      const iosProjectSetupPath = path.resolve(appRoot, 'iosProjectSetup.js');
-      try {
-        await executeCommand('node', [iosProjectSetupPath], {
-          cwd: path.resolve(appRoot),
-        });
-        console.log('[generateIosBundle] Successfully ran iosProjectSetup.js');
-      } catch (err) {
-        console.error(
-          '[generateIosBundle] Error running iosProjectSetup.js:',
-          err,
-        );
-        throw err;
-      }
-    }
-
-    try {
-      const bundleArgs = [
-        'bundle',
-        '--entry-file',
-        './index.js',
-        '--platform',
-        'ios',
-        '--dev',
-        'false',
-        '--minify',
-        'true',
-        '--bundle-output',
-        './ios/main.jsbundle',
-        '--assets-dest',
-        './ios/bundleassets',
-      ];
-
-      console.log('[generateIosBundle] Starting React Native bundle command');
-      await executeCommand('node_modules/.bin/react-native', bundleArgs, {
-        cwd: path.resolve(appRoot),
-      });
-      console.log('[generateIosBundle] Successfully bundled iOS app');
-    } catch (err) {
-      console.error('[generateIosBundle] Error bundling iOS app:', err);
-      throw err;
-    }
-
-    const timestamp = Date.now();
-    const generatedPath = path.resolve(
-      remoteCode,
-      `generated/bundles/ios/${timestamp}`,
-    );
-    await mkdir(generatedPath, {recursive: true});
-
-    return await new Promise((resolve, reject) => {
-      const bundleDestination = path.resolve(generatedPath, 'bundle.zip');
-      const writeStream = createWriteStream(bundleDestination);
-      writeStream.on('close', () => {
-        resolve({bundleDestination});
-      });
-      writeStream.on('error', err => {
-        console.error('[generateIosBundle] Error writing bundle zip:', err);
-        reject(err);
-      });
-      const archive = archiver('zip', {zlib: {level: 9}});
-      archive.on('warning', wrn => {
-        console.warn('[generateIosBundle] archiver warning: ', wrn);
-      });
-
-      archive.on('error', err => {
-        if (err) {
-          console.error('[generateIosBundle] Failure in archiver ', err);
-        }
-        reject(err);
-      });
-      archive.pipe(writeStream);
-
-      archive.file(path.resolve(appRoot, 'ios/main.jsbundle'), {
-        name: 'main.jsbundle',
-      });
-      archive.directory(path.resolve(appRoot, 'ios/bundleassets'), false);
-      archive.finalize();
+    const {stdout} = await executeCommand("tile", ["bundle", "--platform", "ios"], {
+      cwd: path.resolve(appRoot)
     });
-  } catch (error) {
+    if (stdout.indexOf("IOS: ") < 0) {
+      throw new Error("Could not locate the bundle");
+    } else {
+      const pathStart = stdout.indexOf("IOS: ");
+      const bundleDestination = stdout.substr(pathStart + "IOS: ".length).trim();
+      return {bundleDestination};
+    }
+  } catch(error) {
     console.error('[generateIosBundle] Error:', error);
-    throw error;
+    throw error
   }
 };
 
@@ -533,11 +379,11 @@ const uploadMobileBundle = async (bundleName, os) => {
       );
     }
 
-    const {err, gitsha, sdksha} = await getGitShas();
-    if (err) {
-      console.error('[uploadMobileBundle] Failed to retrieve git shas');
-      throw new Error(`Failed to retrieve git shas: ${err.message}`);
-    }
+    // const {err, gitsha, sdksha} = await getGitShas();
+    // if (err) {
+    //   console.error('[uploadMobileBundle] Failed to retrieve git shas');
+    //   throw new Error(`Failed to retrieve git shas: ${err.message}`);
+    // }
 
     const formData = new FormData();
     formData.append('assetZipFile', createReadStream(assetZip));
@@ -545,8 +391,8 @@ const uploadMobileBundle = async (bundleName, os) => {
       'uploadDestination',
       os === 'ios' ? 'ios-jsbundle' : 'android-jsbundle',
     );
-    formData.append('gitsha', gitsha);
-    formData.append('sdksha', sdksha);
+    formData.append('gitsha', 'f6d73bccad27015c7fc84b166557b85cb792878b'); // gitsha);
+    formData.append('sdksha', 'f6d73bccad27015c7fc84b166557b85cb792878b'); // sdksha);
     formData.append('tag', 'sometag');
 
     const headers = makeHeaders(formData.getHeaders?.() || {});
@@ -595,7 +441,7 @@ const main = async (
   publishedCommitId,
   isStaging,
 ) => {
-  console.log('[main] Starting main function');
+  console.log(`[main] Starting main function appId: ${appId}, forkId: ${forkId}, branchName: ${branchName}, publishedCommitId: ${publishedCommitId}, isStaging: ${isStaging}`);
   try {
     const config = JSON.parse(
       await readFile(path.join(appRoot, 'apptile.config.json'), 'utf-8'),
@@ -617,21 +463,21 @@ const main = async (
     const iosBundle = await generateIosBundle(appRoot);
     const iosTimestamp = iosBundle.bundleDestination.split('/').at(-2);
 
-    const androidBundle = await generateAndroidBundle(appRoot);
-    const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
+    // const androidBundle = await generateAndroidBundle(appRoot);
+    // const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
 
     console.log('[main] Uploading iOS bundle:', iosTimestamp);
-    console.log('[main] Uploading Android bundle:', androidTimestamp);
+    // console.log('[main] Uploading Android bundle:', androidTimestamp);
 
     // const [iosResult, androidResult] = await Promise.all([
     //   uploadMobileBundle(iosTimestamp, 'ios'),
     //   uploadMobileBundle(androidTimestamp, 'android'),
     // ]);
     const iosResult = await uploadMobileBundle(iosTimestamp, 'ios');
-    const androidResult = await uploadMobileBundle(androidTimestamp, 'android');
+    // const androidResult = await uploadMobileBundle(androidTimestamp, 'android');
 
     console.log('[main] iOS upload result:', iosResult);
-    console.log('[main] Android upload result:', androidResult);
+    // console.log('[main] Android upload result:', androidResult);
 
     try {
       const draftResult = await axios.put(
@@ -642,7 +488,7 @@ const main = async (
           androidBundleUrlStatus: 'done',
           iosBundleUrlStatus: 'done',
           iosBundleUrl: iosResult.data.cdnlink,
-          androidBundleUrl: androidResult.data.cdnlink,
+          androidBundleUrl: iosResult.data.cdnlink, // androidResult.data.cdnlink,
           publishedCommitId,
         },
         makeHeaders({}),
