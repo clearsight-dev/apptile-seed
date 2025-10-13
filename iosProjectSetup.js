@@ -307,6 +307,43 @@ async function removeOnesignal(
   );
 }
 
+async function addAppTrackingTransparency(infoPlist, apptileConfig) {
+  const defaultMessage =
+    apptileConfig.appTrackingTransparencyMessage ||
+    'Opting in to tracking allows our App to provide personalized offering to you across a variety of channels. This helps us show you the products and recommendations that you would be most interested in.';
+
+  infoPlist.NSUserTrackingUsageDescription = defaultMessage;
+}
+
+async function removeAppTrackingTransparency(infoPlist) {
+  delete infoPlist.NSUserTrackingUsageDescription;
+}
+
+async function addIpadSupport(infoPlist) {
+  // Set orientations for iPhone (portrait only by default)
+  infoPlist.UISupportedInterfaceOrientations = [
+    'UIInterfaceOrientationPortrait',
+  ];
+
+  // Set orientations for iPad (all orientations)
+  infoPlist['UISupportedInterfaceOrientations~ipad'] = [
+    'UIInterfaceOrientationPortrait',
+    'UIInterfaceOrientationPortraitUpsideDown',
+    'UIInterfaceOrientationLandscapeLeft',
+    'UIInterfaceOrientationLandscapeRight',
+  ];
+}
+
+async function removeIpadSupport(infoPlist) {
+  // Keep only portrait for iPhone
+  infoPlist.UISupportedInterfaceOrientations = [
+    'UIInterfaceOrientationPortrait',
+  ];
+
+  // Remove iPad-specific orientations
+  delete infoPlist['UISupportedInterfaceOrientations~ipad'];
+}
+
 async function addZego(
   infoPlist,
   imageNotificationPlist,
@@ -315,17 +352,58 @@ async function addZego(
   parsedReactNativeConfig,
   extraModules,
 ) {
-  infoPlist.NSCameraUsageDescription = 'Access camera for live streaming';
-  infoPlist.NSLocationWhenInUseUsageDescription = '';
-  infoPlist.NSMicrophoneUsageDescription = 'Microphone for Live Streaming';
-  infoPlist.NSUserTrackingUsageDescription =
-    'Your privacy matters. We collect usage data to enhance your app experience. Rest assured, your information is handled securely and used solely for improvement';
+  // Add camera and microphone permissions for live streaming
+  infoPlist.NSCameraUsageDescription =
+    apptileConfig.cameraPermissionMessage || 'Access camera for live streaming';
+  infoPlist.NSMicrophoneUsageDescription =
+    apptileConfig.microphonePermissionMessage ||
+    'Microphone for Live Streaming';
 
-  await removeForceUnlinkForNativePackage(
-    'zego-express-engine-reactnative',
-    extraModules,
-    parsedReactNativeConfig,
-  );
+  // Add ENABLE_LIVELY_PIP to Info.plist when PIP is enabled
+  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+    infoPlist.ENABLE_LIVELY_PIP = 'true';
+  }
+
+  // Check if we should use local PIP version
+  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+    // Use local copy instead of node_modules
+    parsedReactNativeConfig.dependencies['zego-express-engine-reactnative'] = {
+      root: path.resolve(__dirname, './zego-express-engine-reactnative'),
+      platforms: {
+        ios: {
+          podspecPath: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/react-native-zego-express-engine.podspec',
+          ),
+          version: '3.14.5',
+          configurations: [],
+          scriptPhases: [],
+        },
+        android: {
+          sourceDir: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/android',
+          ),
+          packageImportPath:
+            'import im.zego.reactnative.RCTZegoExpressEnginePackage;',
+          packageInstance: 'new RCTZegoExpressEnginePackage()',
+          buildTypes: [],
+          componentDescriptors: [],
+          cmakeListsPath: path.resolve(
+            __dirname,
+            './zego-express-engine-reactnative/android/build/generated/source/codegen/jni/CMakeLists.txt',
+          ),
+        },
+      },
+    };
+  } else {
+    // Use regular node_modules version
+    await removeForceUnlinkForNativePackage(
+      'zego-express-engine-reactnative',
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  }
 }
 
 async function removeZego(
@@ -335,6 +413,14 @@ async function removeZego(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  // Remove camera and microphone permissions
+  delete infoPlist.NSCameraUsageDescription;
+  delete infoPlist.NSMicrophoneUsageDescription;
+
+  // Remove ENABLE_LIVELY_PIP from Info.plist
+  delete infoPlist.ENABLE_LIVELY_PIP;
+
+  // Always force unlink when removing zego (regardless of PIP setting)
   await addForceUnlinkForNativePackage(
     'zego-express-engine-reactnative',
     extraModules,
@@ -638,6 +724,20 @@ async function main() {
       }
     } else {
       infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
+    }
+
+    // For App Tracking Transparency
+    if (apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY) {
+      await addAppTrackingTransparency(infoPlist, apptileConfig);
+    } else {
+      await removeAppTrackingTransparency(infoPlist);
+    }
+
+    // For iPad Support
+    if (apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT) {
+      await addIpadSupport(infoPlist);
+    } else {
+      await removeIpadSupport(infoPlist);
     }
 
     const updatedPlist = plist.build(infoPlist);
