@@ -56,8 +56,8 @@ import { loadDatasourcePlugins } from 'apptile-datasource';
 import { initPlugins } from 'apptile-plugins';
 // __EXTRA_LEGACY_PLUGIN_IMPORTS__
 
-import { initNavs } from '../remoteCode/indexNav';
-import { initPlugins as initRemotePlugins } from '../remoteCode';
+import { initNavs } from '../src/indexNav';
+import { initPlugins as initRemotePlugins } from '../src';
 
 initStoreWithRootSagas();
 loadDatasourcePlugins();
@@ -67,7 +67,7 @@ initNavs();
 
 // The plugins initialized here will not be available in the web
 // as an addon. This is only meant for toggling exsiting plugins which
-// are tightly integrated with apptile-core. Use remoteCode folder for
+// are tightly integrated with apptile-core. Use src folder for
 // everything else
 // __EXTRA_LEGACY_INITIALIZERS__
 
