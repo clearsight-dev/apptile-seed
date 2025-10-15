@@ -14,8 +14,8 @@ import { loadDatasourcePlugins } from 'apptile-datasource';
 import { initPlugins } from 'apptile-plugins';
 // __EXTRA_LEGACY_PLUGIN_IMPORTS__
 
-import { initNavs } from '../remoteCode/indexNav';
-import { initPlugins as initRemotePlugins } from '../remoteCode';
+import { initNavs } from '../src/indexNav';
+import { initPlugins as initRemotePlugins } from '../src';
 
 initStoreWithRootSagas();
 loadDatasourcePlugins();
