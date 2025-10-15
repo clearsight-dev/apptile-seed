@@ -144,119 +144,16 @@ const generateIosBundle = async (appRoot) => {
 const generateAndroidBundle = async () => {
   console.log('[generateAndroidBundle] Generating Android bundle');
   try {
-    const remoteCode = path.resolve('remoteCode');
-    const pluginsDir = path.resolve(remoteCode, 'plugins');
-    const pluginEntries = await readdir(pluginsDir, {withFileTypes: true});
-    const plugins = pluginEntries
-      .filter(it => it.isDirectory())
-      .map(it => it.name);
-    const navDir = path.resolve(remoteCode, 'navigators');
-    const navEntries = await readdir(navDir, {withFileTypes: true});
-    const navs = navEntries.filter(it => it.isDirectory()).map(it => it.name);
-
-    await metroCodegenPlugins(remoteCode, plugins);
-    await metroCodegenNavs(remoteCode, navs);
-
-    const extraModulesPath = path.resolve('extra_modules.json');
-
-    try {
-      await stat(extraModulesPath);
-    } catch (error) {
-      console.log(
-        '[generateAndroidBundle] extra_modules.json not found, running androidProjectSetup.js',
-      );
-      const androidProjectSetupPath = path.resolve(
-        appRoot,
-        'androidProjectSetup.js',
-      );
-      try {
-        await executeCommand('node', [androidProjectSetupPath], {
-          cwd: path.resolve(appRoot),
-        });
-        console.log(
-          '[generateAndroidBundle] Successfully ran androidProjectSetup.js',
-        );
-      } catch (err) {
-        console.error(
-          '[generateAndroidBundle] Error running androidProjectSetup.js:',
-          err,
-        );
-        throw err;
-      }
-    }
-
-    try {
-      const bundleArgs = [
-        'bundle',
-        '--entry-file',
-        './index.js',
-        '--platform',
-        'android',
-        '--dev',
-        'false',
-        '--minify',
-        'true',
-        '--bundle-output',
-        './android/app/src/main/assets/index.android.bundle',
-        '--assets-dest',
-        './android/app/src/main/assets/assets',
-      ];
-
-      console.log(
-        '[generateAndroidBundle] Starting React Native bundle command',
-      );
-      await executeCommand('node_modules/.bin/react-native', bundleArgs, {
-        cwd: path.resolve(appRoot),
-      });
-      console.log('[generateAndroidBundle] Successfully bundled Android app');
-    } catch (err) {
-      console.error('[generateAndroidBundle] Error bundling Android app:', err);
-      throw err;
-    }
-
-    const timestamp = Date.now();
-    const generatedPath = path.resolve(
-      remoteCode,
-      `generated/bundles/android/${timestamp}`,
-    );
-    await mkdir(generatedPath, {recursive: true});
-
-    return await new Promise((resolve, reject) => {
-      const bundleDestination = path.resolve(generatedPath, 'bundle.zip');
-      const writeStream = createWriteStream(bundleDestination);
-      writeStream.on('close', () => {
-        resolve({bundleDestination});
-      });
-      writeStream.on('error', err => {
-        console.error('[generateAndroidBundle] Error writing bundle zip:', err);
-        reject(err);
-      });
-      const archive = archiver('zip', {zlib: {level: 9}});
-      archive.on('warning', wrn => {
-        console.warn('[generateAndroidBundle] archiver warning: ', wrn);
-      });
-
-      archive.on('error', err => {
-        if (err) {
-          console.error('[generateAndroidBundle] Failure in archiver ', err);
-        }
-        reject(err);
-      });
-      archive.pipe(writeStream);
-
-      archive.file(
-        path.resolve(
-          appRoot,
-          'android/app/src/main/assets/index.android.bundle',
-        ),
-        {name: 'index.android.bundle'},
-      );
-      archive.directory(
-        path.resolve(appRoot, 'android/app/src/main/assets/assets'),
-        false,
-      );
-      archive.finalize();
+    const {stdout} = await executeCommand("tile", ["bundle", "--platform", "android"], {
+      cwd: path.resolve(appRoot)
     });
+    if (stdout.indexOf("ANDROID: ") < 0) {
+      throw new Error("Could not locate the bundle");
+    } else {
+      const pathStart = stdout.indexOf("IOS: ");
+      const bundleDestination = stdout.substr(pathStart + "ANDROID: ".length).trim();
+      return {bundleDestination};
+    }
   } catch (error) {
     console.error('[generateAndroidBundle] Error:', error);
     throw error;
@@ -441,19 +338,19 @@ const main = async (
   publishedCommitId,
   isStaging,
 ) => {
-  console.log(`[main] Starting main function appId: ${appId}, forkId: ${forkId}, branchName: ${branchName}, publishedCommitId: ${publishedCommitId}, isStaging: ${isStaging}`);
+  console.log('[main] Starting main function');
   try {
-    const config = JSON.parse(
-      await readFile(path.join(appRoot, 'apptile.config.json'), 'utf-8'),
-    );
+    // const config = JSON.parse(
+    //   await readFile(path.join(appRoot, 'apptile.config.json'), 'utf-8'),
+    // );
 
-    config.SDK_PATH = path.resolve(appRoot, '../ReactNativeTSProjeect');
-    config.APP_ID = appId;
+    // config.SDK_PATH = path.resolve(appRoot, '../ReactNativeTSProjeect');
+    // config.APP_ID = appId;
 
-    await writeFile(
-      path.join(appRoot, 'apptile.config.json'),
-      JSON.stringify(config, null, 2),
-    );
+    // await writeFile(
+    //   path.join(appRoot, 'apptile.config.json'),
+    //   JSON.stringify(config, null, 2),
+    // );
 
     // const [iosBundle, androidBundle] = await Promise.all([
     //   generateIosBundle(appRoot),
@@ -463,21 +360,21 @@ const main = async (
     const iosBundle = await generateIosBundle(appRoot);
     const iosTimestamp = iosBundle.bundleDestination.split('/').at(-2);
 
-    // const androidBundle = await generateAndroidBundle(appRoot);
-    // const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
+    const androidBundle = await generateAndroidBundle(appRoot);
+    const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
 
     console.log('[main] Uploading iOS bundle:', iosTimestamp);
-    // console.log('[main] Uploading Android bundle:', androidTimestamp);
+    console.log('[main] Uploading Android bundle:', androidTimestamp);
 
     // const [iosResult, androidResult] = await Promise.all([
     //   uploadMobileBundle(iosTimestamp, 'ios'),
     //   uploadMobileBundle(androidTimestamp, 'android'),
     // ]);
     const iosResult = await uploadMobileBundle(iosTimestamp, 'ios');
-    // const androidResult = await uploadMobileBundle(androidTimestamp, 'android');
+    const androidResult = await uploadMobileBundle(androidTimestamp, 'android');
 
     console.log('[main] iOS upload result:', iosResult);
-    // console.log('[main] Android upload result:', androidResult);
+    console.log('[main] Android upload result:', androidResult);
 
     try {
       const draftResult = await axios.put(
@@ -488,13 +385,13 @@ const main = async (
           androidBundleUrlStatus: 'done',
           iosBundleUrlStatus: 'done',
           iosBundleUrl: iosResult.data.cdnlink,
-          androidBundleUrl: iosResult.data.cdnlink, // androidResult.data.cdnlink,
+          androidBundleUrl: androidResult.data.cdnlink,
           publishedCommitId,
         },
         makeHeaders({}),
       );
 
-      console.log('[main] Draft creation response:', draftResult);
+      console.log('[main] Draft creation response:', draftResult.data);
 
       if (draftResult.status >= 400) {
         try {
