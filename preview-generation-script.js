@@ -76,6 +76,7 @@ const forkId = previewConfig.forkId;
 const branchName = previewConfig.branchName;
 const publishedCommitId = previewConfig.publishedCommitId;
 const isStaging = previewConfig.isStaging;
+const message = (previewConfig.message || "no message");
 
 let SDK_SHA = '';
 let GIT_SHA = '';
@@ -91,130 +92,28 @@ console.log(
 
 const appRoot = __dirname;
 
-const toCamelCase = kebabCaseName => {
-  console.log(
-    '[toCamelCase] Converting kebab case to camel case:',
-    kebabCaseName,
-  );
-  const words = kebabCaseName.split('-');
-  for (let i = 1; i < words.length; ++i) {
-    words[i] = words[i][0].toUpperCase() + words[i].slice(1);
-  }
-  console.log('[toCamelCase] Converted to camel case:', words.join(''));
-  return words.join('');
-};
-
 const getBackendUrl = (isStaging = false) => {
   console.log('[getBackendUrl] Getting backend URL:', isStaging);
   return isStaging ? 'https://dev-api.apptile.io' : 'https://api.tile.dev';
 };
 
-const ensurePlugins = async path => {
-  console.log('[ensurePlugins] Ensuring plugins directory exists:', path);
+const generateBundle = async (appRoot, message, platform) => {
+  console.log(`[generateBundle] Generating ${platform} bundle`);
   try {
-    await stat(path);
-  } catch (err) {
-    console.error('[ensurePlugins] Error checking path:', err);
-    if (err?.code === 'ENOENT') {
-      await mkdir(path, {recursive: true});
-      console.log('[ensurePlugins] Created plugins directory:', path);
-    }
-  }
-};
-
-const generateIosBundle = async (appRoot) => {
-  console.log('[generateIosBundle] Generating iOS bundle');
-  try {
-    const {stdout} = await executeCommand("tile", ["bundle", "--platform", "ios"], {
+    const {stdout} = await executeCommand("tile", ["bundle", "--platform", platform, "--message", JSON.stringify(message)], {
       cwd: path.resolve(appRoot)
     });
-    if (stdout.indexOf("IOS: ") < 0) {
+    const tag = platform.toUpperCase() + ": ";
+    if (stdout.indexOf(tag) < 0) {
       throw new Error("Could not locate the bundle");
     } else {
-      const pathStart = stdout.indexOf("IOS: ");
-      const bundleDestination = stdout.substr(pathStart + "IOS: ".length).trim();
+      const pathStart = stdout.indexOf(tag);
+      const bundleDestination = stdout.substr(pathStart + tag.length).trim();
       return {bundleDestination};
     }
   } catch(error) {
-    console.error('[generateIosBundle] Error:', error);
+    console.error('[generateBundle] Error:', error);
     throw error
-  }
-};
-
-const generateAndroidBundle = async () => {
-  console.log('[generateAndroidBundle] Generating Android bundle');
-  try {
-    const {stdout} = await executeCommand("tile", ["bundle", "--platform", "android"], {
-      cwd: path.resolve(appRoot)
-    });
-    if (stdout.indexOf("ANDROID: ") < 0) {
-      throw new Error("Could not locate the bundle");
-    } else {
-      const pathStart = stdout.indexOf("IOS: ");
-      const bundleDestination = stdout.substr(pathStart + "ANDROID: ".length).trim();
-      return {bundleDestination};
-    }
-  } catch (error) {
-    console.error('[generateAndroidBundle] Error:', error);
-    throw error;
-  }
-};
-
-const getGitShas = async () => {
-  if (SDK_SHA && GIT_SHA) {
-    return {err: false, gitsha: GIT_SHA, sdksha: SDK_SHA};
-  }
-  console.log('[getGitShas] Getting Git SHAs');
-  try {
-    let sdksha = '';
-    try {
-      console.log('[getGitShas] Getting SDK Git SHA');
-      const sdkResult = await executeCommand(
-        'git',
-        ['log', '-n', '1', '--format=format:%H'],
-        {
-          cwd: path.resolve(appRoot, '../ReactNativeTSProjeect'),
-        },
-      );
-      sdksha = sdkResult.stdout.trim() || '';
-      console.log('[getGitShas] SDK Git SHA:', sdksha);
-    } catch (err) {
-      console.error(
-        '[getGitShas] Error getting SDK Git SHA:',
-        JSON.stringify(err, null, 2),
-      );
-      throw err;
-    }
-
-    let gitsha = '';
-    try {
-      console.log('[getGitShas] Getting app Git SHA');
-      const appResult = await executeCommand(
-        'git',
-        ['log', '-n', '1', '--format=format:%H'],
-        {
-          cwd: path.resolve('remoteCode'),
-        },
-      );
-      gitsha = appResult.stdout.trim() || '';
-      console.log('[getGitShas] App Git SHA:', gitsha);
-    } catch (err) {
-      console.error(
-        '[getGitShas] Error getting app Git SHA:',
-        JSON.stringify(err, null, 2),
-      );
-      throw err;
-    }
-
-    SDK_SHA = sdksha;
-    GIT_SHA = gitsha;
-    return {err: false, gitsha, sdksha};
-  } catch (err) {
-    console.error(
-      '[getGitShas] Error getting Git SHAs:',
-      JSON.stringify(err, null, 2),
-    );
-    return {err};
   }
 };
 
@@ -337,39 +236,40 @@ const main = async (
   branchName,
   publishedCommitId,
   isStaging,
+  message
 ) => {
   console.log('[main] Starting main function');
   try {
-    // const config = JSON.parse(
-    //   await readFile(path.join(appRoot, 'apptile.config.json'), 'utf-8'),
-    // );
+    const config = JSON.parse(
+      await readFile(path.join(appRoot, 'apptile.config.json'), 'utf-8'),
+    );
 
-    // config.SDK_PATH = path.resolve(appRoot, '../ReactNativeTSProjeect');
-    // config.APP_ID = appId;
+    config.SDK_PATH = path.resolve(appRoot, '../ReactNativeTSProjeect');
+    config.APP_ID = appId;
 
+    await writeFile(
+      path.join(appRoot, 'apptile.config.json'),
+      JSON.stringify(config, null, 2),
+    );
+
+    // const currentDateString = Intl.DateTimeFormat("en-US", {dateStyle: "full", timeStyle: "medium"}).format(Date.now());
     // await writeFile(
-    //   path.join(appRoot, 'apptile.config.json'),
-    //   JSON.stringify(config, null, 2),
-    // );
+    //   path.join(appRoot, "assets", "buildinfo.json"),
+    //   JSON.stringify({
+    //     message,
+    //     createdAt: currentDateString
+    //   }, null, 2)
+    // )
 
-    // const [iosBundle, androidBundle] = await Promise.all([
-    //   generateIosBundle(appRoot),
-    //   generateAndroidBundle(appRoot),
-    // ]);
-
-    const iosBundle = await generateIosBundle(appRoot);
+    const iosBundle = await generateBundle(appRoot, message, "ios");
     const iosTimestamp = iosBundle.bundleDestination.split('/').at(-2);
 
-    const androidBundle = await generateAndroidBundle(appRoot);
+    const androidBundle = await generateBundle(appRoot, message, "android");
     const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
 
     console.log('[main] Uploading iOS bundle:', iosTimestamp);
     console.log('[main] Uploading Android bundle:', androidTimestamp);
 
-    // const [iosResult, androidResult] = await Promise.all([
-    //   uploadMobileBundle(iosTimestamp, 'ios'),
-    //   uploadMobileBundle(androidTimestamp, 'android'),
-    // ]);
     const iosResult = await uploadMobileBundle(iosTimestamp, 'ios');
     const androidResult = await uploadMobileBundle(androidTimestamp, 'android');
 
@@ -415,7 +315,7 @@ const main = async (
 };
 
 console.time('Preview Generation');
-main(appId, forkId, branchName, publishedCommitId, isStaging)
+main(appId, forkId, branchName, publishedCommitId, isStaging, message)
   .then(() => {
     console.log('[main] Preview generation finished successfully!');
   })
