@@ -76,10 +76,7 @@ const forkId = previewConfig.forkId;
 const branchName = previewConfig.branchName;
 const publishedCommitId = previewConfig.publishedCommitId;
 const isStaging = previewConfig.isStaging;
-const message = (previewConfig.message || "no message");
-
-let SDK_SHA = '';
-let GIT_SHA = '';
+const message = previewConfig.message || 'no message';
 
 console.log(
   'Received arguments:',
@@ -100,20 +97,24 @@ const getBackendUrl = (isStaging = false) => {
 const generateBundle = async (appRoot, message, platform) => {
   console.log(`[generateBundle] Generating ${platform} bundle`);
   try {
-    const {stdout} = await executeCommand("tile", ["bundle", "--platform", platform, "--message", JSON.stringify(message)], {
-      cwd: path.resolve(appRoot)
-    });
-    const tag = platform.toUpperCase() + ": ";
+    const {stdout} = await executeCommand(
+      'tile',
+      ['bundle', '--platform', platform, '--message', JSON.stringify(message)],
+      {
+        cwd: path.resolve(appRoot),
+      },
+    );
+    const tag = platform.toUpperCase() + ': ';
     if (stdout.indexOf(tag) < 0) {
-      throw new Error("Could not locate the bundle");
+      throw new Error('Could not locate the bundle');
     } else {
       const pathStart = stdout.indexOf(tag);
       const bundleDestination = stdout.substr(pathStart + tag.length).trim();
       return {bundleDestination};
     }
-  } catch(error) {
+  } catch (error) {
     console.error('[generateBundle] Error:', error);
-    throw error
+    throw error;
   }
 };
 
@@ -175,11 +176,11 @@ const uploadMobileBundle = async (bundleName, os) => {
       );
     }
 
-    // const {err, gitsha, sdksha} = await getGitShas();
-    // if (err) {
-    //   console.error('[uploadMobileBundle] Failed to retrieve git shas');
-    //   throw new Error(`Failed to retrieve git shas: ${err.message}`);
-    // }
+    const {err, gitsha, sdksha} = await getGitShas();
+    if (err) {
+      console.error('[uploadMobileBundle] Failed to retrieve git shas');
+      throw new Error(`Failed to retrieve git shas: ${err.message}`);
+    }
 
     const formData = new FormData();
     formData.append('assetZipFile', createReadStream(assetZip));
@@ -187,8 +188,8 @@ const uploadMobileBundle = async (bundleName, os) => {
       'uploadDestination',
       os === 'ios' ? 'ios-jsbundle' : 'android-jsbundle',
     );
-    formData.append('gitsha', 'f6d73bccad27015c7fc84b166557b85cb792878b'); // gitsha);
-    formData.append('sdksha', 'f6d73bccad27015c7fc84b166557b85cb792878b'); // sdksha);
+    formData.append('gitsha', gitsha);
+    formData.append('sdksha', sdksha);
     formData.append('tag', 'sometag');
 
     const headers = makeHeaders(formData.getHeaders?.() || {});
@@ -236,7 +237,7 @@ const main = async (
   branchName,
   publishedCommitId,
   isStaging,
-  message
+  message,
 ) => {
   console.log('[main] Starting main function');
   try {
@@ -261,10 +262,10 @@ const main = async (
     //   }, null, 2)
     // )
 
-    const iosBundle = await generateBundle(appRoot, message, "ios");
+    const iosBundle = await generateBundle(appRoot, message, 'ios');
     const iosTimestamp = iosBundle.bundleDestination.split('/').at(-2);
 
-    const androidBundle = await generateBundle(appRoot, message, "android");
+    const androidBundle = await generateBundle(appRoot, message, 'android');
     const androidTimestamp = androidBundle.bundleDestination.split('/').at(-2);
 
     console.log('[main] Uploading iOS bundle:', iosTimestamp);
