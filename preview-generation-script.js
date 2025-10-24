@@ -165,6 +165,64 @@ const makeHeaders = (extraHeaders = {}) => {
   };
 };
 
+const getGitShas = async () => {
+  if (SDK_SHA && GIT_SHA) {
+    return {err: false, gitsha: GIT_SHA, sdksha: SDK_SHA};
+  }
+  console.log('[getGitShas] Getting Git SHAs');
+  try {
+    let sdksha = '';
+    try {
+      console.log('[getGitShas] Getting SDK Git SHA');
+      const sdkResult = await executeCommand(
+        'git',
+        ['log', '-n', '1', '--format=format:%H'],
+        {
+          cwd: path.resolve(appRoot, '../ReactNativeTSProjeect'),
+        },
+      );
+      sdksha = sdkResult.stdout.trim() || '';
+      console.log('[getGitShas] SDK Git SHA:', sdksha);
+    } catch (err) {
+      console.error(
+        '[getGitShas] Error getting SDK Git SHA:',
+        JSON.stringify(err, null, 2),
+      );
+      throw err;
+    }
+
+    let gitsha = '';
+    try {
+      console.log('[getGitShas] Getting app Git SHA');
+      const appResult = await executeCommand(
+        'git',
+        ['log', '-n', '1', '--format=format:%H'],
+        {
+          cwd: path.resolve('remoteCode'),
+        },
+      );
+      gitsha = appResult.stdout.trim() || '';
+      console.log('[getGitShas] App Git SHA:', gitsha);
+    } catch (err) {
+      console.error(
+        '[getGitShas] Error getting app Git SHA:',
+        JSON.stringify(err, null, 2),
+      );
+      throw err;
+    }
+
+    SDK_SHA = sdksha;
+    GIT_SHA = gitsha;
+    return {err: false, gitsha, sdksha};
+  } catch (err) {
+    console.error(
+      '[getGitShas] Error getting Git SHAs:',
+      JSON.stringify(err, null, 2),
+    );
+    return {err};
+  }
+};
+
 const uploadMobileBundle = async (bundleName, os) => {
   console.log('[uploadMobileBundle] Uploading mobile bundle:', bundleName, os);
   try {
