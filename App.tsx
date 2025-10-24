@@ -12,6 +12,7 @@ import {
 // import JSSplash from './components/JSSplash';
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
+import BuildInfo from './components/BuildInfo';
 // import FloatingUpdateModal from './components/FloatingUpdateModal';
 import {NativeModules} from 'react-native';
 const {RNApptile} = NativeModules;
@@ -20,6 +21,7 @@ export type ScreenParams = {
   NocodeRoot: undefined;
   NativeUtils: {appId: string};
   AdminPage: {appId: string};
+  BuildInfo: undefined;
 };
 
 // Import the generated code. The folder analytics is generated when you run the app.
@@ -62,6 +64,11 @@ function App(): React.JSX.Element {
           options={{headerShown: true}}
           initialParams={{appId: status.appId}}
         />
+        <Stack.Screen
+          name="BuildInfo"
+          component={BuildInfo}
+          options={{headerShown: true}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -69,7 +76,7 @@ function App(): React.JSX.Element {
   // The nocode layer will not do navigation to these screens so you can handle those navigations in the onNavigationEvent
   return (
     <ApptileWrapper
-      noNavigatePaths={['NativeUtils', 'AdminPage']}
+      noNavigatePaths={['NativeUtils', 'AdminPage', 'BuildInfo']}
       onNavigationEvent={ev => {
         console.log('handle navigation event', ev);
         apptileNavigationRef.current.navigate(ev.screenName, {
