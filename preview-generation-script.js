@@ -89,6 +89,9 @@ console.log(
 
 const appRoot = __dirname;
 
+let GIT_SHA = '';
+let SDK_SHA = '';
+
 const getBackendUrl = (isStaging = false) => {
   console.log('[getBackendUrl] Getting backend URL:', isStaging);
   return isStaging ? 'https://dev-api.apptile.io' : 'https://api.tile.dev';
