@@ -122,7 +122,7 @@ const getMobileBundle = async (bundleName, os) => {
   console.log('[getMobileBundle] Getting mobile bundle:', bundleName, os);
   try {
     const assetZip = path.resolve(
-      `remoteCode/generated/bundles/${os}`,
+      `src/generated/bundles/${os}`,
       bundleName,
       'bundle.zip',
     );
