@@ -89,9 +89,6 @@ console.log(
 
 const appRoot = __dirname;
 
-let GIT_SHA = '';
-let SDK_SHA = '';
-
 const getBackendUrl = (isStaging = false) => {
   console.log('[getBackendUrl] Getting backend URL:', isStaging);
   return isStaging ? 'https://dev-api.apptile.io' : 'https://api.tile.dev';
@@ -168,64 +165,6 @@ const makeHeaders = (extraHeaders = {}) => {
   };
 };
 
-const getGitShas = async () => {
-  if (SDK_SHA && GIT_SHA) {
-    return {err: false, gitsha: GIT_SHA, sdksha: SDK_SHA};
-  }
-  console.log('[getGitShas] Getting Git SHAs');
-  try {
-    let sdksha = '';
-    try {
-      console.log('[getGitShas] Getting SDK Git SHA');
-      const sdkResult = await executeCommand(
-        'git',
-        ['log', '-n', '1', '--format=format:%H'],
-        {
-          cwd: path.resolve(appRoot, '../ReactNativeTSProjeect'),
-        },
-      );
-      sdksha = sdkResult.stdout.trim() || '';
-      console.log('[getGitShas] SDK Git SHA:', sdksha);
-    } catch (err) {
-      console.error(
-        '[getGitShas] Error getting SDK Git SHA:',
-        JSON.stringify(err, null, 2),
-      );
-      throw err;
-    }
-
-    let gitsha = '';
-    try {
-      console.log('[getGitShas] Getting app Git SHA');
-      const appResult = await executeCommand(
-        'git',
-        ['log', '-n', '1', '--format=format:%H'],
-        {
-          cwd: path.resolve('remoteCode'),
-        },
-      );
-      gitsha = appResult.stdout.trim() || '';
-      console.log('[getGitShas] App Git SHA:', gitsha);
-    } catch (err) {
-      console.error(
-        '[getGitShas] Error getting app Git SHA:',
-        JSON.stringify(err, null, 2),
-      );
-      throw err;
-    }
-
-    SDK_SHA = sdksha;
-    GIT_SHA = gitsha;
-    return {err: false, gitsha, sdksha};
-  } catch (err) {
-    console.error(
-      '[getGitShas] Error getting Git SHAs:',
-      JSON.stringify(err, null, 2),
-    );
-    return {err};
-  }
-};
-
 const uploadMobileBundle = async (bundleName, os) => {
   console.log('[uploadMobileBundle] Uploading mobile bundle:', bundleName, os);
   try {
@@ -237,20 +176,14 @@ const uploadMobileBundle = async (bundleName, os) => {
       );
     }
 
-    const {err, gitsha, sdksha} = await getGitShas();
-    if (err) {
-      console.error('[uploadMobileBundle] Failed to retrieve git shas');
-      throw new Error(`Failed to retrieve git shas: ${err.message}`);
-    }
-
     const formData = new FormData();
     formData.append('assetZipFile', createReadStream(assetZip));
     formData.append(
       'uploadDestination',
       os === 'ios' ? 'ios-jsbundle' : 'android-jsbundle',
     );
-    formData.append('gitsha', gitsha);
-    formData.append('sdksha', sdksha);
+    formData.append('gitsha', '4769a4fb95d53122584994faa798c88d3a9b5d13');
+    formData.append('sdksha', '4769a4fb95d53122584994faa798c88d3a9b5d13');
     formData.append('tag', 'sometag');
 
     const headers = makeHeaders(formData.getHeaders?.() || {});
