@@ -790,13 +790,17 @@ async function main() {
       const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
       console.log('Downloading manifest from ' + manifestUrl);
       const {data: manifest} = await axios.get(manifestUrl);
-      const publishedCommit = manifest.forks[0].publishedCommitId;
+      const publishedCommit = manifest.forks.filter(
+        it => it.forkName === (apptileConfig.fork_name || 'main'),
+      )[0].publishedCommitId;
       const iosBundle = manifest.codeArtefacts.find(
         it => it.type === 'ios-jsbundle',
       );
 
       if (publishedCommit) {
-        const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+        const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${
+          apptileConfig.APP_ID
+        }/${apptileConfig.fork_name || 'main'}/main/${publishedCommit}.json`;
         console.log('Downloading appConfig from: ' + appConfigUrl);
         const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
         await downloadFile(appConfigUrl, appConfigPath);
