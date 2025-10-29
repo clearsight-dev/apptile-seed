@@ -1117,13 +1117,17 @@ async function main() {
     const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
     console.log('Downloading manifest from ' + manifestUrl);
     const {data: manifest} = await axios.get(manifestUrl);
-    const publishedCommit = manifest.forks[0].publishedCommitId;
+    const publishedCommit = manifest.forks.filter(
+      it => it.forkName === (apptileConfig.fork_name || 'main'),
+    )[0].publishedCommitId;
     const androidBundle = manifest.codeArtefacts.find(
       it => it.type === 'android-bundle',
     );
 
     if (publishedCommit) {
-      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${
+        apptileConfig.APP_ID
+      }/${apptileConfig.fork_name || 'main'}/main/${publishedCommit}.json`;
       console.log('Downloading appConfig from: ' + appConfigUrl);
       const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
       await mkdir(assetsDir, {recursive: true});
@@ -1133,9 +1137,9 @@ async function main() {
       console.log('appConfig downloaded');
       await writeFile(
         bundleTrackerPath,
-        `{"publishedCommitId": ${
-          publishedCommit || 'null'
-        }, "androidBundleId": ${androidBundle?.id || 'null'}}`,
+        `{"publishedCommitId": ${publishedCommit}, "androidBundleId": ${
+          androidBundle?.id ?? 'null'
+        }}`,
       );
     } else {
       console.error('Published appconfig not found!');
