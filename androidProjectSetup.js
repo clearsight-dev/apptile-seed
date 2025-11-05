@@ -591,7 +591,7 @@ async function addFacebook(
   upsertInStringsXML(
     stringsObj,
     'facebook_app_id',
-    facebookIntegration.FacebookAppID,
+    facebookIntegration.fb_appId,
   );
   addMetadata(
     androidManifest,
@@ -602,7 +602,7 @@ async function addFacebook(
   upsertInStringsXML(
     stringsObj,
     'facebook_client_token',
-    facebookIntegration.FacebookClientToken,
+    facebookIntegration.fb_clientToken,
   );
   addMetadata(
     androidManifest,
