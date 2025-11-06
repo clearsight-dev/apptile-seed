@@ -791,6 +791,9 @@ async function addZego(
   // Add ENABLE_LIVELY_PIP string when both flags are true
   if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
     upsertInStringsXML(stringsObj, 'ENABLE_LIVELY_PIP', 'true');
+  } else {
+    // Remove ENABLE_LIVELY_PIP string when flag is false
+    removeFromStringsXML(stringsObj, 'ENABLE_LIVELY_PIP');
   }
 
   // Check if we should use local PIP version

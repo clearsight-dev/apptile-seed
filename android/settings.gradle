@@ -1,4 +1,20 @@
 rootProject.name = 'apptileSeed'
+
+// Run androidProjectSetup.js BEFORE autolinking reads react-native.config.js
+// This must happen in settings.gradle because this is where modules are included
+def nodeBinary = System.getenv("NODE_BINARY") ?: "node"
+def setupScript = new File(rootDir.parentFile, "androidProjectSetup.js")
+if (setupScript.exists()) {
+    println ":ReactNative: Running androidProjectSetup.js before autolinking (settings.gradle)..."
+    def setupProcess = [nodeBinary, setupScript.absolutePath].execute(null, rootDir.parentFile)
+    setupProcess.waitForProcessOutput(System.out, System.err)
+    def exitCode = setupProcess.waitFor()
+    if (exitCode != 0) {
+        throw new GradleException("androidProjectSetup.js failed with exit code ${exitCode}")
+    }
+    println ":ReactNative: androidProjectSetup.js completed successfully"
+}
+
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
