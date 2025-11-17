@@ -1,12 +1,11 @@
 package com.apptileseed
 
 import android.content.Context
+import android.content.Intent
 import com.klaviyo.analytics.Klaviyo
 
 class KlaviyoIntegrationImpl(private val context: Context) : KlaviyoIntegrationInterface {
-    override fun initialize() {
-        val klaviyoCompanyId = context.getString(R.string.klaviyo_company_id)
-
-        Klaviyo.initialize(klaviyoCompanyId, context);
+    override fun handlePush(intent: Intent) {
+        Klaviyo.handlePush(intent)
     }
 }

@@ -14,12 +14,14 @@ import com.facebook.react.bridge.JavaScriptExecutorFactory
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
-import com.facebook.react.flipper.ReactNativeFlipper
+// import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.react.modules.systeminfo.AndroidInfoHelpers
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory
+// import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory
 import java.io.File
+import android.content.Intent
 
 
 class MainApplication : Application(), ReactApplication {
@@ -42,12 +44,12 @@ class MainApplication : Application(), ReactApplication {
         override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
         override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
 
-        override fun getJavaScriptExecutorFactory(): JavaScriptExecutorFactory = V8ExecutorFactory(
-            applicationContext,
-            packageName,
-            AndroidInfoHelpers.getFriendlyDeviceName(),
-            useDeveloperSupport
-        )
+        // override fun getJavaScriptExecutorFactory(): JavaScriptExecutorFactory = V8ExecutorFactory(
+        //     applicationContext,
+        //     packageName,
+        //     AndroidInfoHelpers.getFriendlyDeviceName(),
+        //     useDeveloperSupport
+        // )
 
         override fun getJSBundleFile(): String? {
             val documentsDir = applicationContext.filesDir.absolutePath
@@ -95,9 +97,9 @@ class MainApplication : Application(), ReactApplication {
         }
 
 //        createCleverTapIntegration(this).initialize(intent);
-        SoLoader.init(this, false)
+        SoLoader.init(this, OpenSourceMergedSoMapping)
         // disable RTL
-        val sharedI18nUtilInstance = I18nUtil.getInstance()
+        val sharedI18nUtilInstance = I18nUtil.instance;
         sharedI18nUtilInstance.forceRTL(this, false)
         sharedI18nUtilInstance.allowRTL(this, false)
 
@@ -107,7 +109,7 @@ class MainApplication : Application(), ReactApplication {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
             load()
         }
-        ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
+        // ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
     }
 
     fun resetReactNativeHost() {

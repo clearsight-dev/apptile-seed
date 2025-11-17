@@ -726,7 +726,8 @@ async function addKlaviyo(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  const klaviyoCompanyId = apptileConfig.integrations.klaviyo_company_id;
+  const klaviyoCompanyId =
+    apptileConfig.integrations.klaviyo.klaviyo_company_id;
   upsertInStringsXML(stringsObj, 'klaviyo_company_id', klaviyoCompanyId);
   addService(
     androidManifest,
@@ -735,7 +736,7 @@ async function addKlaviyo(
     firebaseMessagingEventIntent,
   );
   removeForceUnlinkForNativePackage(
-    'react-native-klaviyo',
+    'klaviyo-react-native-sdk',
     extraModules,
     parsedReactNativeConfig,
   );
@@ -755,7 +756,7 @@ async function removeKlaviyo(
   removeFromStringsXML(stringsObj, 'klaviyo_company_id');
   deleteService(androidManifest, 'com.klaviyo.pushFcm.KlaviyoPushService');
   addForceUnlinkForNativePackage(
-    'react-native-klaviyo',
+    'klaviyo-react-native-sdk',
     extraModules,
     parsedReactNativeConfig,
   );

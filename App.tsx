@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {NativeModules} from 'react-native';
 // import {NativeModules} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
@@ -14,9 +15,7 @@ import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
 import BuildInfo from './components/BuildInfo';
 // import FloatingUpdateModal from './components/FloatingUpdateModal';
-import {NativeModules} from 'react-native';
 const {RNApptile} = NativeModules;
-
 export type ScreenParams = {
   NocodeRoot: undefined;
   NativeUtils: {appId: string};
@@ -31,6 +30,9 @@ const Stack = createNativeStackNavigator<ScreenParams>();
 
 function App(): React.JSX.Element {
   const status = useStartApptile(initAnalytics, true);
+  useEffect(() => {
+    RNApptile.notifyJSReady();
+  }, []);
 
   let body = (
     <NavigationContainer

@@ -112,6 +112,8 @@ class MainActivity : ReactActivity() {
         Log.d(APPTILE_LOG_TAG, "Data: ${intent.data}")
         Log.d(APPTILE_LOG_TAG, "Extras: ${intent.extras}")
 
+        createKlaviyoIntegration(this).handlePush(intent);
+
         setIntent(intent) // Ensure React Native gets the new intent
     }
 }

@@ -152,6 +152,15 @@ async function generateAnalytics(
     );
     enabledAnalytics += `SegmentAnalytics,\n      `;
   }
+
+  if (featureFlags?.ENABLE_KLAVIYO) {
+    analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Klaviyo as KlaviyoAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
+    );
+    enabledAnalytics += `KlaviyoAnalytics,\n      `;
+  }
+
   enabledAnalytics += `// __ENABLED_ANALYTICS__`;
 
   analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
@@ -212,7 +221,7 @@ onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
 };`,
   'react-native-onesignal': `export default {};`,
   'clevertap-react-native': `export default {}`,
-  'react-native-klaviyo': `export default {};`,
+  'klaviyo-react-native-sdk': `export default {};`,
   '@react-native-community/push-notification-ios': 'export default {}',
   'zego-express-engine-reactnative': `export default {};`,
 };
@@ -381,71 +390,36 @@ function getExtraModules(apptileConfig) {
       },
       {
         name: 'asset_placeholder-image',
-        path: [
-          path.resolve(
-            __dirname,
-            'assets/image-placeholder.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, 'assets/image-placeholder.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_auction-stars',
-        path: [
-          path.resolve(
-            __dirname,
-            'assets/auction-stars.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, 'assets/auction-stars.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_auction-crown',
-        path: [
-          path.resolve(
-            __dirname,
-            './assets/auction-crown.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, './assets/auction-crown.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_auction-gavel',
-        path: [
-          path.resolve(
-            __dirname,
-            './assets/auction-gavel.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, './assets/auction-gavel.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_gold-flare',
-        path: [
-          path.resolve(
-            __dirname,
-            'assets/gold-flare.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, 'assets/gold-flare.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
