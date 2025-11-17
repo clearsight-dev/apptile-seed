@@ -1,5 +1,7 @@
 package com.apptileseed
 
+import android.content.Intent
+
 interface KlaviyoIntegrationInterface {
-  fun initialize()
+  fun handlePush(intent: Intent)
 }

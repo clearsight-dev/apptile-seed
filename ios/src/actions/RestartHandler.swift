@@ -68,7 +68,7 @@ class RestartHandler {
 
     private static func getDefaultBundleURL() -> URL {
         #if DEBUG
-            return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index", fallbackResource: nil)
+      return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index", fallbackExtension: nil) ?? Bundle.main.url(forResource: "main", withExtension: "jsbundle")!
         #else
             return Bundle.main.url(forResource: "main", withExtension: "jsbundle")!
         #endif
