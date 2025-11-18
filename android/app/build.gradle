@@ -239,7 +239,7 @@ dependencies {
 
     implementation("androidx.core:core:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-process:2.7.0")
     implementation "androidx.core:core-splashscreen:1.0.1"
     implementation "androidx.cardview:cardview:1.0.0"
  
@@ -278,9 +278,9 @@ dependencies {
     }
 
     if(enable_moengage) {
-        implementation(moengage.core)
-        implementation(moengage.richNotification)
-        implementation(moengage.inapp)
+//        implementation(moengage.core)
+//        implementation(moengage.richNotification)
+//        implementation(moengage.inapp)
     }
 }
 

@@ -114,6 +114,7 @@
     "react-native-keep-awake": "^4.0.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-moengage": "^12.3.0",
     "react-native-onesignal": "^5.2.13",
     "react-native-orientation-locker": "^1.7.0",
     "react-native-pager-view": "^6.9.1",
@@ -195,6 +196,9 @@
     "unzipper": "^0.12.3",
     "ws": "^8.18.0",
     "xml2js": "^0.6.2"
+  },
+  "moengage": {
+    "richNotification": true
   },
   "engines": {
     "node": ">=18"
