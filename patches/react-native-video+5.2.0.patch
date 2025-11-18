@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-video/android/build.gradle b/node_modules/react-native-video/android/build.gradle
+index 2fb8dfd..96ba955 100644
+--- a/node_modules/react-native-video/android/build.gradle
++++ b/node_modules/react-native-video/android/build.gradle
+@@ -18,9 +18,16 @@ android {
+         }
+     }
+ }
++repositories {
++    google()
++    mavenCentral()
++    flatDir {
++        dirs "$rootDir/libs"
++    }
++}
+ 
+ dependencies {
+     //noinspection GradleDynamicVersion
+     implementation "com.facebook.react:react-native:${safeExtGet('reactNativeVersion', '+')}"
+-    implementation 'com.yqritc:android-scalablevideoview:1.0.4'
++    implementation(name: 'android-scalablevideoview-1.0.4', ext: 'aar')
+ }
