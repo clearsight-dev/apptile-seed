@@ -277,11 +277,11 @@ dependencies {
       implementation 'com.android.installreferrer:installreferrer:2.2'
     }
 
-    if(enable_moengage) {
-//        implementation(moengage.core)
-//        implementation(moengage.richNotification)
-//        implementation(moengage.inapp)
-    }
+    // if(enable_moengage) {
+    //    implementation(moengage.core)
+    //    implementation(moengage.richNotification)
+    //    implementation(moengage.inapp)
+    // }
 }
 
 // Note: androidProjectSetup.js is now run in settings.gradle BEFORE autolinking
