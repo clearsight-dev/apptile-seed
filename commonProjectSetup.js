@@ -355,6 +355,8 @@ async function readReactNativeConfigJs() {
 }
 
 function getExtraModules(apptileConfig) {
+  const useLocalApptileCore = apptileConfig.USE_LOCAL_APPTILE_CORE;
+
   const extraModules = {
     SDK_PATH: apptileConfig.SDK_PATH,
     current: [
@@ -362,13 +364,13 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-core',
         path: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-core/index.mobile.js',
-          // 'packages/apptile-core/sdk.ts',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-core/index.mobile.js'
+            : 'packages/apptile-core/sdk.ts',
         ),
         watchPath: path.resolve(
           __dirname,
-          'apptile-libs',
-          // 'packages/apptile-core',
+          !useLocalApptileCore ? 'apptile-libs' : 'packages/apptile-core',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -377,13 +379,15 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-plugins',
         path: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-plugins/index.mobile.js',
-          // 'packages/apptile-plugins/index.ts',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-plugins/index.mobile.js'
+            : 'packages/apptile-plugins/index.ts',
         ),
         watchPath: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-plugins',
-          // 'packages/apptile-plugins',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-plugins'
+            : 'packages/apptile-plugins',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -427,13 +431,15 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-datasource',
         path: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-datasource/index.mobile.js',
-          // 'packages/apptile-datasource/index.ts',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-datasource/index.mobile.js'
+            : 'packages/apptile-datasource/index.ts',
         ),
         watchPath: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-datasource',
-          // 'packages/apptile-datasource',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-datasource'
+            : 'packages/apptile-datasource',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -442,13 +448,15 @@ function getExtraModules(apptileConfig) {
         name: 'apptile-shopify',
         path: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-shopify/index.mobile.js',
-          // 'packages/apptile-shopify/index.ts',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-shopify/index.mobile.js'
+            : 'packages/apptile-shopify/index.ts',
         ),
         watchPath: path.resolve(
           __dirname,
-          'apptile-libs/dist/apptile-shopify',
-          // 'packages/apptile-shopify',
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-shopify'
+            : 'packages/apptile-shopify',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
