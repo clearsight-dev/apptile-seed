@@ -1,7 +1,7 @@
 package com.apptileseed
 
-import android.content.Context
+import android.app.Application
 
-class MoengageIntegrationStub(private val context: Context) : MoengageIntegrationInterface {
+class MoengageIntegrationStub(private val context: Application) : MoengageIntegrationInterface {
   override fun initialize() {}
 }
