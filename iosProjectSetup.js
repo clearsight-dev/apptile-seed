@@ -242,20 +242,17 @@ async function addFacebook(
   extraModules,
 ) {
   const metaIntegration = apptileConfig.integrations.metaAds;
-  infoPlist.FacebookAppID = metaIntegration.FacebookAppId;
-  infoPlist.FacebookClientToken = metaIntegration.FacebookClientToken;
-  infoPlist.FacebookDisplayName = metaIntegration.FacebookDisplayName;
-  infoPlist.FacebookAutoLogAppEventsEnabled =
-    metaIntegration.FacebookAutoLogAppEventsEnabled;
-  infoPlist.FacebookAdvertiserIDCollectionEnabled =
-    metaIntegration.FacebookAdvertiserIDCollectionEnabled;
+  infoPlist.FacebookAppID = metaIntegration.fb_appId;
+  infoPlist.FacebookClientToken = metaIntegration.fb_clientToken;
+  infoPlist.FacebookDisplayName = apptileConfig.app_name;
+  infoPlist.FacebookAutoLogAppEventsEnabled = true;
+  infoPlist.FacebookAdvertiserIDCollectionEnabled = false;
   removeForceUnlinkForNativePackage(
     'react-native-fbsdk-next',
     extraModules,
     parsedReactNativeConfig,
   );
 }
-
 async function removeFacebook(
   infoPlist,
   imageNotificationPlist,
