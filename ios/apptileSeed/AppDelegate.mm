@@ -10,7 +10,7 @@
 #import <React/RCTI18nUtil.h>
 #import <React/RCTLinkingManager.h>
 
-#if ENABLE_FIREBASE_ANALYTICS || ENABLE_KLAVIYO
+#if ENABLE_FIREBASE_ANALYTICS || ENABLE_KLAVIYO || ENABLE_MOENGAGE
 #import <Firebase.h>
 #endif
 
