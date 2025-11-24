@@ -86,9 +86,9 @@
     "ENABLE_APPSFLYER": false,
     "ENABLE_FIREBASE_ANALYTICS": true
   },
-  "SDK_PATH": "/Users/gauravgautam/ReactNativeTSProjeect",
   "APP_ID": "a635a23a-7842-4fb5-b62c-8176cc57764e",
   "APPTILE_BACKEND_URL": "https://api.apptile.io",
   "APPCONFIG_SERVER_URL": "https://appconfigs.apptile.io",
-  "USE_LOCAL_APPTILE_CORE": false
+  "USE_LOCAL_APPTILE_CORE": false,
+  "SDK_PATH": "/Users/gauravgautam/ReactNativeTSProjeect"
 }
