@@ -80,13 +80,16 @@ export function ReactComponent({ model }) {
       const points = shareBannerData.severity === 'Insurance Claimer' ? 10 :
                     shareBannerData.severity === 'The Spine Rattler' ? 20 : 30;
 
-      const tweetText = `🕳️ Found a new landmark called The Great Indian Pothole.
-Reported it on #PotFix!
+      const tweetText = `🕳️Found a new landmark called The Great Indian Pothole.
+Reported it on #Potfix!
 📍 ${shareBannerData.address}
 ⚠️ Severity: ${shareBannerData.severity}
 🎯 Earned ${points} points for doing my civic duty (and saving a few suspensions).
 
 Help make our roads safer! 🛣️
+Download the App on Playstore and AppStore
+AppStore: https://apps.apple.com/in/app/potfix/id6754452112
+PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
 
 #PotFix #RoadSafetyIndia #PotholePatrol`;
 
@@ -253,7 +256,7 @@ Help make our roads safer! 🛣️
             </Text>
             <SvgXml xml={xIconSvg} width={14} height={14} />
             <Text style={{ fontSize: 13, color: '#92400E' }}>
-              to earn 10 bonus points!
+              to earn 10 points!
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
