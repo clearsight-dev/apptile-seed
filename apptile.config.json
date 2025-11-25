@@ -3,25 +3,25 @@
   "apptile_api_endpoint": "https://api.apptile.io",
   "analytics_api_endpoint": "https://analytics.apptile.io",
   "apptile_update_endpoint": "https://appconfigs.apptile.io",
-  "app_id": "a69a34b8-af20-4f68-92ab-9f862474f690",
-  "app_name": "rn-shoplazza-app",
-  "url_scheme": "shoplazza-test-store1.myshoplaza",
-  "app_host": "shoplazza-test-store1.myshoplaza.com",
-  "app_host_2": "shoplazza-test-store1.myshoplaza.com",
+  "app_id": "21f45d9e-d81b-4a03-8240-be553b6f3fed",
+  "app_name": "PotFix",
+  "url_scheme": "",
+  "app_host": "",
+  "app_host_2": "",
   "build_ios": true,
   "build_android": true,
   "ios": {
-    "icon_path": "a69a34b8-af20-4f68-92ab-9f862474f690/icon/7bd09d5a-d597-4d15-90a3-3d970ead2f03/icon.png",
-    "splash_path": "a69a34b8-af20-4f68-92ab-9f862474f690/splash/92ca84c6-2189-4c78-8e36-07235ed14913/splash.png",
-    "bundle_id": "com.moderna.app",
+    "icon_path": "https://ucarecdn.com/a2f4cf36-4419-469c-a2f9-6704a8956a5c/icon.png",
+    "splash_path": "https://ucarecdn.com/e8b2fdb8-3653-4c05-93ee-5707709c222d/splash.png",
+    "bundle_id": "com.potfixfinal.app.ios",
     "team_id": "8SQ493N52G",
     "version": "1.0.0",
     "build_number": "1"
   },
   "android": {
-    "icon_path": "a69a34b8-af20-4f68-92ab-9f862474f690/icon/7bd09d5a-d597-4d15-90a3-3d970ead2f03/icon.png",
-    "splash_path": "a69a34b8-af20-4f68-92ab-9f862474f690/splash/92ca84c6-2189-4c78-8e36-07235ed14913/splash.png",
-    "bundle_id": "com.moderna.app",
+    "icon_path": "/Users/admin/Documents/Builds/apptileseed/apptile-seed/assets/Splash and icon/Icon.png",
+    "splash_path": "/Users/admin/Documents/Builds/apptileseed/apptile-seed/assets/Splash and icon/splash.png",
+    "bundle_id": "com.potfixfinal.app",
     "expected_output": "apk&aab",
     "version_number": "1",
     "version_semver": "1.0.0"
@@ -42,38 +42,38 @@
     {
       "fileName": "icon.png",
       "assetClass": "icon",
-      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/a69a34b8-af20-4f68-92ab-9f862474f690/icon/7bd09d5a-d597-4d15-90a3-3d970ead2f03/icon.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20250213%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250213T122405Z&X-Amz-Expires=3600&X-Amz-Signature=2b145fd7a6299b7db466aa04834a4fac327aacd52e38fc5152ac4cf1018abbcc&X-Amz-SignedHeaders=host&x-id=GetObject"
+      "url": "https://ucarecdn.com/a2f4cf36-4419-469c-a2f9-6704a8956a5c/icon.png"
     },
     {
       "fileName": "splash.png",
       "assetClass": "splash",
-      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/a69a34b8-af20-4f68-92ab-9f862474f690/splash/92ca84c6-2189-4c78-8e36-07235ed14913/splash.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20250213%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250213T122405Z&X-Amz-Expires=3600&X-Amz-Signature=040c3fd7e3b64aa83ebf86bce057da8a6af6cf5ffad7e5c8c7c6cf6ec8c0e029&X-Amz-SignedHeaders=host&x-id=GetObject"
+      "url": "https://ucarecdn.com/e8b2fdb8-3653-4c05-93ee-5707709c222d/splash.png"
     }
   ],
   "secrets": [
     {
       "id": "92bda3cf-331e-473f-bc96-de13504160bc",
-      "appId": "a69a34b8-af20-4f68-92ab-9f862474f690",
+      "appId": "21f45d9e-d81b-4a03-8240-be553b6f3fed",
       "secretClass": "keyAlias",
       "deletedAt": null,
       "createdAt": "2025-02-13T10:54:54.119Z",
-      "secret": ""
+      "secret": "potfixfinal"
     },
     {
       "id": "7d4780e4-70b3-4ce5-8ff8-33550bae3dd7",
-      "appId": "a69a34b8-af20-4f68-92ab-9f862474f690",
+      "appId": "21f45d9e-d81b-4a03-8240-be553b6f3fed",
       "secretClass": "keyPassword",
       "deletedAt": null,
       "createdAt": "2025-02-13T10:54:54.140Z",
-      "secret": ""
+      "secret": "205@2003"
     },
     {
       "id": "890a8bb1-5720-413b-983e-3ed1ef3d2266",
-      "appId": "a69a34b8-af20-4f68-92ab-9f862474f690",
+      "appId": "21f45d9e-d81b-4a03-8240-be553b6f3fed",
       "secretClass": "storePassword",
       "deletedAt": null,
       "createdAt": "2025-02-13T10:54:54.148Z",
-      "secret": ""
+      "secret": "205@2003"
     }
   ],
   "feature_flags": {
@@ -86,9 +86,9 @@
     "ENABLE_APPSFLYER": false,
     "ENABLE_FIREBASE_ANALYTICS": true
   },
-  "APP_ID": "a635a23a-7842-4fb5-b62c-8176cc57764e",
+  "APP_ID": "21f45d9e-d81b-4a03-8240-be553b6f3fed",
   "APPTILE_BACKEND_URL": "https://api.apptile.io",
   "APPCONFIG_SERVER_URL": "https://appconfigs.apptile.io",
   "USE_LOCAL_APPTILE_CORE": false,
-  "SDK_PATH": "/Users/gauravgautam/ReactNativeTSProjeect"
+  "SDK_PATH": "/Users/admin/Documents/apptile-local/ReactNativeTSProjeect/"
 }

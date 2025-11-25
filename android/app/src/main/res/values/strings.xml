@@ -1,17 +1,17 @@
 <resources>
-  <string name="app_name">rn-shoplazza-app</string>
+  <string name="app_name">PotFix</string>
   <string name="pip_name">Apptile Pip activity</string>
   <string name="APPTILE_API_ENDPOINT">https://api.apptile.io</string>
   <string name="APPTILE_UPDATE_ENDPOINT">https://appconfigs.apptile.io</string>
-  <string name="APP_ID">YOUR_APPTILE_APP_ID</string>
-  <string name="APPTILE_URL_SCHEME">apptile://</string>
-  <string name="APPTILE_APP_HOST">https://apptile.io</string>
-  <string name="APPTILE_APP_HOST_2">https://apptile.io</string>
+  <string name="APP_ID">21f45d9e-d81b-4a03-8240-be553b6f3fed</string>
+  <string name="APPTILE_URL_SCHEME"/>
+  <string name="APPTILE_APP_HOST">https://shoplazza-test-store1.myshoplaza.com</string>
+  <string name="APPTILE_APP_HOST_2">https://shoplazza-test-store1.myshoplaza.com</string>
   <string name="APPTILE_APP_FORK">main</string>
   <string name="IS_PREVIEW_APP">NO</string>
   <string name="MOENGAGE_APPID">xxx</string>
   <string name="MOENGAGE_DATACENTER">data_center_3</string>
   <string name="APPSFLYER_DEVKEY">xxx</string>
   <string name="APPSFLYER_APPID">xxx</string>
-  <string name="APPTILE_ANALYTICS_SEGMENT_KEY"></string>
+  <string name="APPTILE_ANALYTICS_SEGMENT_KEY"/>
 </resources>

@@ -1,0 +1,10 @@
+{
+  "name": "leaderboard",
+  "displayName": "Leaderboard",
+  "version": "1.0.0",
+  "description": "Leaderboard showing top pothole reporters",
+  "category": "custom",
+  "icon": "leaderboard",
+  "platforms": ["mobile", "web"]
+}
+

@@ -20,3 +20,12 @@ if (setupScript.exists()) {
 
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
+dependencyResolutionManagement {  
+repositories {  
+        google()  
+        mavenCentral()  
+        maven {  
+            url 'https://maven.mappls.com/repository/mappls/'  
+        }  
+}  
+} 

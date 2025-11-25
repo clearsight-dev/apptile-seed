@@ -24,11 +24,15 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // maven { url "https://storage.googleapis.com/logrocket-maven/" }
-        jcenter() {
-            content {
-                includeModule("com.yqritc", "android-scalablevideoview")
-            }
+        maven { url "https://maven.mappls.com/repository/mappls/" }
+        maven { url "https://storage.googleapis.com/logrocket-maven/" }
+        // jcenter() {
+        //     content {
+        //         includeModule("com.yqritc", "android-scalablevideoview")
+        //     }
+        // }
+        flatDir {
+            dirs "$rootDir/libs"
         }
         // flatDir {
         //     dirs "$rootDir/libs"

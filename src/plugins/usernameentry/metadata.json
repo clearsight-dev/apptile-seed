@@ -1,0 +1,10 @@
+{
+  "name": "usernameentry",
+  "displayName": "Username Entry",
+  "version": "1.0.0",
+  "description": "Username entry screen for device-based user identification",
+  "category": "custom",
+  "icon": "person",
+  "platforms": ["mobile", "web"]
+}
+
