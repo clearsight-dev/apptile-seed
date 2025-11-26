@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Pressable, ActivityIndicator, Image, AppState, PermissionsAndroid, Platform, Linking } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, Image, AppState, PermissionsAndroid, Platform, Linking, Alert } from 'react-native';
 import { useApptileWindowDims, Icon, navigateToScreen, goBack } from 'apptile-core';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,8 @@ import { MapView, Camera, PointAnnotation, Callout } from 'mappls-map-react-nati
 import Geolocation from '@react-native-community/geolocation';
 import { SvgXml } from 'react-native-svg';
 import { styles } from './styles';
+import RBSheet from 'react-native-raw-bottom-sheet';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 // Tile SVG logo
 const tileSvg = `<svg width="68" height="26" viewBox="0 0 68 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -33,6 +35,7 @@ export function ReactComponent({ model }) {
   const dispatch = useDispatch();
   const { width: windowWidth, height: windowHeight } = useApptileWindowDims();
   const cameraRef = useRef(null);
+  const bottomSheetRef = useRef(null);
   const [selectedPothole, setSelectedPothole] = useState(null);
   const lastDeselectTime = useRef(0);
   const lastDeselectedId = useRef(null);
@@ -212,11 +215,58 @@ export function ReactComponent({ model }) {
 
   // Fetch user's actual location
   useEffect(() => {
+    const getLocation = () => {
+      Geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setGettingLocation(false);
+          console.log('[MAPVIEW] Location obtained:', latitude, longitude);
+        },
+        (error) => {
+          console.error('[MAPVIEW] Location error:', error.code, error.message);
+
+          // Show alert if permission was denied on iOS
+          if (Platform.OS === 'ios' && error.code === 1) {
+            Alert.alert(
+              'Location Permission Required',
+              'PotFix needs access to your location to show nearby potholes. Please enable location access in Settings.',
+              [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                  onPress: () => {
+                    console.log('[MAPVIEW] User cancelled settings');
+                    setGettingLocation(false);
+                  }
+                },
+                {
+                  text: 'Open Settings',
+                  onPress: () => {
+                    console.log('[MAPVIEW] Opening settings');
+                    Linking.openSettings();
+                    setGettingLocation(false);
+                  }
+                }
+              ]
+            );
+            return;
+          }
+
+          console.log('[MAPVIEW] Using default location');
+          setGettingLocation(false);
+        },
+        {
+          enableHighAccuracy: Platform.OS === 'ios',
+          timeout: 15000,
+          maximumAge: 10000,
+        }
+      );
+    };
+
     const requestLocationPermission = async () => {
       try {
         if (Platform.OS === 'android') {
-          console.log('[MAPVIEW] Requesting location permission...');
-
           const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
             {
@@ -228,36 +278,25 @@ export function ReactComponent({ model }) {
             }
           );
 
-          console.log('[MAPVIEW] Permission result:', granted);
-
           if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('[MAPVIEW] Location permission denied, using default location');
             setGettingLocation(false);
             return;
           }
         }
 
-        // Permission granted, get location
-        console.log('[MAPVIEW] Getting current position...');
+        if (Platform.OS === 'ios') {
+          Geolocation.setRNConfiguration({
+            skipPermissionRequests: false,
+            authorizationLevel: 'whenInUse',
+          });
 
-        Geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ lat: latitude, lng: longitude });
-            setGettingLocation(false);
-            console.log('[MAPVIEW] Location obtained:', latitude, longitude);
-          },
-          (error) => {
-            console.error('[MAPVIEW] Location error:', JSON.stringify(error));
-            console.log('[MAPVIEW] Using default Bangalore location');
-            setGettingLocation(false);
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: 15000,
-            maximumAge: 10000,
-          }
-        );
+          Geolocation.requestAuthorization(
+            () => console.log('[MAPVIEW] iOS location permission granted'),
+            (error) => console.log('[MAPVIEW] iOS location permission error:', error)
+          );
+        }
+
+        getLocation();
       } catch (error) {
         console.error('[MAPVIEW] Permission error:', error);
         setGettingLocation(false);
@@ -316,35 +355,23 @@ export function ReactComponent({ model }) {
 
 
   const handleZoomIn = () => {
-    console.log('[APPTILE_AGENT] Zoom in button pressed');
-    console.log('[APPTILE_AGENT] Camera ref exists:', !!cameraRef.current);
-    console.log('[APPTILE_AGENT] Current zoom level:', zoomLevelRef.current);
-
     const newZoom = Math.min(zoomLevelRef.current + 1, 18);
     zoomLevelRef.current = newZoom;
-
-    if (cameraRef.current) {
-      cameraRef.current.zoomTo(newZoom, 300);
-      console.log('[APPTILE_AGENT] Zooming to:', newZoom);
-    } else {
-      console.log('[APPTILE_AGENT] ERROR: Camera ref is null!');
-    }
+    cameraRef.current?.setCamera({
+      centerCoordinate: [userLocation.lng, userLocation.lat],
+      zoomLevel: newZoom,
+      animationDuration: 300,
+    });
   };
 
   const handleZoomOut = () => {
-    console.log('[APPTILE_AGENT] Zoom out button pressed');
-    console.log('[APPTILE_AGENT] Camera ref exists:', !!cameraRef.current);
-    console.log('[APPTILE_AGENT] Current zoom level:', zoomLevelRef.current);
-
     const newZoom = Math.max(zoomLevelRef.current - 1, 4);
     zoomLevelRef.current = newZoom;
-
-    if (cameraRef.current) {
-      cameraRef.current.zoomTo(newZoom, 300);
-      console.log('[APPTILE_AGENT] Zooming to:', newZoom);
-    } else {
-      console.log('[APPTILE_AGENT] ERROR: Camera ref is null!');
-    }
+    cameraRef.current?.setCamera({
+      centerCoordinate: [userLocation.lng, userLocation.lat],
+      zoomLevel: newZoom,
+      animationDuration: 300,
+    });
   };
 
   const handleMyLocation = () => {
@@ -363,16 +390,13 @@ export function ReactComponent({ model }) {
       // Create tweet text
       const tweetText = `🕳️Found a new landmark called The Great Indian Pothole.
 Reported it on #Potfix!
-📍 ${lastReportedAddress}
+📍 ${lastReportedAddress.trimEnd(50, '...')}
 ⚠️ Severity: ${lastReportedSeverity}
-🎯 Earned ${points} points for doing my civic duty (and saving a few suspensions).
+🎯 Earned ${points} points for doing my civic duty.
 
-Help make our roads safer! 🛣️
-Download the App on Playstore and AppStore
-AppStore: https://apps.apple.com/in/app/potfix/id6754452112
-PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
+Fix roads, not bumpers: https://onelink.to/q7vaa8
 
-#PotFix #RoadSafetyIndia #PotholePatrol`;
+#RoadSafety #PotholePatrol`;
 
       const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
@@ -442,9 +466,59 @@ PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
   };
 
   const handleReportPothole = () => {
+    bottomSheetRef.current?.open();
+  };
+
+  const handleOpenCamera = () => {
+    bottomSheetRef.current?.close();
     dispatch(navigateToScreen('Camera', {}));
   };
-  
+
+  const handleOpenGallery = async () => {
+    bottomSheetRef.current?.close();
+
+    // Wait for bottom sheet to fully close before opening gallery
+    setTimeout(() => {
+      const options = {
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        selectionLimit: 1,
+      };
+
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+          console.log('[MAPVIEW] User cancelled image picker');
+        } else if (response.errorCode) {
+          console.log('[MAPVIEW] ImagePicker Error:', response.errorMessage);
+          Alert.alert('Error', 'Failed to open gallery: ' + response.errorMessage);
+        } else if (response.assets && response.assets.length > 0) {
+          const selectedImage = response.assets[0];
+          console.log('[MAPVIEW] Selected image:', selectedImage.uri);
+
+          // Store the selected image in Redux state
+          dispatch({
+            type: 'PLUGIN_MODEL_UPDATE',
+            payload: {
+              changesets: [{
+                selector: ['appState', 'value'],
+                newValue: {
+                  ...appState,
+                  capturedPhoto: selectedImage.uri,
+                }
+              }],
+              runOnUpdate: true
+            },
+          });
+
+          // Navigate to report detail screen
+          dispatch(navigateToScreen('ReportDetailScreen', {}));
+        }
+      });
+    }, 300);
+  };
+
   const handleLeaderboardPress = () => {
     dispatch(navigateToScreen('Leaderboard', {}));
   };
@@ -1076,6 +1150,78 @@ PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
           </View>
         </View>
       )}
+
+      {/* Bottom Sheet for Camera/Gallery */}
+      <RBSheet
+        ref={bottomSheetRef}
+        height={240}
+        openDuration={250}
+        closeDuration={200}
+        customStyles={{
+          container: {
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            backgroundColor: '#ffffff',
+          },
+          draggableIcon: {
+            backgroundColor: '#cccccc',
+            width: 40,
+          },
+        }}
+      >
+        <View style={{ padding: 20 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 20, color: '#000' }}>
+            Add Pothole Photo
+          </Text>
+
+          {/* Camera Button */}
+          <Pressable
+            onPress={handleOpenCamera}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 16,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 12,
+              marginBottom: 12,
+            }}
+            nativeID="mapview-Pressable-BottomSheet-Camera"
+          >
+            <Icon
+              iconType="Ionicons"
+              name="camera-outline"
+              size={24}
+              color="#4a2c2a"
+            />
+            <Text style={{ fontSize: 16, marginLeft: 16, color: '#000', fontWeight: '500' }}>
+              Take Photo
+            </Text>
+          </Pressable>
+
+          {/* Gallery Button */}
+          <Pressable
+            onPress={handleOpenGallery}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 16,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 12,
+            }}
+            nativeID="mapview-Pressable-BottomSheet-Gallery"
+          >
+            <Icon
+              iconType="Ionicons"
+              name="images-outline"
+              size={24}
+              color="#4a2c2a"
+            />
+            <Text style={{ fontSize: 16, marginLeft: 16, color: '#000', fontWeight: '500' }}>
+              Choose from Gallery
+            </Text>
+          </Pressable>
+        </View>
+      </RBSheet>
     </View>
   );
 }

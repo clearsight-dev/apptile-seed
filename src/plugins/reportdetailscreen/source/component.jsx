@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Alert, ActivityIndicator, PermissionsAndroid, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Alert, ActivityIndicator, PermissionsAndroid, Platform, Pressable } from 'react-native';
 import { useApptileWindowDims, Icon, navigateToScreen, goBack } from 'apptile-core';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MapView, Camera, PointAnnotation } from 'mappls-map-react-native';
 import { styles } from './styles';
+import RBSheet from 'react-native-raw-bottom-sheet';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const SUPABASE_URL = 'https://diaasjjzbtgogqlnondp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpYWFzamp6YnRnb2dxbG5vbmRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2MTk4MjMsImV4cCI6MjA3NjE5NTgyM30.Ehb4bUtkteo_7If7znjoURGlVO8EjBozB7Kh2UMIzCI';
@@ -33,15 +35,14 @@ export function ReactComponent({ model }) {
   const [detectedSeverity, setDetectedSeverity] = useState(null);
   const [detectingSeverity, setDetectingSeverity] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const bottomSheetRef = useRef(null);
 
   // Clear image cache on mount and when photo changes
   useEffect(() => {
-    console.log('[REPORT_DETAIL] Clearing image cache...');
 
     // Clear all cached images to free memory
     if (Image.clearMemoryCache) {
       Image.clearMemoryCache();
-      console.log('[REPORT_DETAIL] ✅ Memory cache cleared');
     }
 
     if (Image.clearDiskCache) {
@@ -449,6 +450,51 @@ export function ReactComponent({ model }) {
     }
   };
 
+  const handleOpenCamera = () => {
+    bottomSheetRef.current?.close();
+    dispatch(navigateToScreen('Camera', {}));
+  };
+
+  const handleOpenGallery = async () => {
+    bottomSheetRef.current?.close();
+
+    // Wait for bottom sheet to fully close before opening gallery
+    setTimeout(() => {
+      const options = {
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        selectionLimit: 1,
+      };
+
+      launchImageLibrary(options, (response) => {
+        if (response.didCancel) {
+        } else if (response.errorCode) {
+          Alert.alert('Error', 'Failed to open gallery: ' + response.errorMessage);
+        } else if (response.assets && response.assets.length > 0) {
+          const selectedImage = response.assets[0];
+          console.log('[REPORT_DETAIL] Selected image:', selectedImage.uri);
+
+          // Store the selected image in Redux state
+          dispatch({
+            type: 'PLUGIN_MODEL_UPDATE',
+            payload: {
+              changesets: [{
+                selector: ['appState', 'value'],
+                newValue: {
+                  ...appState,
+                  capturedPhoto: selectedImage.uri,
+                }
+              }],
+              runOnUpdate: true
+            },
+          });
+        }
+      });
+    }, 300);
+  };
+
   const theme = appState?.theme || 'light';
   const isDark = theme === 'dark';
   const backgroundColor = isDark ? '#231c0f' : '#f8f7f5';
@@ -719,7 +765,7 @@ export function ReactComponent({ model }) {
               </View>
             ) : (
               <TouchableOpacity
-                onPress={() => (goBack())}
+                onPress={() => bottomSheetRef.current?.open()}
                 style={{
                   width: 100,
                   height: 100,
@@ -762,6 +808,78 @@ export function ReactComponent({ model }) {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Bottom Sheet for Camera/Gallery */}
+      <RBSheet
+        ref={bottomSheetRef}
+        height={240}
+        openDuration={250}
+        closeDuration={200}
+        customStyles={{
+          container: {
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            backgroundColor: '#ffffff',
+          },
+          draggableIcon: {
+            backgroundColor: '#cccccc',
+            width: 40,
+          },
+        }}
+      >
+        <View style={{ padding: 20 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 20, color: '#000' }}>
+            Add Pothole Photo
+          </Text>
+
+          {/* Camera Button */}
+          <Pressable
+            onPress={handleOpenCamera}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 16,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 12,
+              marginBottom: 12,
+            }}
+            nativeID="reportdetail-Pressable-BottomSheet-Camera"
+          >
+            <Icon
+              iconType="Ionicons"
+              name="camera-outline"
+              size={24}
+              color="#4a2c2a"
+            />
+            <Text style={{ fontSize: 16, marginLeft: 16, color: '#000', fontWeight: '500' }}>
+              Take Photo
+            </Text>
+          </Pressable>
+
+          {/* Gallery Button */}
+          <Pressable
+            onPress={handleOpenGallery}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 16,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 12,
+            }}
+            nativeID="reportdetail-Pressable-BottomSheet-Gallery"
+          >
+            <Icon
+              iconType="Ionicons"
+              name="images-outline"
+              size={24}
+              color="#4a2c2a"
+            />
+            <Text style={{ fontSize: 16, marginLeft: 16, color: '#000', fontWeight: '500' }}>
+              Choose from Gallery
+            </Text>
+          </Pressable>
+        </View>
+      </RBSheet>
     </View>
   );
 }

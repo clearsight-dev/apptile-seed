@@ -24,7 +24,6 @@ export function ReactComponent({ model }) {
 
     const handleCapture = async () => {
         if (cameraRef.current) {
-            console.log('[CAMERA] Camera ref exists:', !!cameraRef.current);
             try {
                 const options = {
                     quality: 0.3,
@@ -34,13 +33,10 @@ export function ReactComponent({ model }) {
                     fixOrientation: true,
                 };
                 const data = await cameraRef.current.takePictureAsync(options);
-                console.log('[CAMERA] Photo captured:', data.uri);
-                console.log('[CAMERA] Photo dimensions:', data.width, 'x', data.height);
 
                 // Estimate memory usage
                 if (data.width && data.height) {
                     const memoryMB = ((data.width * data.height * 4) / (1024 * 1024)).toFixed(2);
-                    console.log('[CAMERA] Estimated memory:', memoryMB, 'MB');
                 }
 
                 // Get current appState
@@ -64,7 +60,6 @@ export function ReactComponent({ model }) {
                 // Navigate to report detail screen
                 dispatch(navigateToScreen('ReportDetailScreen', {}));
             } catch (error) {
-                console.error('[CAMERA] Error capturing photo:', error);
                 Alert.alert('Error', 'Failed to capture photo');
             }
         }

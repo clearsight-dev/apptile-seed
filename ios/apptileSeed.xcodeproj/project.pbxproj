@@ -51,8 +51,8 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		35CF899B7D8A84863D4B6D8E /* Pods_ImageNotification.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DE92CACC6511CEE87BF3F90 /* Pods_ImageNotification.framework */; };
 		6132EF182BDFF13200BBE14D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 6132EF172BDFF13200BBE14D /* PrivacyInfo.xcprivacy */; };
+		6ED11F525DED9212F3F81F25 /* Pods_ImageNotification.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FBB733F8951D867FA0DE63F /* Pods_ImageNotification.framework */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		843B3EF02EA1019900A74D20 /* MapplsLMS in Frameworks */ = {isa = PBXBuildFile; productRef = A0F6CD114DB2EF3B1172F255 /* MapplsLMS */; };
 		843B3EF12EA1019900A74D20 /* MapplsAPICore in Frameworks */ = {isa = PBXBuildFile; productRef = 2288E970FBC7C2A9573011F3 /* MapplsAPICore */; };
@@ -117,6 +117,27 @@
 		844B992F2EA1071B00890D0E /* MapplsAnnotationExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 6389E5CDF2AF64D274CDFDDC /* MapplsAnnotationExtension */; };
 		844B99302EA1071B00890D0E /* MapplsGeoanalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B4E54CFF87832111119B9F8 /* MapplsGeoanalytics */; };
 		844B99312EA1071B00890D0E /* MapplsFeedbackKit in Frameworks */ = {isa = PBXBuildFile; productRef = AF30D8B37DBF487E4714CFE0 /* MapplsFeedbackKit */; };
+		845573192ED7329A00D66234 /* MapplsLMS in Frameworks */ = {isa = PBXBuildFile; productRef = EF0B65B0FE7A61470A686D9B /* MapplsLMS */; };
+		8455731A2ED7329A00D66234 /* MapplsAPICore in Frameworks */ = {isa = PBXBuildFile; productRef = 2F73E32B1A63DC5CEB11AC0B /* MapplsAPICore */; };
+		8455731B2ED7329A00D66234 /* MapplsAPIKit in Frameworks */ = {isa = PBXBuildFile; productRef = B75185D1CE67528E5FB72401 /* MapplsAPIKit */; };
+		8455731C2ED7329A00D66234 /* MapplsMap in Frameworks */ = {isa = PBXBuildFile; productRef = 0C6133121120CC89ED829EC0 /* MapplsMap */; };
+		8455731D2ED7329A00D66234 /* MapplsAnnotationExtension in Frameworks */ = {isa = PBXBuildFile; productRef = D2B6FFF584C5772E3377DA77 /* MapplsAnnotationExtension */; };
+		8455731E2ED7329A00D66234 /* MapplsGeoanalytics in Frameworks */ = {isa = PBXBuildFile; productRef = AC6C839176BCCCB219C52ABF /* MapplsGeoanalytics */; };
+		8455731F2ED7329A00D66234 /* MapplsFeedbackKit in Frameworks */ = {isa = PBXBuildFile; productRef = B944D511DAC165DC64299006 /* MapplsFeedbackKit */; };
+		845573202ED7329A00D66234 /* MapplsLMS in Frameworks */ = {isa = PBXBuildFile; productRef = 218FA26364A7BE70B18DBA36 /* MapplsLMS */; };
+		845573212ED7329A00D66234 /* MapplsAPICore in Frameworks */ = {isa = PBXBuildFile; productRef = DAEF5070B6AA7564CB5D9147 /* MapplsAPICore */; };
+		845573222ED7329A00D66234 /* MapplsAPIKit in Frameworks */ = {isa = PBXBuildFile; productRef = CB874B6CACBBE357AF2C00CC /* MapplsAPIKit */; };
+		845573232ED7329A00D66234 /* MapplsMap in Frameworks */ = {isa = PBXBuildFile; productRef = 6FD3E4A8B3084D53DAEA8F3D /* MapplsMap */; };
+		845573242ED7329A00D66234 /* MapplsAnnotationExtension in Frameworks */ = {isa = PBXBuildFile; productRef = EA0482A601FF38834CB0B927 /* MapplsAnnotationExtension */; };
+		845573252ED7329A00D66234 /* MapplsGeoanalytics in Frameworks */ = {isa = PBXBuildFile; productRef = F5B0285624C8DCB308092694 /* MapplsGeoanalytics */; };
+		845573262ED7329A00D66234 /* MapplsFeedbackKit in Frameworks */ = {isa = PBXBuildFile; productRef = 22DA9DAD9DBAF8FCC49F5F3A /* MapplsFeedbackKit */; };
+		845573272ED7329A00D66234 /* MapplsLMS in Frameworks */ = {isa = PBXBuildFile; productRef = 89CE441138931B719E9F959F /* MapplsLMS */; };
+		845573282ED7329A00D66234 /* MapplsAPICore in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEEE2705308C41E46B4F57A /* MapplsAPICore */; };
+		845573292ED7329A00D66234 /* MapplsAPIKit in Frameworks */ = {isa = PBXBuildFile; productRef = C6E8A6724413C6304B6C2041 /* MapplsAPIKit */; };
+		8455732A2ED7329A00D66234 /* MapplsMap in Frameworks */ = {isa = PBXBuildFile; productRef = C583DE0E55EA0CAFFCC08ABD /* MapplsMap */; };
+		8455732B2ED7329A00D66234 /* MapplsAnnotationExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 507C52230C6F643CD3B57423 /* MapplsAnnotationExtension */; };
+		8455732C2ED7329A00D66234 /* MapplsGeoanalytics in Frameworks */ = {isa = PBXBuildFile; productRef = BAE6D775149A2A348EE2224D /* MapplsGeoanalytics */; };
+		8455732D2ED7329A00D66234 /* MapplsFeedbackKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9EA1258FC875335AD5CAEAED /* MapplsFeedbackKit */; };
 		8486D54F2EAB884700554DE4 /* MapplsLMS in Frameworks */ = {isa = PBXBuildFile; productRef = 70A34D1F86AD9703122164B8 /* MapplsLMS */; };
 		8486D5502EAB884700554DE4 /* MapplsAPICore in Frameworks */ = {isa = PBXBuildFile; productRef = EF19F437E4F0C085AA94E953 /* MapplsAPICore */; };
 		8486D5512EAB884700554DE4 /* MapplsAPIKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6A6C7B481C386ED08454D5 /* MapplsAPIKit */; };
@@ -161,8 +182,8 @@
 		84E66AB22EAA973500FD2234 /* MapplsFeedbackKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98C1483D16678BD9A5B86747 /* MapplsFeedbackKit */; };
 		84E66AC92EAA984300FD2234 /* app1761238327203i1910783346.i.conf in Resources */ = {isa = PBXBuildFile; fileRef = 84E66AC82EAA984300FD2234 /* app1761238327203i1910783346.i.conf */; };
 		84E66ACB2EAA985F00FD2234 /* app1761238327203i1910783346.i.olf in Resources */ = {isa = PBXBuildFile; fileRef = 84E66ACA2EAA985F00FD2234 /* app1761238327203i1910783346.i.olf */; };
-		CA8D86B3F5856CA3ED6F6C3E /* Pods_apptileSeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13073C5F6CDFAD3176D33ED3 /* Pods_apptileSeed.framework */; };
-		D589E150BAA1D6CBE8607F00 /* Pods_NotificationContentExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF697EA46399938C821ECE02 /* Pods_NotificationContentExtension.framework */; };
+		B72D6C723363F661F17C5042 /* Pods_apptileSeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7379C256B74C44648ACE3137 /* Pods_apptileSeed.framework */; };
+		D178A1158474CC15C4460D62 /* Pods_NotificationContentExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E89B853F90785568087E4476 /* Pods_NotificationContentExtension.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -244,26 +265,26 @@
 		05AB70E02D59EDF9007FE7AB /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
 		05AB70E12D59EDF9007FE7AB /* Zocial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zocial.ttf; sourceTree = "<group>"; };
 		05F9A8202C9175D9002032E2 /* localBundleTracker.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = localBundleTracker.json; sourceTree = "<group>"; };
-		1066010970E94C2DC30C2249 /* Pods-NotificationContentExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationContentExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.release.xcconfig"; sourceTree = "<group>"; };
-		13073C5F6CDFAD3176D33ED3 /* Pods_apptileSeed.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_apptileSeed.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FBB733F8951D867FA0DE63F /* Pods_ImageNotification.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ImageNotification.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* apptileSeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = apptileSeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = apptileSeed/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = apptileSeed/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = apptileSeed/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = apptileSeed/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = apptileSeed/main.m; sourceTree = "<group>"; };
-		4DE92CACC6511CEE87BF3F90 /* Pods_ImageNotification.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ImageNotification.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		5699E0854AAE7DA7423445FC /* Pods-apptileSeed.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-apptileSeed.release.xcconfig"; path = "Target Support Files/Pods-apptileSeed/Pods-apptileSeed.release.xcconfig"; sourceTree = "<group>"; };
-		5F09DB5A152E8D6B71332DB9 /* Pods-ImageNotification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageNotification.debug.xcconfig"; path = "Target Support Files/Pods-ImageNotification/Pods-ImageNotification.debug.xcconfig"; sourceTree = "<group>"; };
+		1D186C342496C6773CA1C7F7 /* Pods-apptileSeed.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-apptileSeed.debug.xcconfig"; path = "Target Support Files/Pods-apptileSeed/Pods-apptileSeed.debug.xcconfig"; sourceTree = "<group>"; };
+		42EBEE08C99CEA4AC501D4D5 /* Pods-ImageNotification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageNotification.debug.xcconfig"; path = "Target Support Files/Pods-ImageNotification/Pods-ImageNotification.debug.xcconfig"; sourceTree = "<group>"; };
+		46AB792A2BED2AA61FBAB49E /* Pods-apptileSeed.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-apptileSeed.release.xcconfig"; path = "Target Support Files/Pods-apptileSeed/Pods-apptileSeed.release.xcconfig"; sourceTree = "<group>"; };
 		6132EF172BDFF13200BBE14D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = apptileSeed/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		66B1EFAE7E2712F701E346A8 /* Pods-ImageNotification.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageNotification.release.xcconfig"; path = "Target Support Files/Pods-ImageNotification/Pods-ImageNotification.release.xcconfig"; sourceTree = "<group>"; };
+		7379C256B74C44648ACE3137 /* Pods_apptileSeed.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_apptileSeed.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7BC3527315428D30F540CBAE /* Pods-NotificationContentExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationContentExtension.debug.xcconfig"; path = "Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = apptileSeed/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84E66AC82EAA984300FD2234 /* app1761238327203i1910783346.i.conf */ = {isa = PBXFileReference; lastKnownFileType = file; path = app1761238327203i1910783346.i.conf; sourceTree = "<group>"; };
 		84E66ACA2EAA985F00FD2234 /* app1761238327203i1910783346.i.olf */ = {isa = PBXFileReference; lastKnownFileType = text; path = app1761238327203i1910783346.i.olf; sourceTree = "<group>"; };
-		8ED2602A8E3B9F7822713340 /* Pods-apptileSeed.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-apptileSeed.debug.xcconfig"; path = "Target Support Files/Pods-apptileSeed/Pods-apptileSeed.debug.xcconfig"; sourceTree = "<group>"; };
-		C0DCB3D1B66E6AA488E96CFD /* Pods-NotificationContentExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationContentExtension.debug.xcconfig"; path = "Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig"; sourceTree = "<group>"; };
-		D2571B6C5378803D3BD8D27B /* Pods-ImageNotification.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageNotification.release.xcconfig"; path = "Target Support Files/Pods-ImageNotification/Pods-ImageNotification.release.xcconfig"; sourceTree = "<group>"; };
+		9CA9D2DECFE3325176B41FEE /* Pods-NotificationContentExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationContentExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.release.xcconfig"; sourceTree = "<group>"; };
+		E89B853F90785568087E4476 /* Pods_NotificationContentExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationContentExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		FF697EA46399938C821ECE02 /* Pods_NotificationContentExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationContentExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -307,6 +328,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				845573262ED7329A00D66234 /* MapplsFeedbackKit in Frameworks */,
+				845573252ED7329A00D66234 /* MapplsGeoanalytics in Frameworks */,
+				845573242ED7329A00D66234 /* MapplsAnnotationExtension in Frameworks */,
+				845573232ED7329A00D66234 /* MapplsMap in Frameworks */,
+				845573222ED7329A00D66234 /* MapplsAPIKit in Frameworks */,
+				845573212ED7329A00D66234 /* MapplsAPICore in Frameworks */,
+				845573202ED7329A00D66234 /* MapplsLMS in Frameworks */,
 				843CCFB12EAB9F330076C18A /* MapplsFeedbackKit in Frameworks */,
 				843CCFB02EAB9F330076C18A /* MapplsGeoanalytics in Frameworks */,
 				843CCFAF2EAB9F330076C18A /* MapplsAnnotationExtension in Frameworks */,
@@ -344,7 +372,7 @@
 				843B3EF72EA1019900A74D20 /* MapplsLMS in Frameworks */,
 				057DB1612D5B3B1F0058398E /* UserNotificationsUI.framework in Frameworks */,
 				057DB15F2D5B3B1F0058398E /* UserNotifications.framework in Frameworks */,
-				D589E150BAA1D6CBE8607F00 /* Pods_NotificationContentExtension.framework in Frameworks */,
+				D178A1158474CC15C4460D62 /* Pods_NotificationContentExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +380,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8455731F2ED7329A00D66234 /* MapplsFeedbackKit in Frameworks */,
+				8455731E2ED7329A00D66234 /* MapplsGeoanalytics in Frameworks */,
+				8455731D2ED7329A00D66234 /* MapplsAnnotationExtension in Frameworks */,
+				8455731C2ED7329A00D66234 /* MapplsMap in Frameworks */,
+				8455731B2ED7329A00D66234 /* MapplsAPIKit in Frameworks */,
+				8455731A2ED7329A00D66234 /* MapplsAPICore in Frameworks */,
+				845573192ED7329A00D66234 /* MapplsLMS in Frameworks */,
 				843CCFAA2EAB9F330076C18A /* MapplsFeedbackKit in Frameworks */,
 				843CCFA92EAB9F330076C18A /* MapplsGeoanalytics in Frameworks */,
 				843CCFA82EAB9F330076C18A /* MapplsAnnotationExtension in Frameworks */,
@@ -388,7 +423,7 @@
 				843B3EF12EA1019900A74D20 /* MapplsAPICore in Frameworks */,
 				843B3EF02EA1019900A74D20 /* MapplsLMS in Frameworks */,
 				057DDD402D48C3E500945100 /* UserNotifications.framework in Frameworks */,
-				35CF899B7D8A84863D4B6D8E /* Pods_ImageNotification.framework in Frameworks */,
+				6ED11F525DED9212F3F81F25 /* Pods_ImageNotification.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -396,6 +431,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8455732D2ED7329A00D66234 /* MapplsFeedbackKit in Frameworks */,
+				8455732C2ED7329A00D66234 /* MapplsGeoanalytics in Frameworks */,
+				8455732B2ED7329A00D66234 /* MapplsAnnotationExtension in Frameworks */,
+				8455732A2ED7329A00D66234 /* MapplsMap in Frameworks */,
+				845573292ED7329A00D66234 /* MapplsAPIKit in Frameworks */,
+				845573282ED7329A00D66234 /* MapplsAPICore in Frameworks */,
+				845573272ED7329A00D66234 /* MapplsLMS in Frameworks */,
 				843CCFB82EAB9F330076C18A /* MapplsFeedbackKit in Frameworks */,
 				843CCFB72EAB9F330076C18A /* MapplsGeoanalytics in Frameworks */,
 				843CCFB62EAB9F330076C18A /* MapplsAnnotationExtension in Frameworks */,
@@ -432,7 +474,7 @@
 				843B3EFF2EA1019900A74D20 /* MapplsAPICore in Frameworks */,
 				843B3EFE2EA1019900A74D20 /* MapplsLMS in Frameworks */,
 				057DDD7F2D48FB0C00945100 /* UserNotifications.framework in Frameworks */,
-				CA8D86B3F5856CA3ED6F6C3E /* Pods_apptileSeed.framework in Frameworks */,
+				B72D6C723363F661F17C5042 /* Pods_apptileSeed.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,9 +610,9 @@
 				057DDD3F2D48C3E500945100 /* UserNotifications.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				057DB1602D5B3B1F0058398E /* UserNotificationsUI.framework */,
-				4DE92CACC6511CEE87BF3F90 /* Pods_ImageNotification.framework */,
-				FF697EA46399938C821ECE02 /* Pods_NotificationContentExtension.framework */,
-				13073C5F6CDFAD3176D33ED3 /* Pods_apptileSeed.framework */,
+				0FBB733F8951D867FA0DE63F /* Pods_ImageNotification.framework */,
+				E89B853F90785568087E4476 /* Pods_NotificationContentExtension.framework */,
+				7379C256B74C44648ACE3137 /* Pods_apptileSeed.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -620,12 +662,12 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				5F09DB5A152E8D6B71332DB9 /* Pods-ImageNotification.debug.xcconfig */,
-				D2571B6C5378803D3BD8D27B /* Pods-ImageNotification.release.xcconfig */,
-				C0DCB3D1B66E6AA488E96CFD /* Pods-NotificationContentExtension.debug.xcconfig */,
-				1066010970E94C2DC30C2249 /* Pods-NotificationContentExtension.release.xcconfig */,
-				8ED2602A8E3B9F7822713340 /* Pods-apptileSeed.debug.xcconfig */,
-				5699E0854AAE7DA7423445FC /* Pods-apptileSeed.release.xcconfig */,
+				42EBEE08C99CEA4AC501D4D5 /* Pods-ImageNotification.debug.xcconfig */,
+				66B1EFAE7E2712F701E346A8 /* Pods-ImageNotification.release.xcconfig */,
+				7BC3527315428D30F540CBAE /* Pods-NotificationContentExtension.debug.xcconfig */,
+				9CA9D2DECFE3325176B41FEE /* Pods-NotificationContentExtension.release.xcconfig */,
+				1D186C342496C6773CA1C7F7 /* Pods-apptileSeed.debug.xcconfig */,
+				46AB792A2BED2AA61FBAB49E /* Pods-apptileSeed.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -637,7 +679,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 057DB16C2D5B3B1F0058398E /* Build configuration list for PBXNativeTarget "NotificationContentExtension" */;
 			buildPhases = (
-				8761994A064AB731F35CABA5 /* [CP] Check Pods Manifest.lock */,
+				8669077A06D22EA226327F49 /* [CP] Check Pods Manifest.lock */,
 				057DB15A2D5B3B1F0058398E /* Sources */,
 				057DB15B2D5B3B1F0058398E /* Frameworks */,
 				057DB15C2D5B3B1F0058398E /* Resources */,
@@ -651,13 +693,13 @@
 			);
 			name = NotificationContentExtension;
 			packageProductDependencies = (
-				4A6AA03FA0C59CB42F72E941 /* MapplsLMS */,
-				4C4B6635BFD911677EF89A0A /* MapplsAPICore */,
-				C5F04A1EB620E6925FE14C38 /* MapplsAPIKit */,
-				E3B96089E88A844B4E387184 /* MapplsMap */,
-				640272CB41BEB09F34739CCD /* MapplsAnnotationExtension */,
-				FB8D343D2311D80DAFF80853 /* MapplsGeoanalytics */,
-				92A4004BD4767E8E2A55192B /* MapplsFeedbackKit */,
+				218FA26364A7BE70B18DBA36 /* MapplsLMS */,
+				DAEF5070B6AA7564CB5D9147 /* MapplsAPICore */,
+				CB874B6CACBBE357AF2C00CC /* MapplsAPIKit */,
+				6FD3E4A8B3084D53DAEA8F3D /* MapplsMap */,
+				EA0482A601FF38834CB0B927 /* MapplsAnnotationExtension */,
+				F5B0285624C8DCB308092694 /* MapplsGeoanalytics */,
+				22DA9DAD9DBAF8FCC49F5F3A /* MapplsFeedbackKit */,
 			);
 			productName = NotificationContentExtension;
 			productReference = 057DB15E2D5B3B1F0058398E /* NotificationContentExtension.appex */;
@@ -667,7 +709,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 057DDD3C2D48C35D00945100 /* Build configuration list for PBXNativeTarget "ImageNotification" */;
 			buildPhases = (
-				C397EE8C9586BF9B31348500 /* [CP] Check Pods Manifest.lock */,
+				49478332AEC07473CEFD8C7E /* [CP] Check Pods Manifest.lock */,
 				057DDD312D48C35D00945100 /* Sources */,
 				057DDD322D48C35D00945100 /* Frameworks */,
 				057DDD332D48C35D00945100 /* Resources */,
@@ -681,13 +723,13 @@
 			);
 			name = ImageNotification;
 			packageProductDependencies = (
-				EE23D9EF9DF52432D216CAF3 /* MapplsLMS */,
-				A39E5E77B3826D6BC4D8AFAF /* MapplsAPICore */,
-				723247BFF1FF6B5C495692D4 /* MapplsAPIKit */,
-				3A093515C15589159D1BFCBD /* MapplsMap */,
-				B5242734AEFCB09764265F68 /* MapplsAnnotationExtension */,
-				D630B821A404F274B7803FC5 /* MapplsGeoanalytics */,
-				3BACC37D993912BB8B358A69 /* MapplsFeedbackKit */,
+				EF0B65B0FE7A61470A686D9B /* MapplsLMS */,
+				2F73E32B1A63DC5CEB11AC0B /* MapplsAPICore */,
+				B75185D1CE67528E5FB72401 /* MapplsAPIKit */,
+				0C6133121120CC89ED829EC0 /* MapplsMap */,
+				D2B6FFF584C5772E3377DA77 /* MapplsAnnotationExtension */,
+				AC6C839176BCCCB219C52ABF /* MapplsGeoanalytics */,
+				B944D511DAC165DC64299006 /* MapplsFeedbackKit */,
 			);
 			productName = ImageNotification;
 			productReference = 057DDD352D48C35D00945100 /* ImageNotification.appex */;
@@ -697,15 +739,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "apptileSeed" */;
 			buildPhases = (
-				51A0414D557D45FE51E5FC4B /* [CP] Check Pods Manifest.lock */,
+				228DEFB942C333DDE359BABB /* [CP] Check Pods Manifest.lock */,
 				05A846DA2CF33FE300784D02 /* Apptile Setup */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				057DDD6B2D48FA5600945100 /* Embed Foundation Extensions */,
-				EA2143D9DC3B80AC56BFDDF8 /* [CP] Embed Pods Frameworks */,
-				AEED51FE69FEAD1CC585419C /* [CP-User] [RNFB] Core Configuration */,
+				A6F0AFE3EDB06FFC2FC68A4E /* [CP] Embed Pods Frameworks */,
+				43A1C64C67003E6AD1C94771 /* [CP-User] [RNFB] Core Configuration */,
 			);
 			buildRules = (
 			);
@@ -715,13 +757,13 @@
 			);
 			name = apptileSeed;
 			packageProductDependencies = (
-				C63CB16791226C55D7C5D88C /* MapplsLMS */,
-				CB732B050C37CC24A48D85BE /* MapplsAPICore */,
-				45046722D744753C2C02EA02 /* MapplsAPIKit */,
-				71AAF77C2776C5B7CF14B9CE /* MapplsMap */,
-				0BB5AB02F119BD2CFA693A5A /* MapplsAnnotationExtension */,
-				12225899760048403E0EB706 /* MapplsGeoanalytics */,
-				B42D44126250605B3352869E /* MapplsFeedbackKit */,
+				89CE441138931B719E9F959F /* MapplsLMS */,
+				9BEEE2705308C41E46B4F57A /* MapplsAPICore */,
+				C6E8A6724413C6304B6C2041 /* MapplsAPIKit */,
+				C583DE0E55EA0CAFFCC08ABD /* MapplsMap */,
+				507C52230C6F643CD3B57423 /* MapplsAnnotationExtension */,
+				BAE6D775149A2A348EE2224D /* MapplsGeoanalytics */,
+				9EA1258FC875335AD5CAEAED /* MapplsFeedbackKit */,
 			);
 			productName = apptileSeed;
 			productReference = 13B07F961A680F5B00A75B9A /* apptileSeed.app */;
@@ -756,13 +798,13 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				F9CCB0D881E930A915660791 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */,
-				B83BDD96523BC33E850B0EB4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */,
-				546391A26BC93426D0DBBBEE /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */,
-				2A09C96FE83612CFAC993521 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */,
-				30C1312D9F597E3AE543680B /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */,
-				D44859BD05D05F2179C8EC47 /* XCRemoteSwiftPackageReference "mappls-geoanalytics-ios-distribution-base" */,
-				CEE152FA8C66C9562AEF885C /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */,
+				C7891038FF84A020318AA857 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */,
+				6E88BFDF28C0CCC726AB76D4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */,
+				5938FF65208E9C83274324E7 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */,
+				4DED8E6E6ECFFE97F0B5CFBD /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */,
+				1D45F57F7C664699422F30B8 /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */,
+				AF692F4196ADFAD83180F841 /* XCRemoteSwiftPackageReference "mappls-geoanalytics-ios-distribution-base" */,
+				C0ADCA9493D3CB452F6AAFD4 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
@@ -864,7 +906,7 @@
 			shellPath = /bin/sh;
 			shellScript = "source $SRCROOT/.xcode.env\necho \"-----------------------------\"\necho \"NODE_BINARY: ${NODE_BINARY}\"\necho \"-----------------------------\"\necho \"\\n\"\n# $NODE_BINARY $SRCROOT/../iosProjectSetup.js $SRCROOT\n";
 		};
-		51A0414D557D45FE51E5FC4B /* [CP] Check Pods Manifest.lock */ = {
+		228DEFB942C333DDE359BABB /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -886,29 +928,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8761994A064AB731F35CABA5 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NotificationContentExtension-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		AEED51FE69FEAD1CC585419C /* [CP-User] [RNFB] Core Configuration */ = {
+		43A1C64C67003E6AD1C94771 /* [CP-User] [RNFB] Core Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -921,7 +941,7 @@
 			shellPath = /bin/sh;
 			shellScript = "#!/usr/bin/env bash\n#\n# Copyright (c) 2016-present Invertase Limited & Contributors\n#\n# Licensed under the Apache License, Version 2.0 (the \"License\");\n# you may not use this library except in compliance with the License.\n# You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n#\n\n##########################################################################\n##########################################################################\n#\n#  NOTE THAT IF YOU CHANGE THIS FILE YOU MUST RUN pod install AFTERWARDS\n#\n#  This file is installed as an Xcode build script in the project file\n#  by cocoapods, and you will not see your changes until you pod install\n#\n##########################################################################\n##########################################################################\n\nset -e\n\n_MAX_LOOKUPS=2;\n_SEARCH_RESULT=''\n_RN_ROOT_EXISTS=''\n_CURRENT_LOOKUPS=1\n_JSON_ROOT=\"'react-native'\"\n_JSON_FILE_NAME='firebase.json'\n_JSON_OUTPUT_BASE64='e30=' # { }\n_CURRENT_SEARCH_DIR=${PROJECT_DIR}\n_PLIST_BUDDY=/usr/libexec/PlistBuddy\n_TARGET_PLIST=\"${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH}\"\n_DSYM_PLIST=\"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist\"\n\n# plist arrays\n_PLIST_ENTRY_KEYS=()\n_PLIST_ENTRY_TYPES=()\n_PLIST_ENTRY_VALUES=()\n\nfunction setPlistValue {\n  echo \"info:      setting plist entry '$1' of type '$2' in file '$4'\"\n  ${_PLIST_BUDDY} -c \"Add :$1 $2 '$3'\" $4 || echo \"info:      '$1' already exists\"\n}\n\nfunction getFirebaseJsonKeyValue () {\n  if [[ ${_RN_ROOT_EXISTS} ]]; then\n    ruby -Ku -e \"require 'rubygems';require 'json'; output=JSON.parse('$1'); puts output[$_JSON_ROOT]['$2']\"\n  else\n    echo \"\"\n  fi;\n}\n\nfunction jsonBoolToYesNo () {\n  if [[ $1 == \"false\" ]]; then\n    echo \"NO\"\n  elif [[ $1 == \"true\" ]]; then\n    echo \"YES\"\n  else echo \"NO\"\n  fi\n}\n\necho \"info: -> RNFB build script started\"\necho \"info: 1) Locating ${_JSON_FILE_NAME} file:\"\n\nif [[ -z ${_CURRENT_SEARCH_DIR} ]]; then\n  _CURRENT_SEARCH_DIR=$(pwd)\nfi;\n\nwhile true; do\n  _CURRENT_SEARCH_DIR=$(dirname \"$_CURRENT_SEARCH_DIR\")\n  if [[ \"$_CURRENT_SEARCH_DIR\" == \"/\" ]] || [[ ${_CURRENT_LOOKUPS} -gt ${_MAX_LOOKUPS} ]]; then break; fi;\n  echo \"info:      ($_CURRENT_LOOKUPS of $_MAX_LOOKUPS) Searching in '$_CURRENT_SEARCH_DIR' for a ${_JSON_FILE_NAME} file.\"\n  _SEARCH_RESULT=$(find \"$_CURRENT_SEARCH_DIR\" -maxdepth 2 -name ${_JSON_FILE_NAME} -print | /usr/bin/head -n 1)\n  if [[ ${_SEARCH_RESULT} ]]; then\n    echo \"info:      ${_JSON_FILE_NAME} found at $_SEARCH_RESULT\"\n    break;\n  fi;\n  _CURRENT_LOOKUPS=$((_CURRENT_LOOKUPS+1))\ndone\n\nif [[ ${_SEARCH_RESULT} ]]; then\n  _JSON_OUTPUT_RAW=$(cat \"${_SEARCH_RESULT}\")\n  _RN_ROOT_EXISTS=$(ruby -Ku -e \"require 'rubygems';require 'json'; output=JSON.parse('$_JSON_OUTPUT_RAW'); puts output[$_JSON_ROOT]\" || echo '')\n\n  if [[ ${_RN_ROOT_EXISTS} ]]; then\n    if ! python3 --version >/dev/null 2>&1; then echo \"python3 not found, firebase.json file processing error.\" && exit 1; fi\n    _JSON_OUTPUT_BASE64=$(python3 -c 'import json,sys,base64;print(base64.b64encode(bytes(json.dumps(json.loads(open('\"'${_SEARCH_RESULT}'\"', '\"'rb'\"').read())['${_JSON_ROOT}']), '\"'utf-8'\"')).decode())' || echo \"e30=\")\n  fi\n\n  _PLIST_ENTRY_KEYS+=(\"firebase_json_raw\")\n  _PLIST_ENTRY_TYPES+=(\"string\")\n  _PLIST_ENTRY_VALUES+=(\"$_JSON_OUTPUT_BASE64\")\n\n  # config.app_data_collection_default_enabled\n  _APP_DATA_COLLECTION_ENABLED=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"app_data_collection_default_enabled\")\n  if [[ $_APP_DATA_COLLECTION_ENABLED ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FirebaseDataCollectionDefaultEnabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_APP_DATA_COLLECTION_ENABLED\")\")\n  fi\n\n  # config.analytics_auto_collection_enabled\n  _ANALYTICS_AUTO_COLLECTION=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_auto_collection_enabled\")\n  if [[ $_ANALYTICS_AUTO_COLLECTION ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FIREBASE_ANALYTICS_COLLECTION_ENABLED\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_AUTO_COLLECTION\")\")\n  fi\n\n  # config.analytics_collection_deactivated\n  _ANALYTICS_DEACTIVATED=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_collection_deactivated\")\n  if [[ $_ANALYTICS_DEACTIVATED ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FIREBASE_ANALYTICS_COLLECTION_DEACTIVATED\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_DEACTIVATED\")\")\n  fi\n\n  # config.analytics_idfv_collection_enabled\n  _ANALYTICS_IDFV_COLLECTION=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_idfv_collection_enabled\")\n  if [[ $_ANALYTICS_IDFV_COLLECTION ]]; then\n    _PLIST_ENTRY_KEYS+=(\"GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_IDFV_COLLECTION\")\")\n  fi\n\n  # config.analytics_default_allow_analytics_storage\n  _ANALYTICS_STORAGE=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_default_allow_analytics_storage\")\n  if [[ $_ANALYTICS_STORAGE ]]; then\n    _PLIST_ENTRY_KEYS+=(\"GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_STORAGE\")\")\n  fi\n\n  # config.analytics_default_allow_ad_storage\n  _ANALYTICS_AD_STORAGE=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_default_allow_ad_storage\")\n  if [[ $_ANALYTICS_AD_STORAGE ]]; then\n    _PLIST_ENTRY_KEYS+=(\"GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_AD_STORAGE\")\")\n  fi\n\n  # config.analytics_default_allow_ad_user_data\n  _ANALYTICS_AD_USER_DATA=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_default_allow_ad_user_data\")\n  if [[ $_ANALYTICS_AD_USER_DATA ]]; then\n    _PLIST_ENTRY_KEYS+=(\"GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_AD_USER_DATA\")\")\n  fi\n\n  # config.analytics_default_allow_ad_personalization_signals\n  _ANALYTICS_PERSONALIZATION=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"analytics_default_allow_ad_personalization_signals\")\n  if [[ $_ANALYTICS_PERSONALIZATION ]]; then\n    _PLIST_ENTRY_KEYS+=(\"GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_PERSONALIZATION\")\")\n  fi\n\n  # config.analytics_registration_with_ad_network_enabled\n  _ANALYTICS_REGISTRATION_WITH_AD_NETWORK=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"google_analytics_registration_with_ad_network_enabled\")\n  if [[ $_ANALYTICS_REGISTRATION_WITH_AD_NETWORK ]]; then\n    _PLIST_ENTRY_KEYS+=(\"GOOGLE_ANALYTICS_REGISTRATION_WITH_AD_NETWORK_ENABLED\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_REGISTRATION_WITH_AD_NETWORK\")\")\n  fi\n\n  # config.google_analytics_automatic_screen_reporting_enabled\n  _ANALYTICS_AUTO_SCREEN_REPORTING=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"google_analytics_automatic_screen_reporting_enabled\")\n  if [[ $_ANALYTICS_AUTO_SCREEN_REPORTING ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FirebaseAutomaticScreenReportingEnabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_ANALYTICS_AUTO_SCREEN_REPORTING\")\")\n  fi\n\n  # config.perf_auto_collection_enabled\n  _PERF_AUTO_COLLECTION=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"perf_auto_collection_enabled\")\n  if [[ $_PERF_AUTO_COLLECTION ]]; then\n    _PLIST_ENTRY_KEYS+=(\"firebase_performance_collection_enabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_PERF_AUTO_COLLECTION\")\")\n  fi\n\n  # config.perf_collection_deactivated\n  _PERF_DEACTIVATED=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"perf_collection_deactivated\")\n  if [[ $_PERF_DEACTIVATED ]]; then\n    _PLIST_ENTRY_KEYS+=(\"firebase_performance_collection_deactivated\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_PERF_DEACTIVATED\")\")\n  fi\n\n  # config.messaging_auto_init_enabled\n  _MESSAGING_AUTO_INIT=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"messaging_auto_init_enabled\")\n  if [[ $_MESSAGING_AUTO_INIT ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FirebaseMessagingAutoInitEnabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_MESSAGING_AUTO_INIT\")\")\n  fi\n\n  # config.in_app_messaging_auto_colllection_enabled\n  _FIAM_AUTO_INIT=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"in_app_messaging_auto_collection_enabled\")\n  if [[ $_FIAM_AUTO_INIT ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FirebaseInAppMessagingAutomaticDataCollectionEnabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_FIAM_AUTO_INIT\")\")\n  fi\n\n  # config.app_check_token_auto_refresh\n  _APP_CHECK_TOKEN_AUTO_REFRESH=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"app_check_token_auto_refresh\")\n  if [[ $_APP_CHECK_TOKEN_AUTO_REFRESH ]]; then\n    _PLIST_ENTRY_KEYS+=(\"FirebaseAppCheckTokenAutoRefreshEnabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"$(jsonBoolToYesNo \"$_APP_CHECK_TOKEN_AUTO_REFRESH\")\")\n  fi\n\n  # config.crashlytics_disable_auto_disabler - undocumented for now - mainly for debugging, document if becomes useful\n  _CRASHLYTICS_AUTO_DISABLE_ENABLED=$(getFirebaseJsonKeyValue \"$_JSON_OUTPUT_RAW\" \"crashlytics_disable_auto_disabler\")\n  if [[ $_CRASHLYTICS_AUTO_DISABLE_ENABLED == \"true\" ]]; then\n    echo \"Disabled Crashlytics auto disabler.\" # do nothing\n  else\n    _PLIST_ENTRY_KEYS+=(\"FirebaseCrashlyticsCollectionEnabled\")\n    _PLIST_ENTRY_TYPES+=(\"bool\")\n    _PLIST_ENTRY_VALUES+=(\"NO\")\n  fi\nelse\n  _PLIST_ENTRY_KEYS+=(\"firebase_json_raw\")\n  _PLIST_ENTRY_TYPES+=(\"string\")\n  _PLIST_ENTRY_VALUES+=(\"$_JSON_OUTPUT_BASE64\")\n  echo \"warning:   A firebase.json file was not found, whilst this file is optional it is recommended to include it to configure firebase services in React Native Firebase.\"\nfi;\n\necho \"info: 2) Injecting Info.plist entries: \"\n\n# Log out the keys we're adding\nfor i in \"${!_PLIST_ENTRY_KEYS[@]}\"; do\n  echo \"    ->  $i) ${_PLIST_ENTRY_KEYS[$i]}\" \"${_PLIST_ENTRY_TYPES[$i]}\" \"${_PLIST_ENTRY_VALUES[$i]}\"\ndone\n\nfor plist in \"${_TARGET_PLIST}\" \"${_DSYM_PLIST}\" ; do\n  if [[ -f \"${plist}\" ]]; then\n\n    # paths with spaces break the call to setPlistValue. temporarily modify\n    # the shell internal field separator variable (IFS), which normally\n    # includes spaces, to consist only of line breaks\n    oldifs=$IFS\n    IFS=\"\n\"\n\n    for i in \"${!_PLIST_ENTRY_KEYS[@]}\"; do\n      setPlistValue \"${_PLIST_ENTRY_KEYS[$i]}\" \"${_PLIST_ENTRY_TYPES[$i]}\" \"${_PLIST_ENTRY_VALUES[$i]}\" \"${plist}\"\n    done\n\n    # restore the original internal field separator value\n    IFS=$oldifs\n  else\n    echo \"warning:   A Info.plist build output file was not found (${plist})\"\n  fi\ndone\n\necho \"info: <- RNFB build script finished\"\n";
 		};
-		C397EE8C9586BF9B31348500 /* [CP] Check Pods Manifest.lock */ = {
+		49478332AEC07473CEFD8C7E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -943,7 +963,29 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		EA2143D9DC3B80AC56BFDDF8 /* [CP] Embed Pods Frameworks */ = {
+		8669077A06D22EA226327F49 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NotificationContentExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A6F0AFE3EDB06FFC2FC68A4E /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1016,7 +1058,7 @@
 /* Begin XCBuildConfiguration section */
 		057DB1692D5B3B1F0058398E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C0DCB3D1B66E6AA488E96CFD /* Pods-NotificationContentExtension.debug.xcconfig */;
+			baseConfigurationReference = 7BC3527315428D30F540CBAE /* Pods-NotificationContentExtension.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1058,7 +1100,7 @@
 		};
 		057DB16A2D5B3B1F0058398E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1066010970E94C2DC30C2249 /* Pods-NotificationContentExtension.release.xcconfig */;
+			baseConfigurationReference = 9CA9D2DECFE3325176B41FEE /* Pods-NotificationContentExtension.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1099,7 +1141,7 @@
 		};
 		057DDD3D2D48C35D00945100 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5F09DB5A152E8D6B71332DB9 /* Pods-ImageNotification.debug.xcconfig */;
+			baseConfigurationReference = 42EBEE08C99CEA4AC501D4D5 /* Pods-ImageNotification.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1138,7 +1180,7 @@
 		};
 		057DDD3E2D48C35D00945100 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D2571B6C5378803D3BD8D27B /* Pods-ImageNotification.release.xcconfig */;
+			baseConfigurationReference = 66B1EFAE7E2712F701E346A8 /* Pods-ImageNotification.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1177,14 +1219,14 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8ED2602A8E3B9F7822713340 /* Pods-apptileSeed.debug.xcconfig */;
+			baseConfigurationReference = 1D186C342496C6773CA1C7F7 /* Pods-apptileSeed.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8SQ493N52G;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1204,7 +1246,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1226,14 +1268,14 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5699E0854AAE7DA7423445FC /* Pods-apptileSeed.release.xcconfig */;
+			baseConfigurationReference = 46AB792A2BED2AA61FBAB49E /* Pods-apptileSeed.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8SQ493N52G;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -1251,7 +1293,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1513,6 +1555,14 @@
 				version = 3.0.0;
 			};
 		};
+		1D45F57F7C664699422F30B8 /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-annotation-extension-ios-distribution-base";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.0;
+			};
+		};
 		20D16D4C76032C981AA88BF5 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mappls-api/mappls-api-kit-ios-distribution-base";
@@ -1561,6 +1611,14 @@
 				version = 3.0.0;
 			};
 		};
+		4DED8E6E6ECFFE97F0B5CFBD /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-map-ios-distribution-base";
+			requirement = {
+				kind = exactVersion;
+				version = 6.1.1;
+			};
+		};
 		4FFFDEA2CA7D110DFAB3E959 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mappls-api/mappls-map-ios-distribution-base";
@@ -1578,6 +1636,14 @@
 			};
 		};
 		546391A26BC93426D0DBBBEE /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-api-kit-ios-distribution-base";
+			requirement = {
+				kind = exactVersion;
+				version = 3.0.3;
+			};
+		};
+		5938FF65208E9C83274324E7 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mappls-api/mappls-api-kit-ios-distribution-base";
 			requirement = {
@@ -1610,6 +1676,14 @@
 			};
 		};
 		6D4AA855E137459F3B2F0E91 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-api-core-ios-distribution";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.5;
+			};
+		};
+		6E88BFDF28C0CCC726AB76D4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mappls-api/mappls-api-core-ios-distribution";
 			requirement = {
@@ -1665,6 +1739,14 @@
 				version = 2.0.1;
 			};
 		};
+		AF692F4196ADFAD83180F841 /* XCRemoteSwiftPackageReference "mappls-geoanalytics-ios-distribution-base" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-geoanalytics-ios-distribution-base";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.0;
+			};
+		};
 		B83BDD96523BC33E850B0EB4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mappls-api/mappls-api-core-ios-distribution";
@@ -1681,12 +1763,28 @@
 				version = 3.0.3;
 			};
 		};
+		C0ADCA9493D3CB452F6AAFD4 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-feedback-kit-ios-distribution-base";
+			requirement = {
+				kind = exactVersion;
+				version = 3.0.0;
+			};
+		};
 		C42FBD0BAA9FB20331279F85 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mappls-api/mappls-api-core-ios-distribution";
 			requirement = {
 				kind = exactVersion;
 				version = 2.0.5;
+			};
+		};
+		C7891038FF84A020318AA857 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mappls-api/mappls-lms-ios-distribution-base";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.1;
 			};
 		};
 		CDE21BA6760FD58EFF0C71FA /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */ = {
@@ -1779,6 +1877,11 @@
 			package = 30C1312D9F597E3AE543680B /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */;
 			productName = MapplsAnnotationExtension;
 		};
+		0C6133121120CC89ED829EC0 /* MapplsMap */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DED8E6E6ECFFE97F0B5CFBD /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
+			productName = MapplsMap;
+		};
 		0E2E4A4B0EFD35C3BFED8C2E /* MapplsMap */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4FFFDEA2CA7D110DFAB3E959 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
@@ -1814,10 +1917,20 @@
 			package = 5147BB6A99D5126ED391D191 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
 			productName = MapplsMap;
 		};
+		218FA26364A7BE70B18DBA36 /* MapplsLMS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7891038FF84A020318AA857 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
+			productName = MapplsLMS;
+		};
 		2288E970FBC7C2A9573011F3 /* MapplsAPICore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C42FBD0BAA9FB20331279F85 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
 			productName = MapplsAPICore;
+		};
+		22DA9DAD9DBAF8FCC49F5F3A /* MapplsFeedbackKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0ADCA9493D3CB452F6AAFD4 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */;
+			productName = MapplsFeedbackKit;
 		};
 		263DBDBC646F03B2736E23FB /* MapplsAnnotationExtension */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1848,6 +1961,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DF2EA95CD98766A93C4440B2 /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */;
 			productName = MapplsAnnotationExtension;
+		};
+		2F73E32B1A63DC5CEB11AC0B /* MapplsAPICore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E88BFDF28C0CCC726AB76D4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
+			productName = MapplsAPICore;
 		};
 		30B772D3D4DFED7A2A632548 /* MapplsGeoanalytics */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1924,6 +2042,11 @@
 			package = B83BDD96523BC33E850B0EB4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
 			productName = MapplsAPICore;
 		};
+		507C52230C6F643CD3B57423 /* MapplsAnnotationExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1D45F57F7C664699422F30B8 /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */;
+			productName = MapplsAnnotationExtension;
+		};
 		50F94DCFB718C17AA3935164 /* MapplsAPIKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BFB10B5A4BFCC8EF0AEE1F16 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
@@ -1984,6 +2107,11 @@
 			package = 18AD043D54B5AC63C823FC40 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */;
 			productName = MapplsFeedbackKit;
 		};
+		6FD3E4A8B3084D53DAEA8F3D /* MapplsMap */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DED8E6E6ECFFE97F0B5CFBD /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
+			productName = MapplsMap;
+		};
 		70A34D1F86AD9703122164B8 /* MapplsLMS */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 84F30716563FA955CE5F52B9 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
@@ -2039,6 +2167,11 @@
 			package = F9159BB55E8887BDF17ECC61 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
 			productName = MapplsAPICore;
 		};
+		89CE441138931B719E9F959F /* MapplsLMS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7891038FF84A020318AA857 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
+			productName = MapplsLMS;
+		};
 		8FD25B35CB449D61E6DB0078 /* MapplsMap */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4A016303E413F8FBB4F53B68 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
@@ -2069,10 +2202,20 @@
 			package = 4D0254432AB9A359F4B8FE72 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */;
 			productName = MapplsFeedbackKit;
 		};
+		9BEEE2705308C41E46B4F57A /* MapplsAPICore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E88BFDF28C0CCC726AB76D4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
+			productName = MapplsAPICore;
+		};
 		9D6E7FE6B44F844C23D97D22 /* MapplsMap */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4FFFDEA2CA7D110DFAB3E959 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
 			productName = MapplsMap;
+		};
+		9EA1258FC875335AD5CAEAED /* MapplsFeedbackKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0ADCA9493D3CB452F6AAFD4 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */;
+			productName = MapplsFeedbackKit;
 		};
 		A01A41B07CF47AA3D55FD242 /* MapplsMap */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2114,6 +2257,11 @@
 			package = 5E6C9F161382480C204FEC31 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
 			productName = MapplsMap;
 		};
+		AC6C839176BCCCB219C52ABF /* MapplsGeoanalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AF692F4196ADFAD83180F841 /* XCRemoteSwiftPackageReference "mappls-geoanalytics-ios-distribution-base" */;
+			productName = MapplsGeoanalytics;
+		};
 		AE0F620FC9D6A42596989A79 /* MapplsLMS */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 8ED04181D7D8C9A932BF4E06 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
@@ -2149,10 +2297,25 @@
 			package = 30C1312D9F597E3AE543680B /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */;
 			productName = MapplsAnnotationExtension;
 		};
+		B75185D1CE67528E5FB72401 /* MapplsAPIKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5938FF65208E9C83274324E7 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
+			productName = MapplsAPIKit;
+		};
 		B859EF1577941DDAFD615BFA /* MapplsAPIKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 20D16D4C76032C981AA88BF5 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
 			productName = MapplsAPIKit;
+		};
+		B944D511DAC165DC64299006 /* MapplsFeedbackKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0ADCA9493D3CB452F6AAFD4 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */;
+			productName = MapplsFeedbackKit;
+		};
+		BAE6D775149A2A348EE2224D /* MapplsGeoanalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AF692F4196ADFAD83180F841 /* XCRemoteSwiftPackageReference "mappls-geoanalytics-ios-distribution-base" */;
+			productName = MapplsGeoanalytics;
 		};
 		BDDAFA6B5DC3AF762DC886A7 /* MapplsAPICore */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2174,6 +2337,11 @@
 			package = 5E6C9F161382480C204FEC31 /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
 			productName = MapplsMap;
 		};
+		C583DE0E55EA0CAFFCC08ABD /* MapplsMap */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4DED8E6E6ECFFE97F0B5CFBD /* XCRemoteSwiftPackageReference "mappls-map-ios-distribution-base" */;
+			productName = MapplsMap;
+		};
 		C5F04A1EB620E6925FE14C38 /* MapplsAPIKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 546391A26BC93426D0DBBBEE /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
@@ -2184,10 +2352,20 @@
 			package = F9CCB0D881E930A915660791 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
 			productName = MapplsLMS;
 		};
+		C6E8A6724413C6304B6C2041 /* MapplsAPIKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5938FF65208E9C83274324E7 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
+			productName = MapplsAPIKit;
+		};
 		CB732B050C37CC24A48D85BE /* MapplsAPICore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B83BDD96523BC33E850B0EB4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
 			productName = MapplsAPICore;
+		};
+		CB874B6CACBBE357AF2C00CC /* MapplsAPIKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5938FF65208E9C83274324E7 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
+			productName = MapplsAPIKit;
 		};
 		CC2B2E8B6A14428149B4114F /* MapplsAnnotationExtension */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2198,6 +2376,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4D0254432AB9A359F4B8FE72 /* XCRemoteSwiftPackageReference "mappls-feedback-kit-ios-distribution-base" */;
 			productName = MapplsFeedbackKit;
+		};
+		D2B6FFF584C5772E3377DA77 /* MapplsAnnotationExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1D45F57F7C664699422F30B8 /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */;
+			productName = MapplsAnnotationExtension;
 		};
 		D2CEACBD05663233224B4C34 /* MapplsAPIKit */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2213,6 +2396,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BFB10B5A4BFCC8EF0AEE1F16 /* XCRemoteSwiftPackageReference "mappls-api-kit-ios-distribution-base" */;
 			productName = MapplsAPIKit;
+		};
+		DAEF5070B6AA7564CB5D9147 /* MapplsAPICore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E88BFDF28C0CCC726AB76D4 /* XCRemoteSwiftPackageReference "mappls-api-core-ios-distribution" */;
+			productName = MapplsAPICore;
 		};
 		E0DBDFF2808096460AC22432 /* MapplsGeoanalytics */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2244,9 +2432,19 @@
 			package = 841C025694FADBB92BDC604D /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
 			productName = MapplsLMS;
 		};
+		EA0482A601FF38834CB0B927 /* MapplsAnnotationExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1D45F57F7C664699422F30B8 /* XCRemoteSwiftPackageReference "mappls-annotation-extension-ios-distribution-base" */;
+			productName = MapplsAnnotationExtension;
+		};
 		EE23D9EF9DF52432D216CAF3 /* MapplsLMS */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F9CCB0D881E930A915660791 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
+			productName = MapplsLMS;
+		};
+		EF0B65B0FE7A61470A686D9B /* MapplsLMS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7891038FF84A020318AA857 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
 			productName = MapplsLMS;
 		};
 		EF19F437E4F0C085AA94E953 /* MapplsAPICore */ = {
@@ -2263,6 +2461,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D66965BC2CF91D771A79B060 /* XCRemoteSwiftPackageReference "mappls-lms-ios-distribution-base" */;
 			productName = MapplsLMS;
+		};
+		F5B0285624C8DCB308092694 /* MapplsGeoanalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AF692F4196ADFAD83180F841 /* XCRemoteSwiftPackageReference "mappls-geoanalytics-ios-distribution-base" */;
+			productName = MapplsGeoanalytics;
 		};
 		F8E089D3FB23C8CC35FD2104 /* MapplsAPICore */ = {
 			isa = XCSwiftPackageProductDependency;

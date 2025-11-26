@@ -82,16 +82,13 @@ export function ReactComponent({ model }) {
 
       const tweetText = `🕳️Found a new landmark called The Great Indian Pothole.
 Reported it on #Potfix!
-📍 ${shareBannerData.address}
+📍 ${shareBannerData.address.trimEnd(50, '...')}
 ⚠️ Severity: ${shareBannerData.severity}
-🎯 Earned ${points} points for doing my civic duty (and saving a few suspensions).
+🎯 Earned ${points} points for doing my civic duty.
 
-Help make our roads safer! 🛣️
-Download the App on Playstore and AppStore
-AppStore: https://apps.apple.com/in/app/potfix/id6754452112
-PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
+Fix roads, not bumpers: https://onelink.to/q7vaa8
 
-#PotFix #RoadSafetyIndia #PotholePatrol`;
+#RoadSafety #PotholePatrol`;
 
       const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
@@ -122,7 +119,6 @@ PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
           );
 
           if (response.ok) {
-            console.log('[LEADERBOARD] Share points awarded!');
             fetchLeaderboard(); // Refresh to show updated points
           }
         }
@@ -139,8 +135,6 @@ PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
 
   const fetchLeaderboard = async () => {
     try {
-      console.log('[LEADERBOARD] Fetching leaderboard...');
-      console.log('[LEADERBOARD] URL:', `${SUPABASE_URL}/rest/v1/users?select=*&order=total_points.desc,total_potholes.desc&limit=10`);
 
       const response = await fetch(
         `${SUPABASE_URL}/rest/v1/users?select=*&order=total_points.desc,total_potholes.desc&limit=10`,
@@ -156,29 +150,27 @@ PlayStore: https://play.google.com/store/apps/details?id=com.potfixfinal.app
         }
       );
 
-      console.log('[LEADERBOARD] Response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[LEADERBOARD] Error response:', errorText);
         throw new Error(`Failed to fetch leaderboard: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('[LEADERBOARD] Fetched users:', data.length);
-      if (data.length > 0) {
-        console.log('[LEADERBOARD] First user:', data[0]);
+
+      // Filter out users with zero points
+      const filteredData = Array.isArray(data) ? data.filter(user => user.total_points > 0) : [];
+
+      if (filteredData.length > 0) {
       } else {
-        console.log('[LEADERBOARD] No users found in database');
+        console.log('[LEADERBOARD] No users with points found');
       }
 
-      setLeaderboard(Array.isArray(data) ? data : []);
+      setLeaderboard(filteredData);
       setLoading(false);
       setRefreshing(false);
 
     } catch (error) {
-      console.error('[LEADERBOARD] Error:', error);
-      console.error('[LEADERBOARD] Error message:', error.message);
       setLoading(false);
       setRefreshing(false);
     }
