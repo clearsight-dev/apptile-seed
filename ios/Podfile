@@ -446,12 +446,32 @@ target 'apptileSeed' do
               end
               
               config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
+
+              # Update PRODUCT_BUNDLE_IDENTIFIER based on target
+              target_bundle_id = case target.name
+              when 'apptileSeed'
+                bundle_id
+              when 'ImageNotification'
+                "#{bundle_id}.ImageNotification"
+              when 'NotificationContentExtension'
+                "#{bundle_id}.NotificationContentExtension"
+              else
+                bundle_id
+              end
+
+              current_bundle_id = config.build_settings['PRODUCT_BUNDLE_IDENTIFIER']
+              if current_bundle_id != target_bundle_id
+                config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = target_bundle_id
+                puts "    📦 Updated PRODUCT_BUNDLE_IDENTIFIER: #{current_bundle_id} → #{target_bundle_id}"
+              else
+                puts "    ✓ PRODUCT_BUNDLE_IDENTIFIER already correct: #{target_bundle_id}"
+              end
             end
           end
         end
-        
+
         main_project.save
-        puts "✅ Main project preprocessor definitions updated successfully"
+        puts "✅ Main project preprocessor definitions and bundle IDs updated successfully"
       rescue => e
         puts "❌ Error updating main project: #{e.message}"
         puts e.backtrace.join("\n")
