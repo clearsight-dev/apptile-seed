@@ -263,24 +263,30 @@ function addHttpDeepLinks(androidManifest, hosts) {
   /* <data android:host="host1"/>
    * <data android:host="host2"/>
    */
-  const hostDataNodes = hosts.map(host => {
-    return {$: {'android:host': host}};
-  });
 
-  /* <data android:scheme="https"/>
-   * <data android:scheme="http"/>
-   * <data android:host="host1"/>
-   * <data android:host="host2"/>
-   */
-  const deepLinkData = [
-    {
-      $: {'android:scheme': 'https'},
-    },
-    {
-      $: {'android:scheme': 'http'},
-    },
-    ...hostDataNodes,
-  ];
+ // Expand wildcard hosts and filter out account subdomain
+ const expandedHosts = [];
+ hosts.forEach(host => {
+   if (host === '*.kimirica.shop') {
+     // Add specific subdomains instead of wildcard
+     // This allows deep linking to work while excluding account.kimirica.shop
+     expandedHosts.push('www.kimirica.shop');
+     // Add the base domain too
+     expandedHosts.push('kimirica.shop');
+   } else if (host !== 'account.kimirica.shop') {
+     // Add all other hosts except account subdomain
+     expandedHosts.push(host);
+   }
+ });
+
+const hostDataNodes = expandedHosts.map(host => ({ $: { 'android:host': host } }));
+
+const deepLinkData = [
+  { $: { 'android:scheme': 'https' } },
+  { $: { 'android:scheme': 'http' } },
+  ...hostDataNodes,
+];
+
 
   if (existingIntent) {
     existingIntent.data = deepLinkData;
