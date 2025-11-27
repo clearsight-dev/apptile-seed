@@ -266,14 +266,15 @@ function addHttpDeepLinks(androidManifest, hosts) {
 
  // Expand wildcard hosts and filter out account subdomain
  const expandedHosts = [];
+
  hosts.forEach(host => {
-   if (host === '*.kimirica.shop') {
+   if (host === hosts[1]) {
      // Add specific subdomains instead of wildcard
      // This allows deep linking to work while excluding account.kimirica.shop
-     expandedHosts.push('www.kimirica.shop');
+     expandedHosts.push(`www.${hosts[0]}`);
      // Add the base domain too
-     expandedHosts.push('kimirica.shop');
-   } else if (host !== 'account.kimirica.shop') {
+     expandedHosts.push(hosts[0]);
+   } else if (host !== `account.${hosts[0]}`) {
      // Add all other hosts except account subdomain
      expandedHosts.push(host);
    }
@@ -974,6 +975,11 @@ async function main() {
   // Handle HTTP deep links for app_host and app_host_2
   if (apptileConfig.app_host || apptileConfig.app_host_2) {
     const hosts = [];
+    
+    // ⚠️ WARNING ⚠️
+    // Do NOT change the order of pushing hosts here.
+    // app_host MUST be pushed before app_host_2.
+    // Deep linking depends on this order in the next function call.
     if (apptileConfig.app_host) {
       hosts.push(apptileConfig.app_host);
     }
