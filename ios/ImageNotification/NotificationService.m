@@ -8,7 +8,7 @@
 #import "NotificationService.h"
 
 #if ENABLE_MOENGAGE
-#import <MoEngageRichNotification/MoEngageRichNotification.h>
+@import MoEngageRichNotification;
 #endif
 
 #if ENABLE_ONESIGNAL
