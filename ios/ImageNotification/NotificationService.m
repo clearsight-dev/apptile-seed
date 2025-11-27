@@ -8,7 +8,7 @@
 #import "NotificationService.h"
 
 #if ENABLE_MOENGAGE
-@import MoEngageRichNotification;
+#import <MoEngageRichNotification/MoEngageRichNotification.h>
 #endif
 
 #if ENABLE_ONESIGNAL
@@ -145,7 +145,7 @@
 - (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
   self.contentHandler = contentHandler;
   self.bestAttemptContent = [request.content mutableCopy];
-  
+
 #if ENABLE_MOENGAGE
   @try {
     // TODO(gaurav) get this from info.plist of notification service
