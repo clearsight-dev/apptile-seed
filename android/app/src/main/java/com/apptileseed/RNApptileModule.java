@@ -29,15 +29,7 @@ public class RNApptileModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void notifyJSReady() {
-        MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    activity.removeSplash();
-                }
-            });
-        }
+        // No-op: Splash screen is now handled by JSSplash in React Native
     }
 
     // @ReactMethod

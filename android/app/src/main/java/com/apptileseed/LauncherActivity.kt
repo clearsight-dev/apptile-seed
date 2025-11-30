@@ -18,7 +18,6 @@ class LauncherActivity : AppCompatActivity() {
         Log.d(APPTILE_LOG_TAG, "Launcher activity onCreate called")
         super.onCreate(savedInstanceState)
 
-        SplashOverlayManager.showOverlay(this)
         lifecycleScope.launch {
             try {
                 Log.d(APPTILE_LOG_TAG, "Running in: ${Thread.currentThread().name}")
@@ -63,7 +62,6 @@ class LauncherActivity : AppCompatActivity() {
         val options = ActivityOptions.makeCustomAnimation(this, 0, 0).toBundle()
 
         startActivity(mainIntent, options)
-        SplashOverlayManager.removeOverlay(this)
         finish()
     }
 

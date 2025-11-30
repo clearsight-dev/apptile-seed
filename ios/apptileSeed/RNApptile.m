@@ -31,8 +31,7 @@ RCT_EXPORT_MODULE(RNApptile)
 
 RCT_EXPORT_METHOD(notifyJSReady)
 {
-  NSString *JSReadyNotification = @"JSReadyNotification";
-  [[NSNotificationCenter defaultCenter] postNotificationName:JSReadyNotification object:nil];
+  // No-op: Splash screen is now handled by JSSplash in React Native
 }
 
 + (BOOL)requiresMainQueueSetup
