@@ -104,7 +104,10 @@ function App(): React.JSX.Element {
 }
 
 let AppWithJSSplash: React.FC<Record<string, any>> = props => (
-  <JSSplash splashImageSource={require('./assets/splash.gif')}>
+  <JSSplash
+    splashImageSource={require('./assets/splash.png')}
+    minSplashDuration={6000}
+  >
     <View style={styles.container}>
       <App {...props} />
     </View>
