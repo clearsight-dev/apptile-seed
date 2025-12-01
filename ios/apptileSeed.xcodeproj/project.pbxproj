@@ -11,7 +11,7 @@
 		051B721E2C9086800038A972 /* appConfig.json in Resources */ = {isa = PBXBuildFile; fileRef = 051B721C2C9086800038A972 /* appConfig.json */; };
 		055C1EC32CB7C9C600EE8821 /* ShakeEventModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 055C1EC22CB7C9C600EE8821 /* ShakeEventModule.m */; };
 		05663EE02D1A84B000040215 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 05663EDF2D1A84B000040215 /* GoogleService-Info.plist */; };
-
+		0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */; };
 		0574CFCC2E4353A800B6D888 /* ActionsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */; };
 		0574CFCE2E4353D600B6D888 /* RestartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCD2E4353D600B6D888 /* RestartHandler.swift */; };
 		0574CFD02E4353FF00B6D888 /* ApiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCF2E4353FF00B6D888 /* ApiManager.swift */; };
@@ -95,7 +95,8 @@
 		051B721C2C9086800038A972 /* appConfig.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = appConfig.json; sourceTree = "<group>"; };
 		055C1EC22CB7C9C600EE8821 /* ShakeEventModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShakeEventModule.m; sourceTree = "<group>"; };
 		05663EDF2D1A84B000040215 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-
+		0574CFC12E4352D500B6D888 /* SplashScreenViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SplashScreenViewController.h; sourceTree = "<group>"; };
+		0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SplashScreenViewController.m; sourceTree = "<group>"; };
 		0574CFCA2E4353A700B6D888 /* apptileSeed-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "apptileSeed-Bridging-Header.h"; sourceTree = "<group>"; };
 		0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsHandler.swift; sourceTree = "<group>"; };
 		0574CFCD2E4353D600B6D888 /* RestartHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartHandler.swift; sourceTree = "<group>"; };
@@ -336,6 +337,8 @@
 				05A846D82CF09CD600784D02 /* RNGetValues.h */,
 				057DB67B2D60965900CD76F4 /* RNApptile.m */,
 				057DB67D2D60968E00CD76F4 /* RNApptile.h */,
+				0574CFC12E4352D500B6D888 /* SplashScreenViewController.h */,
+				0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */,
 			);
 			name = apptileSeed;
 			sourceTree = "<group>";
@@ -750,6 +753,7 @@
 				055C1EC32CB7C9C600EE8821 /* ShakeEventModule.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				0574CFDE2E43553700B6D888 /* Logger.swift in Sources */,
+				0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */,
 				0574CFDC2E43552400B6D888 /* BundleTracker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

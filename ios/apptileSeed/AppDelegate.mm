@@ -1,6 +1,7 @@
 #import "AppDelegate.h"
 
 #import "CrashHandler.h"
+#import "SplashScreenViewController.h"
 #import "StartupHandler.h"
 #import "apptileSeed-Swift.h"
 
@@ -50,6 +51,8 @@
   [[CleverTapReactManager sharedInstance]
       applicationDidLaunchWithOptions:launchOptions];
 #endif
+  self.jsLoaded = NO;
+  self.minDurationPassed = NO;
   self.moduleName = @"apptileSeed";
   self.initialProps = @{};
 
@@ -100,6 +103,13 @@
   // handler
   self.storedLaunchOptions = launchOptions;
 
+  // Set SplashScreenViewController as the initial screen
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  SplashScreenViewController *splashScreenVC =
+      [[SplashScreenViewController alloc] init];
+  self.window.rootViewController = splashScreenVC;
+  [self.window makeKeyAndVisible];
+
   return YES;
 }
 
@@ -115,6 +125,7 @@
 
   BOOL result = [super application:application
       didFinishLaunchingWithOptions:launchOptions];
+  [self showNativeSplash];
 
   if (result) {
     NSLog(@"[ApptileStartupProcess] React Native started successfully.");
@@ -123,7 +134,74 @@
   }
 }
 
+#define ENABLE_NATIVE_SPLASH 1
+#define MIN_SPLASH_DURATION 1
+#define MAX_SPLASH_DURATION 7
 
+- (void)showNativeSplash {
+#ifdef ENABLE_NATIVE_SPLASH
+  // Register for a notification sent from RNApptile that is
+  // originated from javascript side in order to remove splash
+  NSString *JSReadyNotification = @"JSReadyNotification";
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(jsDidLoad:)
+                                               name:JSReadyNotification
+                                             object:nil];
+  RCTBridge *bridge = self.bridge;
+
+  // Load the splash image or first frame of gif from bundle
+  NSURL *pngURL = [[NSBundle mainBundle] URLForResource:@"splash"
+                                          withExtension:@"png"];
+  NSURLRequest *requestPng = [NSURLRequest requestWithURL:pngURL];
+  RCTImageSource *pngImageSource =
+      [[RCTImageSource alloc] initWithURLRequest:requestPng
+                                            size:CGSizeZero
+                                           scale:1.0];
+  RCTImageView *rctImageView = [[RCTImageView alloc] initWithBridge:bridge];
+  rctImageView.imageSources = @[ pngImageSource ];
+#endif
+#ifdef ENABLE_NATIVE_SPLASH_WITH_GIF
+  // Load the gif from the bundle
+  NSURL *gifURL = [[NSBundle mainBundle] URLForResource:@"splash"
+                                          withExtension:@"gif"];
+  NSURLRequest *request = [NSURLRequest requestWithURL:gifURL];
+  RCTImageSource *imageSource =
+      [[RCTImageSource alloc] initWithURLRequest:request
+                                            size:CGSizeZero
+                                           scale:1.0];
+
+  // Replace first frame with gif after 500ms (required for
+  // LaunchScreen.storyboard fadeout animation)
+  NSTimeInterval delayInSeconds = 0.5;
+  dispatch_time_t popTime = dispatch_time(
+      DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+  dispatch_after(popTime, dispatch_get_main_queue(), ^(void) {
+    if (self.splash != NULL) {
+      [self.splash removeFromSuperview];
+      [self.splash setImageSources:@[ imageSource ]];
+      [self.window.rootViewController.view addSubview:self.splash];
+    }
+  });
+#endif
+#ifdef ENABLE_NATIVE_SPLASH
+  // append the splash image or gif to the window
+  rctImageView.frame = self.window.frame;
+  rctImageView.resizeMode = RCTResizeModeCover;
+  self.splash = rctImageView;
+  UIView *root = self.window.rootViewController.view;
+  [root addSubview:rctImageView];
+#endif
+}
+
+- (void)jsDidLoad:(NSNotification *)note {
+#ifdef ENABLE_NATIVE_SPLASH
+  self.jsLoaded = YES;
+  if (self.splash != NULL) {
+    [self.splash removeFromSuperview];
+    self.splash = NULL;
+  }
+#endif
+}
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
   return [self bundleURL];
