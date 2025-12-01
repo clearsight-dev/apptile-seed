@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {NativeModules} from 'react-native';
+import {NativeModules, StyleSheet, View} from 'react-native';
 // import {NativeModules} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
@@ -10,7 +10,7 @@ import {
   useStartApptile,
 } from 'apptile-core';
 
-// import JSSplash from './components/JSSplash';
+import JSSplash, {hideJSSplashScreen} from './components/JSSplash';
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
 import BuildInfo from './components/BuildInfo';
@@ -28,11 +28,24 @@ import {init as initAnalytics} from './analytics';
 
 const Stack = createNativeStackNavigator<ScreenParams>();
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
+
 function App(): React.JSX.Element {
   const status = useStartApptile(initAnalytics, true);
   useEffect(() => {
     RNApptile.notifyJSReady();
   }, []);
+
+  // Hide splash screen when model is ready
+  useEffect(() => {
+    if (status.modelReady) {
+      hideJSSplashScreen();
+    }
+  }, [status.modelReady]);
 
   let body = (
     <NavigationContainer
@@ -90,4 +103,14 @@ function App(): React.JSX.Element {
   );
 }
 
-export default App;
+let AppWithJSSplash: React.FC<Record<string, any>> = props => (
+  <JSSplash
+    splashImageSource={require('./assets/splash.png')}
+  >
+    <View style={styles.container}>
+      <App {...props} />
+    </View>
+  </JSSplash>
+);
+
+export default AppWithJSSplash;
