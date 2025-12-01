@@ -174,7 +174,12 @@ target 'apptileSeed' do
   pre_install do |installer|
     Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
     installer.pod_targets.each do |pod|
-      if pod.name.eql?('RNPermissions') || pod.name.start_with?('Permission-') || pod.name.eql?('RNReanimated') || pod.name.eql?('RNScreens')
+      if pod.name.eql?('RNPermissions') ||
+         pod.name.start_with?('Permission-') ||
+         pod.name.eql?('RNReanimated') ||
+         pod.name.eql?('RNScreens') ||
+         pod.name.eql?('react-native-video') ||
+         pod.name.eql?('react_native_video')
         def pod.build_type;
           # Uncomment the line corresponding to your CocoaPods version
           Pod::BuildType.static_library # >= 1.9
