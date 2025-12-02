@@ -189,7 +189,10 @@ target 'apptileSeed' do
     end
   end
   permissions_path = '../node_modules/react-native-permissions/ios'
-  pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
+  if feature_flags.fetch('ENABLE_APP_TRACKING_TRANSPARENCY', false)
+    puts "Installing Permission-AppTrackingTransparency in apptileSeed"
+    pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
+  end
 #  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   post_install do |installer|
