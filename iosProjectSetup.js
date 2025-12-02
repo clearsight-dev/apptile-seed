@@ -553,6 +553,12 @@ async function main() {
       `https://${apptileConfig.app_host_2}` || 'apptile.io';
     infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`;
 
+    if (apptileConfig.url_scheme) {
+      infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes = [
+        apptileConfig.url_scheme,
+      ];
+    }
+
     const bundle_id =
       apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
 
@@ -562,6 +568,21 @@ async function main() {
     imageNotificationEntitlements['com.apple.security.application-groups'] = [
       `group.${bundle_id}.notification`,
     ];
+
+    // Configure deep linking - Associated Domains for universal links
+    const associatedDomains = [];
+    if (apptileConfig.app_host && apptileConfig.app_host !== 'null') {
+      associatedDomains.push(`applinks:${apptileConfig.app_host}`);
+    }
+    if (
+      apptileConfig.app_host_2 &&
+      apptileConfig.app_host_2 !== 'null' &&
+      apptileConfig.app_host_2 !== ''
+    ) {
+      associatedDomains.push(`applinks:${apptileConfig.app_host_2}`);
+    }
+    apptileSeedEntitlements['com.apple.developer.associated-domains'] =
+      associatedDomains;
 
     await updateAppleTeamID(
       apptileConfig.ios?.team_id,
