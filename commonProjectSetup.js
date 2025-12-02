@@ -44,7 +44,6 @@ const analyticsTemplate = `// This file is generated at build time based on the 
 import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
-  Firebase as FirebaseAnalytics,
   // __ENABLED_ANALYTICS_IMPORTS__
 } from 'apptile-core';
 
@@ -82,7 +81,6 @@ export async function init() {
 
   try {
     await ApptileAnalytics.initialize([
-      FirebaseAnalytics,
       // __ENABLED_ANALYTICS__
     ]);
   } catch (err) {
@@ -101,6 +99,13 @@ async function generateAnalytics(
 ) {
   integrations = integrations || {};
   let enabledAnalytics = '';
+  if (featureFlags?.ENABLE_FIREBASE_ANALYTICS) {
+    analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Firebase as FirebaseAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
+    );
+    enabledAnalytics += `FirebaseAnalytics,\n      `;
+  }
   if (featureFlags?.ENABLE_FBSDK) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
@@ -152,6 +157,15 @@ async function generateAnalytics(
     );
     enabledAnalytics += `SegmentAnalytics,\n      `;
   }
+
+  if (featureFlags?.ENABLE_KLAVIYO) {
+    analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+      `Klaviyo as KlaviyoAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
+    );
+    enabledAnalytics += `KlaviyoAnalytics,\n      `;
+  }
+
   enabledAnalytics += `// __ENABLED_ANALYTICS__`;
 
   analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
@@ -212,7 +226,7 @@ onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
 };`,
   'react-native-onesignal': `export default {};`,
   'clevertap-react-native': `export default {}`,
-  'react-native-klaviyo': `export default {};`,
+  'klaviyo-react-native-sdk': `export default {};`,
   '@react-native-community/push-notification-ios': 'export default {}',
   'zego-express-engine-reactnative': `export default {};`,
 };
@@ -346,20 +360,22 @@ async function readReactNativeConfigJs() {
 }
 
 function getExtraModules(apptileConfig) {
+  const useLocalApptileCore = apptileConfig.USE_LOCAL_APPTILE_CORE;
+
   const extraModules = {
     SDK_PATH: apptileConfig.SDK_PATH,
     current: [
       {
         name: 'apptile-core',
         path: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-core/index.mobile.js',
-          // 'packages/apptile-core/sdk.ts',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-core/index.mobile.js'
+            : 'packages/apptile-core/sdk.ts',
         ),
         watchPath: path.resolve(
-          __dirname,
-          'apptile-libs',
-          // 'packages/apptile-core',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore ? 'apptile-libs' : 'packages/apptile-core',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -367,99 +383,68 @@ function getExtraModules(apptileConfig) {
       {
         name: 'apptile-plugins',
         path: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-plugins/index.mobile.js',
-          // 'packages/apptile-plugins/index.ts',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-plugins/index.mobile.js'
+            : 'packages/apptile-plugins/index.ts',
         ),
         watchPath: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-plugins',
-          // 'packages/apptile-plugins',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-plugins'
+            : 'packages/apptile-plugins',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
       },
       {
         name: 'asset_placeholder-image',
-        path: [
-          path.resolve(
-            __dirname,
-            'assets/image-placeholder.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, 'assets/image-placeholder.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_auction-stars',
-        path: [
-          path.resolve(
-            __dirname,
-            'assets/auction-stars.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, 'assets/auction-stars.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_auction-crown',
-        path: [
-          path.resolve(
-            __dirname,
-            './assets/auction-crown.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, './assets/auction-crown.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_auction-gavel',
-        path: [
-          path.resolve(
-            __dirname,
-            './assets/auction-gavel.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, './assets/auction-gavel.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'asset_gold-flare',
-        path: [
-          path.resolve(
-            __dirname,
-            'assets/gold-flare.png',
-          ),
-        ],
-        watchPath: path.resolve(
-          __dirname,
-        ),
+        path: [path.resolve(__dirname, 'assets/gold-flare.png')],
+        watchPath: path.resolve(__dirname),
         returnKey: 'filePaths',
         returnType: 'assetFiles',
       },
       {
         name: 'apptile-datasource',
         path: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-datasource/index.mobile.js',
-          // 'packages/apptile-datasource/index.ts',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-datasource/index.mobile.js'
+            : 'packages/apptile-datasource/index.ts',
         ),
         watchPath: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-datasource',
-          // 'packages/apptile-datasource',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-datasource'
+            : 'packages/apptile-datasource',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',
@@ -467,14 +452,16 @@ function getExtraModules(apptileConfig) {
       {
         name: 'apptile-shopify',
         path: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-shopify/index.mobile.js',
-          // 'packages/apptile-shopify/index.ts',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-shopify/index.mobile.js'
+            : 'packages/apptile-shopify/index.ts',
         ),
         watchPath: path.resolve(
-          __dirname,
-          'apptile-libs/dist/apptile-shopify',
-          // 'packages/apptile-shopify',
+          !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
+          !useLocalApptileCore
+            ? 'apptile-libs/dist/apptile-shopify'
+            : 'packages/apptile-shopify',
         ),
         returnKey: 'filePath',
         returnType: 'sourceFile',

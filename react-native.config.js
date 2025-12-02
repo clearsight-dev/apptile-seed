@@ -59,6 +59,12 @@ module.exports = {
         "android": null,
         "ios": null
       }
+    },
+    "klaviyo-react-native-sdk": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
     }
   }
 }

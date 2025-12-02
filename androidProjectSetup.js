@@ -591,7 +591,7 @@ async function addFacebook(
   upsertInStringsXML(
     stringsObj,
     'facebook_app_id',
-    facebookIntegration.FacebookAppID,
+    facebookIntegration.fb_appId,
   );
   addMetadata(
     androidManifest,
@@ -602,7 +602,7 @@ async function addFacebook(
   upsertInStringsXML(
     stringsObj,
     'facebook_client_token',
-    facebookIntegration.FacebookClientToken,
+    facebookIntegration.fb_clientToken,
   );
   addMetadata(
     androidManifest,
@@ -726,7 +726,8 @@ async function addKlaviyo(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  const klaviyoCompanyId = apptileConfig.integrations.klaviyo_company_id;
+  const klaviyoCompanyId =
+    apptileConfig.integrations.klaviyo.klaviyo_company_id;
   upsertInStringsXML(stringsObj, 'klaviyo_company_id', klaviyoCompanyId);
   addService(
     androidManifest,
@@ -735,7 +736,7 @@ async function addKlaviyo(
     firebaseMessagingEventIntent,
   );
   removeForceUnlinkForNativePackage(
-    'react-native-klaviyo',
+    'klaviyo-react-native-sdk',
     extraModules,
     parsedReactNativeConfig,
   );
@@ -755,7 +756,7 @@ async function removeKlaviyo(
   removeFromStringsXML(stringsObj, 'klaviyo_company_id');
   deleteService(androidManifest, 'com.klaviyo.pushFcm.KlaviyoPushService');
   addForceUnlinkForNativePackage(
-    'react-native-klaviyo',
+    'klaviyo-react-native-sdk',
     extraModules,
     parsedReactNativeConfig,
   );
@@ -791,6 +792,9 @@ async function addZego(
   // Add ENABLE_LIVELY_PIP string when both flags are true
   if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
     upsertInStringsXML(stringsObj, 'ENABLE_LIVELY_PIP', 'true');
+  } else {
+    // Remove ENABLE_LIVELY_PIP string when flag is false
+    removeFromStringsXML(stringsObj, 'ENABLE_LIVELY_PIP');
   }
 
   // Check if we should use local PIP version

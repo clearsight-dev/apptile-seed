@@ -158,7 +158,7 @@ object Actions {
     // Function to check for Over-The-Air updates
     // Returns a Pair: (Boolean -> update required?, String? -> app store URL)
     // true in Boolean means MainActivity start should be prevented
-    private suspend fun checkForOTA(appId: String, context: Context): Pair<Boolean, String?> = withContext(Dispatchers.IO) {
+       private suspend fun checkForOTA(appId: String, context: Context): Pair<Boolean, String?> = withContext(Dispatchers.IO) {
         val manifest = fetchManifest(appId, context) ?: return@withContext Pair(false, null) // Return false, null URL if manifest fetch fails
         var updateRequired = false
         var updateUrl: String? = null

@@ -163,10 +163,13 @@ async function addKlaviyo(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  const klaviyoCompanyId =
+    apptileConfig.integrations.klaviyo.klaviyo_company_id;
+  infoPlist.klaviyo_company_id = klaviyoCompanyId;
   imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE =
-    apptileConfig.app_name || 'Apptile Seed';
+    apptileConfig.app_name || 'Apptile';
   await removeForceUnlinkForNativePackage(
-    'react-native-klaviyo',
+    'klaviyo-react-native-sdk',
     extraModules,
     parsedReactNativeConfig,
   );
@@ -184,9 +187,10 @@ async function removeKlaviyo(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  infoPlist.klaviyo_company_id = 'xxx';
   imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE = 'Apptile';
   await addForceUnlinkForNativePackage(
-    'react-native-klaviyo',
+    'klaviyo-react-native-sdk',
     extraModules,
     parsedReactNativeConfig,
   );

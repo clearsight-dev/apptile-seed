@@ -31,44 +31,39 @@ def swap_package_json_for_appclip
 end
 
 # Resolve react_native_pods.rb with node to allow for hoisting
-# def node_require(script)
-#   # Resolve script with node to allow for hoisting
-#   require Pod::Executable.execute_command('node', ['-p',
-#     "require.resolve(
-#       '#{script}',
-#       {paths: [process.argv[1]]},
-#     )", __dir__]).strip
-# end
-# node_require('react-native/scripts/react_native_pods.rb')
-# node_require('react-native-permissions/scripts/setup.rb')
-# setup_permissions([
-#   'AppTrackingTransparency',
-#   # 'Bluetooth',
-#   # 'Calendars',
-#   # 'CalendarsWriteOnly',
-#   'Camera',
-#   # 'Contacts',
-#   # 'FaceID',
-#   # 'LocationAccuracy',
-#   # 'LocationAlways',
-#   'LocationWhenInUse',
-#   # 'MediaLibrary',
-#   'Microphone',
-#   # 'Motion',
-#   'Notifications',
-#   # 'PhotoLibrary',
-#   # 'PhotoLibraryAddOnly',
-#   # 'Reminders',
-#   # 'Siri',
-#   # 'SpeechRecognition',
-#   # 'StoreKit',
-# ])
+def node_require(script)
+  # Resolve script with node to allow for hoisting
+  require Pod::Executable.execute_command('node', ['-p',
+    "require.resolve(
+      '#{script}',
+      {paths: [process.argv[1]]},
+    )", __dir__]).strip
+end
+node_require('react-native/scripts/react_native_pods.rb')
+node_require('react-native-permissions/scripts/setup.rb')
+setup_permissions([
+  'AppTrackingTransparency',
+  # 'Bluetooth',
+  # 'Calendars',
+  # 'CalendarsWriteOnly',
+  'Camera',
+  # 'Contacts',
+  # 'FaceID',
+  # 'LocationAccuracy',
+  # 'LocationAlways',
+  'LocationWhenInUse',
+  # 'MediaLibrary',
+  'Microphone',
+  # 'Motion',
+  'Notifications',
+  # 'PhotoLibrary',
+  # 'PhotoLibraryAddOnly',
+  # 'Reminders',
+  # 'Siri',
+  # 'SpeechRecognition',
+  # 'StoreKit',
+])
 
-require Pod::Executable.execute_command('node', ['-p',
-'require.resolve(
-  "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-)', __dir__]).strip
 platform :ios, 15.6
 prepare_react_native_project!
 
@@ -83,7 +78,7 @@ prepare_react_native_project!
 #   dependencies: {
 #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
 # ```
-flipper_config = FlipperConfiguration.disabled 
+# flipper_config = FlipperConfiguration.disabled 
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -145,7 +140,7 @@ target 'apptileSeed' do
 
   if feature_flags.fetch('ENABLE_KLAVIYO', false)
     puts "Setting klaviyo path in apptileSeed"
-    pod 'react-native-klaviyo', :path => '../node_modules/react-native-klaviyo'
+    pod 'klaviyo-react-native-sdk', :path => '../node_modules/klaviyo-react-native-sdk'
   end
 
   use_react_native!(
@@ -154,7 +149,7 @@ target 'apptileSeed' do
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
     # you should disable the next line.
-    :flipper_configuration => FlipperConfiguration.disabled,
+    # :flipper_configuration => FlipperConfiguration.disabled,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :hermes_enabled => false
@@ -179,7 +174,12 @@ target 'apptileSeed' do
   pre_install do |installer|
     Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
     installer.pod_targets.each do |pod|
-      if pod.name.eql?('RNPermissions') || pod.name.start_with?('Permission-') || pod.name.eql?('RNReanimated') || pod.name.eql?('RNScreens')
+      if pod.name.eql?('RNPermissions') ||
+         pod.name.start_with?('Permission-') ||
+         pod.name.eql?('RNReanimated') ||
+         pod.name.eql?('RNScreens') ||
+         pod.name.eql?('react-native-video') ||
+         pod.name.eql?('react_native_video')
         def pod.build_type;
           # Uncomment the line corresponding to your CocoaPods version
           Pod::BuildType.static_library # >= 1.9
@@ -200,76 +200,101 @@ target 'apptileSeed' do
 
     require 'rexml/document'
 
-  # Helper method to remove application-groups key from an entitlements file
-  def remove_app_group_if_needed(entitlements_path)
-    return unless File.exist?(entitlements_path)
+    # Helper method to remove application-groups key from an entitlements file
+    def remove_app_group_if_needed(entitlements_path)
+      return unless File.exist?(entitlements_path)
 
-    is_individual_account = ENV['IS_INDIVIDUAL_ACCOUNT']
-    # If IS_INDIVIDUAL_ACCOUNT is set (not null/empty), remove the security groups
-    if is_individual_account && !is_individual_account.strip.empty?
-      puts "⚠️ Individual account detected. Removing com.apple.security.application-groups from #{entitlements_path}"
+      is_individual_account = ENV['IS_INDIVIDUAL_ACCOUNT']
+      if is_individual_account && !is_individual_account.strip.empty?
+        puts "⚠️ Individual account detected. Removing com.apple.security.application-groups from #{entitlements_path}"
 
-      begin
-        xml = REXML::Document.new(File.read(entitlements_path))
-        root = xml.root
+        begin
+          xml = REXML::Document.new(File.read(entitlements_path))
+          root = xml.root
+          dict_element = root.elements['dict']
+          return unless dict_element
 
-        # Find the dict element
-        dict_element = root.elements['dict']
-        return unless dict_element
-
-        key_to_remove = nil
-        array_to_remove = nil
-        
-        # Find the key and its corresponding array
-        dict_element.elements.each do |element|
-          if element.name == 'key' && element.text == 'com.apple.security.application-groups'
-            key_to_remove = element
-            array_to_remove = element.next_element
-            break
-          end
-        end
-
-        if key_to_remove && array_to_remove
-          dict_element.delete(key_to_remove)
-          dict_element.delete(array_to_remove) if array_to_remove.name == 'array'
-
-          File.open(entitlements_path, 'w') do |f|
-            formatter = REXML::Formatters::Pretty.new
-            formatter.compact = true
-            formatter.write(xml, f)
+          key_to_remove = nil
+          array_to_remove = nil
+          
+          dict_element.elements.each do |element|
+            if element.name == 'key' && element.text == 'com.apple.security.application-groups'
+              key_to_remove = element
+              array_to_remove = element.next_element
+              break
+            end
           end
 
-          puts "✅ Removed com.apple.security.application-groups from #{entitlements_path}"
-        else
-          puts "ℹ️ com.apple.security.application-groups not found in #{entitlements_path}"
+          if key_to_remove && array_to_remove
+            dict_element.delete(key_to_remove)
+            dict_element.delete(array_to_remove) if array_to_remove.name == 'array'
+
+            File.open(entitlements_path, 'w') do |f|
+              formatter = REXML::Formatters::Pretty.new
+              formatter.compact = true
+              formatter.write(xml, f)
+            end
+
+            puts "✅ Removed com.apple.security.application-groups from #{entitlements_path}"
+          else
+            puts "ℹ️ com.apple.security.application-groups not found in #{entitlements_path}"
+          end
+        rescue => e
+          puts "❌ Error processing #{entitlements_path}: #{e.message}"
         end
-      rescue => e
-        puts "❌ Error processing #{entitlements_path}: #{e.message}"
+      else
+        puts "ℹ️ IS_INDIVIDUAL_ACCOUNT not set, keeping application group entitlement in #{entitlements_path}"
       end
-    else
-      puts "ℹ️ IS_INDIVIDUAL_ACCOUNT not set, keeping application group entitlement in #{entitlements_path}"
     end
-  end
 
-  # Paths to entitlements
-  entitlements_paths = [
-    'apptileSeed/apptileSeed.entitlements',
-    'ImageNotification/ImageNotification.entitlements'
-  ]
+    entitlements_paths = [
+      'apptileSeed/apptileSeed.entitlements',
+      'ImageNotification/ImageNotification.entitlements'
+    ]
 
-  entitlements_paths.each do |path|
-    full_path = File.join(__dir__, path)
-    remove_app_group_if_needed(full_path)
-  end
+    entitlements_paths.each do |path|
+      full_path = File.join(__dir__, path)
+      remove_app_group_if_needed(full_path)
+    end
 
-    puts "trying to add preprocessor flag"
+    puts "Setting preprocessor definitions from feature flags"
     
-    # Read version and build number from apptile.config.json
+    # Set preprocessor definitions directly on target build settings
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Get existing preprocessor definitions
+        existing_definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+        existing_definitions = [existing_definitions] unless existing_definitions.is_a?(Array)
+        
+        # Add feature flags
+        FLAGS.each do |flag|
+          flag_enabled = feature_flags[flag]
+          flag_definition = "#{flag}=1"
+          
+          if flag_enabled
+            unless existing_definitions.include?(flag_definition)
+              existing_definitions << flag_definition
+              puts "✅ Added #{flag_definition} to #{target.name} - #{config.name}"
+            end
+          else
+            if existing_definitions.include?(flag_definition)
+              existing_definitions.delete(flag_definition)
+              puts "🗑️  Removed #{flag_definition} from #{target.name} - #{config.name}"
+            end
+          end
+        end
+        
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = existing_definitions
+      end
+    end
+
+    # Also update xcconfig files for reference
+    puts "Updating xcconfig files"
+    
     app_version = apptile_config.dig('ios', 'version') || '1.0.0'
     build_number = apptile_config.dig('ios', 'build_number') || '1'
     puts "Setting app version to #{app_version} and build number to #{build_number}"
     
-    # Update all three targets' xcconfig files
     xcconfig_paths=[
       ["./Pods/Target Support Files/Pods-apptileSeed/Pods-apptileSeed.debug.xcconfig", bundle_id],
       ["./Pods/Target Support Files/Pods-apptileSeed/Pods-apptileSeed.release.xcconfig", bundle_id],
@@ -282,45 +307,28 @@ target 'apptileSeed' do
     xcconfig_paths.each do |path, productBundleIdentifier|
       if File.exist?(path)
         puts "Modifying #{path}"
-        # Read the current filecontents
         file_contents = File.read(path)
-
         updated_contents = file_contents
 
-        # Process feature flags
         FLAGS.each do |flag|
           flag_enabled = feature_flags[flag]
-          puts "Feature flag #{flag}: #{flag_enabled}"
           if flag_enabled
-            puts "Adding #{flag}=1"
-            #Check if is already present
             unless updated_contents.include?("#{flag}=1")
-              #Append to the GCC_PREPROCESSOR_DEFINITIONS line or create it
-               updated_contents=updated_contents.gsub(
-                     /^GCC_PREPROCESSOR_DEFINITIONS = (.+)$/i,
-                     'GCC_PREPROCESSOR_DEFINITIONS = \1 ' + flag + '=1'
-               )
-      
+              updated_contents = updated_contents.gsub(
+                /^GCC_PREPROCESSOR_DEFINITIONS = (.+)$/i,
+                'GCC_PREPROCESSOR_DEFINITIONS = \1 ' + flag + '=1'
+              )
               unless updated_contents.include?("GCC_PREPROCESSOR_DEFINITIONS")
-                #If GCC_PREPROCESSOR_DEFINITIONS is not present, add it
-                updated_contents+="\nGCC_PREPROCESSOR_DEFINITIONS = #{flag}=1\n"
+                updated_contents += "\nGCC_PREPROCESSOR_DEFINITIONS = #{flag}=1\n"
               end
-
-              puts "Added #{flag}=1 to #{path}"
-            else
-              puts "#{flag}=1 already exists in #{path} "
             end
           else
-            puts "Removing #{flag}=1"
             if updated_contents.include?("#{flag}=1")
-              updated_contents=updated_contents.gsub(/\s*#{flag}=1/, '')
-              #Write the updated contents back to the file
-              puts "Removed from #{path}"
+              updated_contents = updated_contents.gsub(/\s*#{flag}=1/, '')
             end
           end
         end
         
-        # Update bundle ID
         updated_contents = updated_contents.gsub(
           /^PRODUCT_BUNDLE_IDENTIFIER = (.+)$/i,
           'PRODUCT_BUNDLE_IDENTIFIER = ' + productBundleIdentifier 
@@ -331,13 +339,10 @@ target 'apptileSeed' do
         end
 
         File.write(path, updated_contents)
-      else
-        puts "File not found #{path}"
       end
-      puts "------------"
     end
     
-    
+    # Swift compilation conditions for NotificationContentExtension
     xcconfig_paths=[
       ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.debug.xcconfig", bundle_id + '.NotificationContentExtension'],
       ["./Pods/Target Support Files/Pods-NotificationContentExtension/Pods-NotificationContentExtension.release.xcconfig", bundle_id + '.NotificationContentExtension'],
@@ -345,77 +350,148 @@ target 'apptileSeed' do
     
     xcconfig_paths.each do |path, productBundleIdentifier|
       if File.exist?(path)
-        puts "Modifying #{path} for SWIFT_ACTIVE_COMPILATION_CONDITIONS"
-        # Read the current filecontents
         file_contents = File.read(path)
-    
         updated_contents = file_contents
+        
         FLAGS.each do |flag|
           flag_enabled = feature_flags[flag]
-          puts "Feature flag #{flag}: #{flag_enabled}"
           if flag_enabled
-            puts "Adding #{flag}"
-            #Check if is already present
             unless updated_contents.include?("#{flag}")
-              #Append to the SWIFT_ACTIVE_COMPILATION_CONDITIONS line or create it
-               updated_contents=updated_contents.gsub(
-                     /^SWIFT_ACTIVE_COMPILATION_CONDITIONS = (.+)$/i,
-                     'SWIFT_ACTIVE_COMPILATION_CONDITIONS = \1 ' + flag
-               )
-      
+              updated_contents = updated_contents.gsub(
+                /^SWIFT_ACTIVE_COMPILATION_CONDITIONS = (.+)$/i,
+                'SWIFT_ACTIVE_COMPILATION_CONDITIONS = \1 ' + flag
+              )
               unless updated_contents.include?("SWIFT_ACTIVE_COMPILATION_CONDITIONS")
-                #If SWIFT_ACTIVE_COMPILATION_CONDITIONS is not present, add it
-                updated_contents+="\nSWIFT_ACTIVE_COMPILATION_CONDITIONS = #{flag}\n"
+                updated_contents += "\nSWIFT_ACTIVE_COMPILATION_CONDITIONS = #{flag}\n"
               end
-
-              puts "Added #{flag} to #{path}"
-            else
-              puts "#{flag} already exists in #{path} "
             end
           else
-            puts "Removing #{flag}"
             if updated_contents.include?("#{flag}")
-              updated_contents=updated_contents.gsub(/\s*#{flag}/, '')
-              #Write the updated contents back to the file
-              puts "Removed from #{path}"
+              updated_contents = updated_contents.gsub(/\s*#{flag}/, '')
             end
           end
         end
 
-        updated_contents=updated_contents.gsub(
+        updated_contents = updated_contents.gsub(
           /^PRODUCT_BUNDLE_IDENTIFIER = (.+)$/i,
           'PRODUCT_BUNDLE_IDENTIFIER = ' + productBundleIdentifier 
         )
 
         unless updated_contents.include?("PRODUCT_BUNDLE_IDENTIFIER")
-          updated_contents+="\nPRODUCT_BUNDLE_IDENTIFIER = #{productBundleIdentifier}\n"
+          updated_contents += "\nPRODUCT_BUNDLE_IDENTIFIER = #{productBundleIdentifier}\n"
         end
 
         File.write(path, updated_contents)
-      else
-        puts "File not found #{path}"
       end
-      puts "------------"
     end
-     
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false
-    ) 
-    
-    # Run the update_versions.rb script as the final step
+    )
+
+    installer.pods_project.targets.each do |target|
+      if target.name == 'RNReactNativeHapticFeedback'
+        target.build_configurations.each do |config|
+          config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+          config.build_settings['OTHER_LDFLAGS'] << '-framework AudioToolbox'
+        end
+      end
+    end
+
     script_path = "./update_versions.rb"
     if File.exist?(script_path)
-      # Make sure the script is executable
       File.chmod(0755, script_path) unless File.executable?(script_path)
-      
-      # Run the script
       system(script_path)
     else
       puts "Warning: update_versions.rb script not found at #{script_path}"
     end
+
+    # NEW SECTION: Set preprocessor definitions in main app target
+    puts "\n" + "=" * 80
+    puts "Setting preprocessor definitions in main app target"
+    puts "=" * 80
+    
+    main_project_path = File.join(__dir__, 'apptileSeed.xcodeproj')
+    if File.exist?(main_project_path)
+      begin
+        main_project = Xcodeproj::Project.open(main_project_path)
+        
+        main_project.targets.each do |target|
+          # Update all your targets (main app and extensions)
+          if ['apptileSeed', 'ImageNotification', 'NotificationContentExtension'].include?(target.name)
+            puts "Processing target: #{target.name}"
+            
+            target.build_configurations.each do |config|
+              puts "  Configuration: #{config.name}"
+              
+              # Get existing definitions
+              definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
+              
+              if definitions.nil?
+                definitions = ['$(inherited)']
+              elsif definitions.is_a?(String)
+                definitions = [definitions]
+              else
+                definitions = definitions.dup
+              end
+              
+              # Ensure $(inherited) is first
+              definitions.delete('$(inherited)')
+              definitions.unshift('$(inherited)')
+              
+              # Remove old flags first
+              FLAGS.each do |flag|
+                flag_def = "#{flag}=1"
+                definitions.delete(flag_def)
+              end
+              
+              # Add enabled feature flags
+              FLAGS.each do |flag|
+                if feature_flags[flag]
+                  flag_def = "#{flag}=1"
+                  definitions << flag_def
+                  puts "    ✅ Added #{flag_def}"
+                end
+              end
+              
+              config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
+
+              # Update PRODUCT_BUNDLE_IDENTIFIER based on target
+              target_bundle_id = case target.name
+              when 'apptileSeed'
+                bundle_id
+              when 'ImageNotification'
+                "#{bundle_id}.ImageNotification"
+              when 'NotificationContentExtension'
+                "#{bundle_id}.NotificationContentExtension"
+              else
+                bundle_id
+              end
+
+              current_bundle_id = config.build_settings['PRODUCT_BUNDLE_IDENTIFIER']
+              if current_bundle_id != target_bundle_id
+                config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = target_bundle_id
+                puts "    📦 Updated PRODUCT_BUNDLE_IDENTIFIER: #{current_bundle_id} → #{target_bundle_id}"
+              else
+                puts "    ✓ PRODUCT_BUNDLE_IDENTIFIER already correct: #{target_bundle_id}"
+              end
+            end
+          end
+        end
+
+        main_project.save
+        puts "✅ Main project preprocessor definitions and bundle IDs updated successfully"
+      rescue => e
+        puts "❌ Error updating main project: #{e.message}"
+        puts e.backtrace.join("\n")
+      end
+    else
+      puts "⚠️  Could not find main project at #{main_project_path}"
+    end
+    
+    puts "=" * 80
   end
 end
 
