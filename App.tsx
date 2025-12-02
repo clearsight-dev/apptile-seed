@@ -25,6 +25,8 @@ export type ScreenParams = {
 
 // Import the generated code. The folder analytics is generated when you run the app.
 import {init as initAnalytics} from './analytics';
+// Import the generated splash config
+import {SPLASH_FILE_NAME, IS_SPLASH_GIF} from './config/splashConfig';
 
 const Stack = createNativeStackNavigator<ScreenParams>();
 
@@ -103,9 +105,30 @@ function App(): React.JSX.Element {
   );
 }
 
+// Helper function to dynamically require the splash image
+const getSplashImageSource = () => {
+  // Use the generated splash file name
+  // Note: React Native requires static paths for require(), so we use a switch statement
+  switch (SPLASH_FILE_NAME) {
+    case 'splash.gif':
+      return require('./assets/splash.gif');
+    case 'splash.png':
+      return require('./assets/splash.png');
+    case 'splash.jpg':
+      return require('./assets/splash.jpg');
+    case 'splash.jpeg':
+      return require('./assets/splash.jpeg');
+    default:
+      // Fallback to icon.png if splash file doesn't match expected names
+      console.warn(`Unexpected splash file name: ${SPLASH_FILE_NAME}, using icon.png as fallback`);
+      return require('./assets/icon.png');
+  }
+};
+
 let AppWithJSSplash: React.FC<Record<string, any>> = props => (
   <JSSplash
-    splashImageSource={require('./assets/splash.png')}
+    splashImageSource={getSplashImageSource()}
+    isGif={IS_SPLASH_GIF}
   >
     <View style={styles.container}>
       <App {...props} />
