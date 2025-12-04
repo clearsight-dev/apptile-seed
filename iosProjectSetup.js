@@ -553,14 +553,29 @@ async function main() {
       `https://${apptileConfig.app_host_2}` || 'apptile.io';
     infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`;
 
+    const bundle_id =
+      apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
+
     if (apptileConfig.url_scheme) {
+      // Initialize CFBundleURLTypes if it doesn't exist
+      if (!infoPlist.CFBundleURLTypes) {
+        infoPlist.CFBundleURLTypes = [];
+      }
+
+      // Initialize the first entry if it doesn't exist
+      if (!infoPlist.CFBundleURLTypes[0]) {
+        infoPlist.CFBundleURLTypes[0] = {
+          CFBundleTypeRole: 'Editor',
+          CFBundleURLName: bundle_id,
+          CFBundleURLSchemes: [],
+        };
+      }
+
+      infoPlist.CFBundleURLTypes[0].CFBundleURLName = bundle_id;
       infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes = [
         apptileConfig.url_scheme,
       ];
     }
-
-    const bundle_id =
-      apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
 
     apptileSeedEntitlements['com.apple.security.application-groups'] = [
       `group.${bundle_id}.notification`,
