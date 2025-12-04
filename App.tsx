@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {NativeModules} from 'react-native';
+import {NativeModules, StyleSheet, View} from 'react-native';
 // import {NativeModules} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
@@ -10,7 +10,7 @@ import {
   useStartApptile,
 } from 'apptile-core';
 
-// import JSSplash from './components/JSSplash';
+import JSSplash, {hideJSSplashScreen} from './components/JSSplash';
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
 import BuildInfo from './components/BuildInfo';
@@ -25,14 +25,29 @@ export type ScreenParams = {
 
 // Import the generated code. The folder analytics is generated when you run the app.
 import {init as initAnalytics} from './analytics';
+// Import the generated splash config
+import {SPLASH_FILE_NAME, IS_SPLASH_GIF} from './config/splashConfig';
 
 const Stack = createNativeStackNavigator<ScreenParams>();
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 
 function App(): React.JSX.Element {
   const status = useStartApptile(initAnalytics, true);
   useEffect(() => {
     RNApptile.notifyJSReady();
   }, []);
+
+  // Hide splash screen when model is ready
+  useEffect(() => {
+    if (status.modelReady) {
+      hideJSSplashScreen();
+    }
+  }, [status.modelReady]);
 
   let body = (
     <NavigationContainer
@@ -90,4 +105,35 @@ function App(): React.JSX.Element {
   );
 }
 
-export default App;
+// Helper function to dynamically require the splash image
+const getSplashImageSource = () => {
+  // Use the generated splash file name
+  // Note: React Native requires static paths for require(), so we use a switch statement
+  switch (SPLASH_FILE_NAME) {
+    case 'splash.gif':
+      return require('./assets/splash.gif');
+    case 'splash.png':
+      return require('./assets/splash.png');
+    case 'splash.jpg':
+      return require('./assets/splash.jpg');
+    case 'splash.jpeg':
+      return require('./assets/splash.jpeg');
+    default:
+      // Fallback to icon.png if splash file doesn't match expected names
+      console.warn(`Unexpected splash file name: ${SPLASH_FILE_NAME}, using icon.png as fallback`);
+      return require('./assets/icon.png');
+  }
+};
+
+let AppWithJSSplash: React.FC<Record<string, any>> = props => (
+  <JSSplash
+    splashImageSource={getSplashImageSource()}
+    isGif={IS_SPLASH_GIF}
+  >
+    <View style={styles.container}>
+      <App {...props} />
+    </View>
+  </JSSplash>
+);
+
+export default AppWithJSSplash;

@@ -9,6 +9,7 @@
   <string name="APPTILE_APP_HOST_2">https://apptile.io</string>
   <string name="APPTILE_APP_FORK">main</string>
   <string name="IS_PREVIEW_APP">NO</string>
+  <string name="APPTILE_IS_DISTRIBUTED_APP">1</string>
   <string name="MOENGAGE_APPID">xxx</string>
   <string name="MOENGAGE_DATACENTER">data_center_3</string>
   <string name="APPSFLYER_DEVKEY">xxx</string>
