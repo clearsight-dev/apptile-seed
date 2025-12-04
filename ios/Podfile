@@ -1,26 +1,31 @@
 require 'json'
 
+# Load config early to use for conditional setup
+apptile_config_path_early = File.join(__dir__, '../apptile.config.json')
+apptile_config_early = JSON.parse(File.read(apptile_config_path_early))
+feature_flags_early = apptile_config_early.fetch('feature_flags', {})
+
 def swap_package_json_for_appclip
   package_json_path = '../package.json'
   package_backup_path = '../package-backup.json'
   package_appclip_path = '../package-appclip.json'
-  
+
   if File.exist?(package_json_path)
     puts 'Backing up package.json'
     File.rename(package_json_path, package_backup_path)
   else
     raise 'Error: package.json not found!'
   end
-  
+
   if File.exist?(package_appclip_path)
     puts 'Enabling appclip package.json'
     File.rename(package_appclip_path, package_json_path)
   else
     raise 'Error: package-appclip.json not found!'
   end
-    
+
   yield
-  
+
   if File.exist?(package_json_path) && File.exist?(package_backup_path)
     puts 'Restoring original package.json'
     File.rename(package_json_path, package_appclip_path)
@@ -41,8 +46,9 @@ def node_require(script)
 end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
-setup_permissions([
-  'AppTrackingTransparency',
+
+# Build permissions array conditionally based on feature flags
+permissions_to_setup = [
   # 'Bluetooth',
   # 'Calendars',
   # 'CalendarsWriteOnly',
@@ -62,7 +68,14 @@ setup_permissions([
   # 'Siri',
   # 'SpeechRecognition',
   # 'StoreKit',
-])
+]
+
+if feature_flags_early.fetch('ENABLE_APP_TRACKING_TRANSPARENCY', false)
+  puts "Adding AppTrackingTransparency to permissions setup"
+  permissions_to_setup.unshift('AppTrackingTransparency')
+end
+
+setup_permissions(permissions_to_setup)
 
 platform :ios, 15.6
 prepare_react_native_project!
@@ -188,12 +201,6 @@ target 'apptileSeed' do
       end
     end
   end
-  permissions_path = '../node_modules/react-native-permissions/ios'
-  if feature_flags.fetch('ENABLE_APP_TRACKING_TRANSPARENCY', false)
-    puts "Installing Permission-AppTrackingTransparency in apptileSeed"
-    pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
-  end
-#  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   post_install do |installer|
     puts "in post install"
