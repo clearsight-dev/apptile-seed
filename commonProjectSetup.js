@@ -523,22 +523,50 @@ async function downloadIconAndSplash(apptileConfig) {
       if (asset.assetClass === 'splash') {
         console.log('Downloading splash');
         await downloadFileToAssets(asset.url, asset.fileName);
+
+        // Check if the splash is a GIF or PNG
+        const isGif = asset.fileName.toLowerCase().endsWith('.gif');
+        const isPng = asset.fileName.toLowerCase().endsWith('.png');
+        const androidDrawablePath = path.resolve(
+          __dirname,
+          'android',
+          'app',
+          'src',
+          'main',
+          'res',
+          'drawable',
+        );
+
+        // Delete conflicting splash files to avoid duplicate resource error
+        if (isGif) {
+          const splashPngPath = path.resolve(androidDrawablePath, 'splash.png');
+          try {
+            if (fs.existsSync(splashPngPath)) {
+              console.log('Deleting splash.png to avoid conflict with splash.gif');
+              fs.unlinkSync(splashPngPath);
+            }
+          } catch (err) {
+            console.error('Failed to delete splash.png:', err);
+          }
+        } else if (isPng) {
+          const splashGifPath = path.resolve(androidDrawablePath, 'splash.gif');
+          try {
+            if (fs.existsSync(splashGifPath)) {
+              console.log('Deleting splash.gif to avoid conflict with splash.png');
+              fs.unlinkSync(splashGifPath);
+            }
+          } catch (err) {
+            console.error('Failed to delete splash.gif:', err);
+          }
+        }
+
         await cp(
           path.resolve(__dirname, 'assets', asset.fileName),
           path.resolve(__dirname, 'ios', asset.fileName),
         );
         await cp(
           path.resolve(__dirname, 'assets', asset.fileName),
-          path.resolve(
-            __dirname,
-            'android',
-            'app',
-            'src',
-            'main',
-            'res',
-            'drawable',
-            asset.fileName,
-          ),
+          path.resolve(androidDrawablePath, asset.fileName),
         );
       } else if (asset.assetClass === 'icon') {
         console.log('Downloading icon');
