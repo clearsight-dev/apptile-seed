@@ -5,7 +5,7 @@
 //  Created by Mohammed Aman Khan on 05/11/25.
 //
 
-// #if ENABLE_KLAVIYO
+#if ENABLE_KLAVIYO
 import UserNotifications
 import KlaviyoSwift
 
@@ -43,4 +43,4 @@ class PushNotificationsHelper: NSObject {
     }
   }
 }
-// #endif
+#endif
