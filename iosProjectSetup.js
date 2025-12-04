@@ -166,6 +166,7 @@ async function addKlaviyo(
   const klaviyoCompanyId =
     apptileConfig.integrations.klaviyo.klaviyo_company_id;
   infoPlist.klaviyo_company_id = klaviyoCompanyId;
+  infoPlist.FirebaseAppDelegateProxyEnabled = false;
   imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE =
     apptileConfig.app_name || 'Apptile';
   await removeForceUnlinkForNativePackage(
@@ -415,8 +416,8 @@ async function removeZego(
   parsedReactNativeConfig,
 ) {
   // Remove camera and microphone permissions
-  delete infoPlist.NSCameraUsageDescription;
-  delete infoPlist.NSMicrophoneUsageDescription;
+  // delete infoPlist.NSCameraUsageDescription;
+  // delete infoPlist.NSMicrophoneUsageDescription;
 
   // Remove ENABLE_LIVELY_PIP from Info.plist
   delete infoPlist.ENABLE_LIVELY_PIP;
