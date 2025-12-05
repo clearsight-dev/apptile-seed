@@ -131,6 +131,9 @@ android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
 
     namespace "com.apptileseed"
     defaultConfig {
@@ -237,7 +240,7 @@ dependencies {
 
     implementation("androidx.core:core:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-process:2.7.0")
     implementation "androidx.core:core-splashscreen:1.0.1"
     implementation "androidx.cardview:cardview:1.0.0"
  
@@ -273,12 +276,6 @@ dependencies {
     if (enable_clevertap) {
       implementation 'com.clevertap.android:clevertap-android-sdk:5.0.0'
       implementation 'com.android.installreferrer:installreferrer:2.2'
-    }
-
-    if(enable_moengage) {
-        implementation(moengage.core)
-        implementation(moengage.richNotification)
-        implementation(moengage.inapp)
     }
 }
 
