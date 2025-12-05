@@ -42,6 +42,15 @@ class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(null)
         showNativeSplash()
+
+        // Handle push notification when app is launched from notification (cold start)
+        intent?.let {
+            Log.d(APPTILE_LOG_TAG, "Initial intent received on MainActivity: $it")
+            Log.d(APPTILE_LOG_TAG, "Action: ${it.action}")
+            Log.d(APPTILE_LOG_TAG, "Data: ${it.data}")
+            Log.d(APPTILE_LOG_TAG, "Extras: ${it.extras}")
+            createKlaviyoIntegration(this).handlePush(it)
+        }
     }
 
     private fun showNativeSplash() {
