@@ -281,6 +281,27 @@ dependencies {
 
 // Note: androidProjectSetup.js is now run in settings.gradle BEFORE autolinking
 apply from: "./apptile.gradle"
+
+// Task to remove duplicate splash assets after JS bundle is created
+// This prevents the "Duplicate resources" error when both splash.gif and splash.png exist
+tasks.whenTaskAdded { task ->
+    if (task.name == "createBundleReleaseJsAndAssets") {
+        task.doLast {
+            def generatedResDir = file("${project.buildDir}/generated/res/createBundleReleaseJsAndAssets")
+            if (generatedResDir.exists()) {
+                generatedResDir.eachDirMatch(~/drawable.*/) { drawableDir ->
+                    def splashGif = new File(drawableDir, "assets_splash.gif")
+                    def splashPng = new File(drawableDir, "assets_splash.png")
+                    // If both exist, delete the PNG (prefer GIF for animated splash)
+                    if (splashGif.exists() && splashPng.exists()) {
+                        println "Removing duplicate splash asset: ${splashPng.absolutePath}"
+                        splashPng.delete()
+                    }
+                }
+            }
+        }
+    }
+}
 // apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 
 // Custom export path logic for release builds
