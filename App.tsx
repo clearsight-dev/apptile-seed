@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {NativeModules, View, Image, StyleSheet, Platform} from 'react-native';
-// import {NativeModules} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {
@@ -10,14 +9,11 @@ import {
   useStartApptile,
 } from 'apptile-core';
 
-// import JSSplash from './components/JSSplash';
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
 import BuildInfo from './components/BuildInfo';
-// import FloatingUpdateModal from './components/FloatingUpdateModal';
 const {RNApptile} = NativeModules;
 
-// Import config to read splash settings
 const apptileConfig = require('./apptile.config.json');
 export type ScreenParams = {
   NocodeRoot: undefined;
@@ -26,44 +22,30 @@ export type ScreenParams = {
   BuildInfo: undefined;
 };
 
-// Import the generated code. The folder analytics is generated when you run the app.
 import {init as initAnalytics} from './analytics';
 
 const Stack = createNativeStackNavigator<ScreenParams>();
 
 function App(): React.JSX.Element {
   const status = useStartApptile(initAnalytics, true);
-  // JS splash only for iOS - Android uses native splash
-  const [showSplash, setShowSplash] = useState(Platform.OS === 'ios');
 
-  // Read splash configuration from apptile.config.json
+  const splashPath = apptileConfig?.ios?.splash_path;
+  const isGifSplash = Platform.OS === 'ios' && splashPath?.toLowerCase().endsWith('.gif');
+
+  const [showSplash, setShowSplash] = useState(isGifSplash);
+
   const gifSplashDuration = apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
-
-  // Determine splash duration (in milliseconds)
   const splashDuration = typeof gifSplashDuration === 'number' && gifSplashDuration > 0
     ? gifSplashDuration * 1000
-    : 1000; // Default to 1 second
+    : 1000;
 
-  // Determine which splash image to use based on file extension from config (iOS only)
   const getSplashSource = () => {
-    if (Platform.OS !== 'ios') {
+    try {
+      return require('./assets/splash.gif');
+    } catch (e) {
+      console.warn('splash.gif not found');
       return null;
     }
-    const splashPath = apptileConfig?.ios?.splash_path;
-
-    // Check if splash path ends with .gif
-    const isGif = splashPath?.toLowerCase().endsWith('.gif');
-
-    // Try to load the appropriate file, fallback to png if gif doesn't exist
-    if (isGif) {
-      try {
-        return require('./assets/splash.gif');
-      } catch (e) {
-        console.warn('splash.gif not found, falling back to splash.png');
-        return require('./assets/splash.png');
-      }
-    }
-    return require('./assets/splash.png');
   };
 
   const splashSource = getSplashSource();
@@ -72,9 +54,8 @@ function App(): React.JSX.Element {
     RNApptile.notifyJSReady();
   }, []);
 
-  // Hide splash screen after configured duration (iOS only)
   useEffect(() => {
-    if (Platform.OS !== 'ios') {
+    if (!isGifSplash) {
       return;
     }
     const timer = setTimeout(() => {
@@ -82,7 +63,7 @@ function App(): React.JSX.Element {
     }, splashDuration);
 
     return () => clearTimeout(timer);
-  }, [splashDuration]);
+  }, [splashDuration, isGifSplash]);
 
   let body = (
     <NavigationContainer
@@ -125,7 +106,6 @@ function App(): React.JSX.Element {
     </NavigationContainer>
   );
 
-  // The nocode layer will not do navigation to these screens so you can handle those navigations in the onNavigationEvent
   return (
     <ApptileWrapper
       noNavigatePaths={['NativeUtils', 'AdminPage', 'BuildInfo']}
@@ -136,7 +116,7 @@ function App(): React.JSX.Element {
         });
       }}>
       {body}
-      {showSplash && (
+      {showSplash && splashSource && (
         <View style={styles.splashContainer}>
           <Image
             source={splashSource}
