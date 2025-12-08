@@ -587,16 +587,32 @@ async function main() {
 
     // Configure deep linking - Associated Domains for universal links
     const associatedDomains = [];
-    if (apptileConfig.app_host && apptileConfig.app_host !== 'null') {
-      associatedDomains.push(`applinks:${apptileConfig.app_host}`);
+    const baseHost = apptileConfig.app_host;
+
+    if (baseHost && baseHost !== 'null') {
+      associatedDomains.push(`applinks:${baseHost}`);
     }
+
     if (
       apptileConfig.app_host_2 &&
       apptileConfig.app_host_2 !== 'null' &&
       apptileConfig.app_host_2 !== ''
     ) {
-      associatedDomains.push(`applinks:${apptileConfig.app_host_2}`);
+      const host2 = apptileConfig.app_host_2;
+
+      // If app_host_2 is a wildcard (*.domain.com), expand to specific subdomains
+      // This excludes account.domain.com which is used for Shopify OAuth
+      if (host2.startsWith('*.') && baseHost) {
+        // Add www subdomain instead of wildcard
+        associatedDomains.push(`applinks:www.${baseHost}`);
+        // Note: account.${baseHost} is intentionally NOT added to prevent
+        // Universal Links from intercepting Shopify OAuth callbacks
+      } else if (host2 !== `account.${baseHost}`) {
+        // Add the host if it's not the account subdomain
+        associatedDomains.push(`applinks:${host2}`);
+      }
     }
+
     apptileSeedEntitlements['com.apple.developer.associated-domains'] =
       associatedDomains;
 
