@@ -1,26 +1,31 @@
 require 'json'
 
+# Load config early to use for conditional setup
+apptile_config_path_early = File.join(__dir__, '../apptile.config.json')
+apptile_config_early = JSON.parse(File.read(apptile_config_path_early))
+feature_flags_early = apptile_config_early.fetch('feature_flags', {})
+
 def swap_package_json_for_appclip
   package_json_path = '../package.json'
   package_backup_path = '../package-backup.json'
   package_appclip_path = '../package-appclip.json'
-  
+
   if File.exist?(package_json_path)
     puts 'Backing up package.json'
     File.rename(package_json_path, package_backup_path)
   else
     raise 'Error: package.json not found!'
   end
-  
+
   if File.exist?(package_appclip_path)
     puts 'Enabling appclip package.json'
     File.rename(package_appclip_path, package_json_path)
   else
     raise 'Error: package-appclip.json not found!'
   end
-    
+
   yield
-  
+
   if File.exist?(package_json_path) && File.exist?(package_backup_path)
     puts 'Restoring original package.json'
     File.rename(package_json_path, package_appclip_path)
@@ -41,8 +46,9 @@ def node_require(script)
 end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
-setup_permissions([
-  'AppTrackingTransparency',
+
+# Build permissions array conditionally based on feature flags
+permissions_to_setup = [
   # 'Bluetooth',
   # 'Calendars',
   # 'CalendarsWriteOnly',
@@ -62,7 +68,14 @@ setup_permissions([
   # 'Siri',
   # 'SpeechRecognition',
   # 'StoreKit',
-])
+]
+
+if feature_flags_early.fetch('ENABLE_APP_TRACKING_TRANSPARENCY', false)
+  puts "Adding AppTrackingTransparency to permissions setup"
+  permissions_to_setup.unshift('AppTrackingTransparency')
+end
+
+setup_permissions(permissions_to_setup)
 
 platform :ios, 15.6
 prepare_react_native_project!
@@ -174,7 +187,12 @@ target 'apptileSeed' do
   pre_install do |installer|
     Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
     installer.pod_targets.each do |pod|
-      if pod.name.eql?('RNPermissions') || pod.name.start_with?('Permission-') || pod.name.eql?('RNReanimated') || pod.name.eql?('RNScreens')
+      if pod.name.eql?('RNPermissions') ||
+         pod.name.start_with?('Permission-') ||
+         pod.name.eql?('RNReanimated') ||
+         pod.name.eql?('RNScreens') ||
+         pod.name.eql?('react-native-video') ||
+         pod.name.eql?('react_native_video')
         def pod.build_type;
           # Uncomment the line corresponding to your CocoaPods version
           Pod::BuildType.static_library # >= 1.9
@@ -446,12 +464,32 @@ target 'apptileSeed' do
               end
               
               config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
+
+              # Update PRODUCT_BUNDLE_IDENTIFIER based on target
+              target_bundle_id = case target.name
+              when 'apptileSeed'
+                bundle_id
+              when 'ImageNotification'
+                "#{bundle_id}.ImageNotification"
+              when 'NotificationContentExtension'
+                "#{bundle_id}.NotificationContentExtension"
+              else
+                bundle_id
+              end
+
+              current_bundle_id = config.build_settings['PRODUCT_BUNDLE_IDENTIFIER']
+              if current_bundle_id != target_bundle_id
+                config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = target_bundle_id
+                puts "    📦 Updated PRODUCT_BUNDLE_IDENTIFIER: #{current_bundle_id} → #{target_bundle_id}"
+              else
+                puts "    ✓ PRODUCT_BUNDLE_IDENTIFIER already correct: #{target_bundle_id}"
+              end
             end
           end
         end
-        
+
         main_project.save
-        puts "✅ Main project preprocessor definitions updated successfully"
+        puts "✅ Main project preprocessor definitions and bundle IDs updated successfully"
       rescue => e
         puts "❌ Error updating main project: #{e.message}"
         puts e.backtrace.join("\n")

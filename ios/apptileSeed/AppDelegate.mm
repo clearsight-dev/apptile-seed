@@ -64,6 +64,12 @@
   NSLog(@"🔥 Firebase initialized");
 #endif
 
+#if ENABLE_KLAVIYO
+  // Set the notification center delegate to receive push notifications
+  [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+  NSLog(@"🎹 Klaviyo: UNUserNotificationCenter delegate set");
+#endif
+
 #if ENABLE_FBSDK
   [[FBSDKApplicationDelegate sharedInstance] application:application
                            didFinishLaunchingWithOptions:launchOptions];
@@ -332,6 +338,20 @@
   [[MoEngageSDKMessaging sharedInstance]
       didReceieveNotificationInApplication:application
                                   withInfo:userInfo];
+}
+#endif
+
+#if ENABLE_KLAVIYO
+// iOS Installation Step: Register device token with Klaviyo SDK
+- (void)application:(UIApplication *)application
+    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  // Forward the APNs token to Klaviyo SDK for push notification registration
+  [KlaviyoPushHelper setPushTokenWithDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application
+    didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  NSLog(@"Klaviyo: Failed to register for remote notifications: %@", error.localizedDescription);
 }
 #endif
 

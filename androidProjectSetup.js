@@ -46,19 +46,33 @@ async function generateIconSet(scriptPath) {
   );
 }
 
+function escapeAndroidXmlString(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  // Android XML strings use backslash escaping for apostrophes and quotes
+  // xml2js.Builder will handle other XML entities (&, <, >) automatically
+  return str
+    .replace(/'/g, "\\'") // Escape apostrophes with backslash
+    .replace(/"/g, '\\"'); // Escape quotes with backslash
+}
+
 function upsertInStringsXML(parsedXMLDoc, key, value) {
+  // Escape apostrophes for Android XML strings
+  const escapedValue = escapeAndroidXmlString(value);
+
   let existingEntry = parsedXMLDoc.resources.string.find(
     it => it.$.name === key,
   );
   if (!existingEntry) {
     parsedXMLDoc.resources.string.push({
-      _: value,
+      _: escapedValue,
       $: {
         name: key,
       },
     });
   } else {
-    existingEntry._ = value;
+    existingEntry._ = escapedValue;
   }
 }
 
@@ -1121,13 +1135,17 @@ async function main() {
     const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
     console.log('Downloading manifest from ' + manifestUrl);
     const {data: manifest} = await axios.get(manifestUrl);
-    const publishedCommit = manifest.forks[0].publishedCommitId;
+    const publishedCommit = manifest.forks.filter(
+      it => it.forkName === (apptileConfig.fork_name || 'main'),
+    )[0].publishedCommitId;
     const androidBundle = manifest.codeArtefacts.find(
       it => it.type === 'android-bundle',
     );
 
     if (publishedCommit) {
-      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/main/main/${publishedCommit}.json`;
+      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${
+        apptileConfig.APP_ID
+      }/${apptileConfig.fork_name || 'main'}/main/${publishedCommit}.json`;
       console.log('Downloading appConfig from: ' + appConfigUrl);
       const assetsDir = path.resolve(__dirname, 'android/app/src/main/assets');
       await mkdir(assetsDir, {recursive: true});
@@ -1137,9 +1155,9 @@ async function main() {
       console.log('appConfig downloaded');
       await writeFile(
         bundleTrackerPath,
-        `{"publishedCommitId": ${
-          publishedCommit || 'null'
-        }, "androidBundleId": ${androidBundle?.id || 'null'}}`,
+        `{"publishedCommitId": ${publishedCommit}, "androidBundleId": ${
+          androidBundle?.id ?? 'null'
+        }}`,
       );
     } else {
       console.error('Published appconfig not found!');
