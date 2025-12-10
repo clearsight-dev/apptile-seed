@@ -46,19 +46,33 @@ async function generateIconSet(scriptPath) {
   );
 }
 
+function escapeAndroidXmlString(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  // Android XML strings use backslash escaping for apostrophes and quotes
+  // xml2js.Builder will handle other XML entities (&, <, >) automatically
+  return str
+    .replace(/'/g, "\\'") // Escape apostrophes with backslash
+    .replace(/"/g, '\\"'); // Escape quotes with backslash
+}
+
 function upsertInStringsXML(parsedXMLDoc, key, value) {
+  // Escape apostrophes for Android XML strings
+  const escapedValue = escapeAndroidXmlString(value);
+
   let existingEntry = parsedXMLDoc.resources.string.find(
     it => it.$.name === key,
   );
   if (!existingEntry) {
     parsedXMLDoc.resources.string.push({
-      _: value,
+      _: escapedValue,
       $: {
         name: key,
       },
     });
   } else {
-    existingEntry._ = value;
+    existingEntry._ = escapedValue;
   }
 }
 
