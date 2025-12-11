@@ -70,7 +70,10 @@ permissions_to_setup = [
   # 'StoreKit',
 ]
 
-if feature_flags_early.fetch('ENABLE_APP_TRACKING_TRANSPARENCY', false)
+if feature_flags_early.fetch('ENABLE_APP_TRACKING_TRANSPARENCY', false) ||
+   feature_flags_early.fetch('ENABLE_FIREBASE_ANALYTICS', false) ||
+   feature_flags_early.fetch('ENABLE_FBSDK', false)
+  
   puts "Adding AppTrackingTransparency to permissions setup"
   permissions_to_setup.unshift('AppTrackingTransparency')
 end
