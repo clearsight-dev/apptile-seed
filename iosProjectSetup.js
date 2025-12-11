@@ -726,6 +726,14 @@ async function main() {
       );
     }
 
+    // Disable Firebase's push notification delegate when both Firebase Analytics and OneSignal are enabled
+    // This prevents delegate conflicts that cause crashes when clicking "Allow" for notifications
+    if (apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS && apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+      infoPlist.FirebaseAppDelegateProxyEnabled = false;
+      infoPlist.FirebaseMessagingAutoInitEnabled = false;
+      console.log('🔥 Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts');
+    }
+
     // For zego live streaming
     if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
       await addZego(
@@ -765,7 +773,8 @@ async function main() {
     }
 
     // For App Tracking Transparency
-    if (apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY) {
+    if (apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY || apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS || apptileConfig.feature_flags?.ENABLE_FBSDK) {
+      console.log("Enabling App Tracking Transparency");
       await addAppTrackingTransparency(infoPlist, apptileConfig);
     } else {
       await removeAppTrackingTransparency(infoPlist);
@@ -870,10 +879,50 @@ async function main() {
       apptileConfig.feature_flags,
     );
     await writeReactNativeConfigJs(parsedReactNativeConfig);
+
+    // Always ensure react-native-push-notification stub is registered
+    // This is required because apptile-core's Firebase Analytics calls PushNotification.configure()
+    // but the native module is force-unlinked (OneSignal handles all push notifications)
+    await addForceUnlinkForNativePackage(
+      'react-native-push-notification',
+      extraModules,
+      parsedReactNativeConfig,
+    );
+    console.log('📱 react-native-push-notification stub always registered for Firebase/OneSignal compatibility');
+
     await writeFile(
       path.resolve(__dirname, 'extra_modules.json'),
       JSON.stringify(extraModules.current, null, 2),
     );
+
+    // Download GoogleService-Info.plist
+    const googleServiceInfoPath = path.resolve(
+      __dirname,
+      'ios',
+      'GoogleService-Info.plist',
+    );
+    let downloadedGoogleServiceInfo = false;
+    for (let i = 0; i < apptileConfig.assets.length; ++i) {
+      try {
+        const asset = apptileConfig.assets[i];
+        if (asset.assetClass === 'iosFirebaseServiceFile') {
+          await downloadFile(asset.url, googleServiceInfoPath);
+          downloadedGoogleServiceInfo = true;
+          console.log('✅ GoogleService-Info.plist downloaded successfully');
+          break;
+        }
+      } catch (err) {
+        console.error('Failed to download GoogleService-Info.plist:', err.message);
+      }
+    }
+
+    if (!downloadedGoogleServiceInfo) {
+      console.log(
+        chalk.yellow(
+          '⚠️ GoogleService-Info.plist not found in assets. Using existing file if available.',
+        ),
+      );
+    }
   } catch (err) {
     console.error('Uncaught exception in iosProjectSetup: ', err);
     process.exit(1);
