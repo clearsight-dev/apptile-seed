@@ -18,6 +18,7 @@ const plist = require('plist');
 const os = require('os');
 const path = require('path');
 const axios = require('axios');
+const chalk = require('chalk');
 const util = require('util');
 const {exec: exec_} = require('child_process');
 const {readFile, writeFile, rmdir, rename} = require('node:fs/promises');
@@ -586,7 +587,10 @@ async function main() {
     ];
 
     // Configure deep linking - Associated Domains for universal links
+    // Expand wildcard hosts and exclude account.* subdomain (for Google login to work)
     const associatedDomains = [];
+    const baseHost = apptileConfig.app_host;
+
     if (apptileConfig.app_host && apptileConfig.app_host !== 'null') {
       associatedDomains.push(`applinks:${apptileConfig.app_host}`);
     }
@@ -595,10 +599,22 @@ async function main() {
       apptileConfig.app_host_2 !== 'null' &&
       apptileConfig.app_host_2 !== ''
     ) {
-      associatedDomains.push(`applinks:${apptileConfig.app_host_2}`);
+      const host2 = apptileConfig.app_host_2;
+      if (host2.startsWith('*.')) {
+        const wwwHost = `www.${baseHost}`;
+        if (!associatedDomains.includes(`applinks:${wwwHost}`)) {
+          associatedDomains.push(`applinks:${wwwHost}`);
+        }
+        // Note: account.* is intentionally excluded so Google login redirects to browser
+      } else if (host2 !== `account.${baseHost}`) {
+        // Add host if it's not the account subdomain
+        associatedDomains.push(`applinks:${host2}`);
+      }
     }
     apptileSeedEntitlements['com.apple.developer.associated-domains'] =
       associatedDomains;
+
+    console.log('iOS Associated Domains configured (account.* subdomain excluded for Google login)');
 
     await updateAppleTeamID(
       apptileConfig.ios?.team_id,
@@ -748,20 +764,20 @@ async function main() {
 
     // For Segment Analytics
     if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
-      // Handle Segment Analytics key for Info.plist
-      if (
+      const segmentKey =
         apptileConfig.apptile_analytics_segment_key ||
-        process.env.apptile_analytics_segment_key
-      ) {
-        const segment_analyticsKey =
-          apptileConfig.apptile_analytics_segment_key ||
-          process.env.apptile_analytics_segment_key;
-        infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segment_analyticsKey;
-      } else {
-        infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
+        process.env.apptile_analytics_segment_key;
+      if (!segmentKey) {
+        console.error(
+          chalk.red('ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing'),
+        );
+        throw new Error(
+          'apptile_analytics_segment_key is missing',
+        );
       }
+      infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
     } else {
-      infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
+      delete infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY;
     }
 
     // For App Tracking Transparency
@@ -776,6 +792,14 @@ async function main() {
       await addIpadSupport(infoPlist);
     } else {
       await removeIpadSupport(infoPlist);
+    }
+
+    // Intent Filters handled via #if INTENT_FILTERS preprocessor directive in AppDelegate.mm
+    // The INTENT_FILTERS flag is automatically set in GCC_PREPROCESSOR_DEFINITIONS via Podfile
+    if (apptileConfig.feature_flags?.INTENT_FILTERS) {
+      console.log('Intent Filters enabled (only /, /products/, /collections/ open in app)');
+    } else {
+      console.log('Intent Filters disabled (all URLs open in app, account.* still excluded)');
     }
 
     const updatedPlist = plist.build(infoPlist);
@@ -842,7 +866,7 @@ async function main() {
         console.log('Downloading appConfig from: ' + appConfigUrl);
         const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
         await downloadFile(appConfigUrl, appConfigPath);
-        console.log('appConfig downloaded');
+        console.log(chalk.green('APPCONFIG DOWNLOADED'));
         await writeFile(
           bundleTrackerPath,
           `{"publishedCommitId": ${publishedCommit}, "iosBundleId": ${
