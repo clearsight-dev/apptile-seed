@@ -747,7 +747,7 @@ async function main() {
     if (apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS && apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
       infoPlist.FirebaseAppDelegateProxyEnabled = false;
       infoPlist.FirebaseMessagingAutoInitEnabled = false;
-      console.log('🔥 Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts');
+      console.log('Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts');
     }
 
     // For zego live streaming
@@ -912,7 +912,7 @@ async function main() {
       extraModules,
       parsedReactNativeConfig,
     );
-    console.log('📱 react-native-push-notification stub always registered for Firebase/OneSignal compatibility');
+    console.log('react-native-push-notification stub always registered for Firebase/OneSignal compatibility');
 
     await writeFile(
       path.resolve(__dirname, 'extra_modules.json'),
@@ -932,7 +932,7 @@ async function main() {
         if (asset.assetClass === 'iosFirebaseServiceFile') {
           await downloadFile(asset.url, googleServiceInfoPath);
           downloadedGoogleServiceInfo = true;
-          console.log('✅ GoogleService-Info.plist downloaded successfully');
+          console.log('GoogleService-Info.plist downloaded successfully');
           break;
         }
       } catch (err) {
