@@ -249,60 +249,61 @@ function addHttpDeepLinks(androidManifest, hosts) {
   if (!mainActivity['intent-filter']) {
     mainActivity['intent-filter'] = [];
   }
-  let existingIntent = mainActivity['intent-filter'].find(intent => {
+
+  // Remove any existing HTTP/HTTPS intent filters first
+  mainActivity['intent-filter'] = mainActivity['intent-filter'].filter(intent => {
     if (!intent.data) {
-      return false;
+      return true;
     }
     const schemes = intent.data.reduce((schemes, data) => {
       schemes[data.$['android:scheme']] = 1;
       return schemes;
     }, {});
-    return schemes.http && schemes.https;
+    // Remove if it has http and https schemes
+    return !(schemes.http && schemes.https);
   });
 
   /* <data android:host="host1"/>
    * <data android:host="host2"/>
    */
 
- // Expand wildcard hosts and filter out account subdomain
- const expandedHosts = [];
+  // Expand wildcard hosts and filter out account subdomain
+  const expandedHosts = [];
 
- hosts.forEach(host => {
-   if (host === hosts[1]) {
-     // Add specific subdomains instead of wildcard
-     // This allows deep linking to work while excluding account.kimirica.shop
-     expandedHosts.push(`www.${hosts[0]}`);
-     // Add the base domain too
-     expandedHosts.push(hosts[0]);
-   } else if (host !== `account.${hosts[0]}`) {
-     // Add all other hosts except account subdomain
-     expandedHosts.push(host);
-   }
- });
+  hosts.forEach(host => {
+    if (host === hosts[1]) {
+      // Add specific subdomains instead of wildcard
+      // This allows deep linking to work while excluding account.kimirica.shop
+      expandedHosts.push(`www.${hosts[0]}`);
+      // Add the base domain too
+      expandedHosts.push(hosts[0]);
+    } else if (host !== `account.${hosts[0]}`) {
+      // Add all other hosts except account subdomain
+      expandedHosts.push(host);
+    }
+  });
 
-const hostDataNodes = expandedHosts.map(host => ({ $: { 'android:host': host } }));
+  // Path prefixes to allow deep linking only for specific pages
+  // Only product and collection pages will open in the app
+  // Other URLs (home, CMS, blog, etc.) will open in browser
+  const allowedPathPrefixes = [
+    '/products/',
+    '/collections/',
+  ];
 
-const deepLinkData = [
-  { $: { 'android:scheme': 'https' } },
-  { $: { 'android:scheme': 'http' } },
-  ...hostDataNodes,
-];
+  // Create separate intent-filters for each path prefix
+  // Android requires separate intent-filters when using pathPrefix with multiple hosts
+  allowedPathPrefixes.forEach(pathPrefix => {
+    const deepLinkData = [
+      { $: { 'android:scheme': 'https' } },
+      { $: { 'android:scheme': 'http' } },
+      { $: { 'android:pathPrefix': pathPrefix } },
+      ...expandedHosts.map(host => ({ $: { 'android:host': host } })),
+    ];
 
-
-  if (existingIntent) {
-    existingIntent.data = deepLinkData;
-  } else {
-    /*
-     * <intent-filter android:autoVerify="true">
-     *   <action android:name="android.intent.action.VIEW"/>
-     *   <category android:name="android.intent.category.DEFAULT/>
-     *   <category android:name="android.intent.category.BROWSABLE/>
-     *   <data...
-     * </intent-filter>
-     * */
     mainActivity['intent-filter'].push({
       $: {
-        'android:autoVerify': true,
+        'android:autoVerify': 'true',
       },
       action: [
         {
@@ -319,7 +320,9 @@ const deepLinkData = [
       ],
       data: deepLinkData,
     });
-  }
+  });
+
+  console.log(chalk.green('✅ HTTP deep links configured for /products/ and /collections/ only'));
 }
 
 function deleteHttpDeepLinks(androidManifest) {
