@@ -1,7 +1,7 @@
 package com.apptileseed
 
-import android.content.Context
+import android.app.Application
 
-fun createMoengageIntegration(context: Context): MoengageIntegrationInterface {
+fun createMoengageIntegration(context: Application): MoengageIntegrationInterface {
   return MoengageIntegrationStub(context);
 }
