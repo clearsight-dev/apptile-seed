@@ -1,7 +1,7 @@
 buildscript {
     ext {
         buildToolsVersion = "35.0.0"
-        minSdkVersion = 24
+        minSdkVersion = 25
         compileSdkVersion = 35
         targetSdkVersion = 35
         ndkVersion = "27.1.12297006"
@@ -24,7 +24,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // maven { url "https://storage.googleapis.com/logrocket-maven/" }
+        maven { url "https://storage.googleapis.com/logrocket-maven/" }
         jcenter() {
             content {
                 includeModule("com.yqritc", "android-scalablevideoview")

@@ -159,6 +159,11 @@ target 'apptileSeed' do
     pod 'klaviyo-react-native-sdk', :path => '../node_modules/klaviyo-react-native-sdk'
   end
 
+  if feature_flags.fetch('ENABLE_LOGROCKET', false)
+    puts "Setting logrocket path in apptileSeed"
+    pod 'logrocket-react-native', :path => '../node_modules/@logrocket/react-native'
+  end
+
   use_react_native!(
     :path => config[:reactNativePath],
     # Enables Flipper.
