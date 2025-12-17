@@ -310,6 +310,37 @@ async function removeOnesignal(
   );
 }
 
+async function addLogrocket(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  apptileConfig,
+  parsedReactNativeConfig,
+  extraModules,
+) {
+  // LogRocket is initialized in JS (App.tsx), no native config needed
+  removeForceUnlinkForNativePackage(
+    '@logrocket/react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
+async function removeLogrocket(
+  infoPlist,
+  imageNotificationPlist,
+  notificationContentInfoPlist,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // LogRocket is initialized in JS (App.tsx), no native config needed
+  addForceUnlinkForNativePackage(
+    '@logrocket/react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
 async function addAppTrackingTransparency(infoPlist, apptileConfig) {
   const defaultMessage =
     apptileConfig.appTrackingTransparencyMessage ||
@@ -762,6 +793,26 @@ async function main() {
       );
     } else {
       await removeZego(
+        infoPlist,
+        imageNotificationPlist,
+        notificationContentExtensionPlist,
+        extraModules,
+        parsedReactNativeConfig,
+      );
+    }
+
+    // For LogRocket
+    if (apptileConfig.feature_flags?.ENABLE_LOGROCKET) {
+      await addLogrocket(
+        infoPlist,
+        imageNotificationPlist,
+        notificationContentExtensionPlist,
+        apptileConfig,
+        parsedReactNativeConfig,
+        extraModules,
+      );
+    } else {
+      await removeLogrocket(
         infoPlist,
         imageNotificationPlist,
         notificationContentExtensionPlist,
