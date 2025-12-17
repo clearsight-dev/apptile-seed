@@ -62,7 +62,7 @@ function App(): React.JSX.Element {
         {
           network: {
             requestSanitizer: request => {
-              if (request.headers['x-auth-token']) {
+              if (request?.headers['x-auth-token']) {
                 request.headers['x-auth-token'] = '';
               }
               return request;
