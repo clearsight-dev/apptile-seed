@@ -147,6 +147,7 @@ export default function PIPActivity() {
             flex: 1,
             flexBasis: 'auto',
             height: '100%',
+            opacity: 0,
             width: '100%',
             zIndex: 2,
             position: 'absolute',
