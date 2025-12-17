@@ -512,6 +512,8 @@ function getExtraModules(apptileConfig) {
     apptileConfig.feature_flags?.ENABLE_LIVELY_PIP
   ) {
     // Use local copy when both ENABLE_LIVELY and ENABLE_LIVELY_PIP are true
+    // This is for iOS ONLY - Android uses node_modules version
+    // The platform check is handled in metro.config.js resolver
     extraModules.current.push({
       name: 'zego-express-engine-reactnative',
       path: path.resolve(
@@ -521,6 +523,7 @@ function getExtraModules(apptileConfig) {
       watchPath: path.resolve(__dirname, 'zego-express-engine-reactnative'),
       returnKey: 'filePath',
       returnType: 'sourceFile',
+      platform: 'ios',
     });
   }
   // Note: When ENABLE_LIVELY is true but ENABLE_LIVELY_PIP is false,
@@ -584,7 +587,9 @@ async function downloadIconAndSplash(apptileConfig) {
           const splashPngPath = path.resolve(androidDrawablePath, 'splash.png');
           try {
             if (fs.existsSync(splashPngPath)) {
-              console.log('Deleting splash.png to avoid conflict with splash.gif');
+              console.log(
+                'Deleting splash.png to avoid conflict with splash.gif',
+              );
               fs.unlinkSync(splashPngPath);
             }
           } catch (err) {
@@ -594,7 +599,9 @@ async function downloadIconAndSplash(apptileConfig) {
           const splashGifPath = path.resolve(androidDrawablePath, 'splash.gif');
           try {
             if (fs.existsSync(splashGifPath)) {
-              console.log('Deleting splash.gif to avoid conflict with splash.png');
+              console.log(
+                'Deleting splash.gif to avoid conflict with splash.png',
+              );
               fs.unlinkSync(splashGifPath);
             }
           } catch (err) {
