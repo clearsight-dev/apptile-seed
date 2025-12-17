@@ -735,6 +735,35 @@ async function removeOnesignal(
   );
 }
 
+async function addLogrocket(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // LogRocket is initialized in JS (App.tsx), no native config needed
+  await removeForceUnlinkForNativePackage(
+    '@logrocket/react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
+async function removeLogrocket(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // LogRocket is initialized in JS (App.tsx), no native config needed
+  await addForceUnlinkForNativePackage(
+    '@logrocket/react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
 async function addMoengage(
   androidManifest,
   stringsObj,
@@ -1116,6 +1145,23 @@ async function main() {
   } else {
     console.log('Lively is getting disabled...');
     await removeZego(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  }
+
+  if (apptileConfig.feature_flags?.ENABLE_LOGROCKET) {
+    await addLogrocket(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  } else {
+    await removeLogrocket(
       androidManifest,
       stringsObj,
       extraModules,
