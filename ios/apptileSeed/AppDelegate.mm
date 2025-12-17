@@ -285,6 +285,30 @@
   [[AppsFlyerAttribution shared] continueUserActivity:userActivity
                                    restorationHandler:restorationHandler];
 #endif
+  // Always exclude account.* subdomain (Google login) - open in browser
+  if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+    NSURL *url = userActivity.webpageURL;
+    if (url && ([url.scheme isEqualToString:@"http"] || [url.scheme isEqualToString:@"https"])) {
+      NSString *host = url.host;
+      if ([host hasPrefix:@"account."]) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        return YES;
+      }
+#if INTENT_FILTERS
+      NSString *path = url.path;
+      // Only handle /, /products/, /collections/ in app
+      if ([path isEqualToString:@"/"] ||
+          [path hasPrefix:@"/products"] ||
+          [path hasPrefix:@"/collections"]) {
+        return [RCTLinkingManager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+      } else {
+        // Open other URLs in browser
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        return YES;
+      }
+#endif
+    }
+  }
   return [RCTLinkingManager application:application
                    continueUserActivity:userActivity
                      restorationHandler:restorationHandler];

@@ -18,6 +18,7 @@ const plist = require('plist');
 const os = require('os');
 const path = require('path');
 const axios = require('axios');
+const chalk = require('chalk');
 const util = require('util');
 const {exec: exec_} = require('child_process');
 const {readFile, writeFile, rmdir, rename} = require('node:fs/promises');
@@ -586,7 +587,10 @@ async function main() {
     ];
 
     // Configure deep linking - Associated Domains for universal links
+    // Expand wildcard hosts and exclude account.* subdomain (for Google login to work)
     const associatedDomains = [];
+    const baseHost = apptileConfig.app_host;
+
     if (apptileConfig.app_host && apptileConfig.app_host !== 'null') {
       associatedDomains.push(`applinks:${apptileConfig.app_host}`);
     }
@@ -595,10 +599,22 @@ async function main() {
       apptileConfig.app_host_2 !== 'null' &&
       apptileConfig.app_host_2 !== ''
     ) {
-      associatedDomains.push(`applinks:${apptileConfig.app_host_2}`);
+      const host2 = apptileConfig.app_host_2;
+      if (host2.startsWith('*.')) {
+        const wwwHost = `www.${baseHost}`;
+        if (!associatedDomains.includes(`applinks:${wwwHost}`)) {
+          associatedDomains.push(`applinks:${wwwHost}`);
+        }
+        // Note: account.* is intentionally excluded so Google login redirects to browser
+      } else if (host2 !== `account.${baseHost}`) {
+        // Add host if it's not the account subdomain
+        associatedDomains.push(`applinks:${host2}`);
+      }
     }
     apptileSeedEntitlements['com.apple.developer.associated-domains'] =
       associatedDomains;
+
+    console.log('iOS Associated Domains configured (account.* subdomain excluded for Google login)');
 
     await updateAppleTeamID(
       apptileConfig.ios?.team_id,
@@ -726,6 +742,14 @@ async function main() {
       );
     }
 
+    // Disable Firebase's push notification delegate when both Firebase Analytics and OneSignal are enabled
+    // This prevents delegate conflicts that cause crashes when clicking "Allow" for notifications
+    if (apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS && apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+      infoPlist.FirebaseAppDelegateProxyEnabled = false;
+      infoPlist.FirebaseMessagingAutoInitEnabled = false;
+      console.log('Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts');
+    }
+
     // For zego live streaming
     if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
       await addZego(
@@ -748,24 +772,25 @@ async function main() {
 
     // For Segment Analytics
     if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
-      // Handle Segment Analytics key for Info.plist
-      if (
+      const segmentKey =
         apptileConfig.apptile_analytics_segment_key ||
-        process.env.apptile_analytics_segment_key
-      ) {
-        const segment_analyticsKey =
-          apptileConfig.apptile_analytics_segment_key ||
-          process.env.apptile_analytics_segment_key;
-        infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segment_analyticsKey;
-      } else {
-        infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
+        process.env.apptile_analytics_segment_key;
+      if (!segmentKey) {
+        console.error(
+          chalk.red('ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing'),
+        );
+        throw new Error(
+          'apptile_analytics_segment_key is missing',
+        );
       }
+      infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
     } else {
-      infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = 'xxx';
+      delete infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY;
     }
 
     // For App Tracking Transparency
-    if (apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY) {
+    if (apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY || apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS || apptileConfig.feature_flags?.ENABLE_FBSDK) {
+      console.log("Enabling App Tracking Transparency");
       await addAppTrackingTransparency(infoPlist, apptileConfig);
     } else {
       await removeAppTrackingTransparency(infoPlist);
@@ -776,6 +801,14 @@ async function main() {
       await addIpadSupport(infoPlist);
     } else {
       await removeIpadSupport(infoPlist);
+    }
+
+    // Intent Filters handled via #if INTENT_FILTERS preprocessor directive in AppDelegate.mm
+    // The INTENT_FILTERS flag is automatically set in GCC_PREPROCESSOR_DEFINITIONS via Podfile
+    if (apptileConfig.feature_flags?.INTENT_FILTERS) {
+      console.log('Intent Filters enabled (only /, /products/, /collections/ open in app)');
+    } else {
+      console.log('Intent Filters disabled (all URLs open in app, account.* still excluded)');
     }
 
     const updatedPlist = plist.build(infoPlist);
@@ -842,7 +875,7 @@ async function main() {
         console.log('Downloading appConfig from: ' + appConfigUrl);
         const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
         await downloadFile(appConfigUrl, appConfigPath);
-        console.log('appConfig downloaded');
+        console.log(chalk.green('APPCONFIG DOWNLOADED'));
         await writeFile(
           bundleTrackerPath,
           `{"publishedCommitId": ${publishedCommit}, "iosBundleId": ${
@@ -870,10 +903,50 @@ async function main() {
       apptileConfig.feature_flags,
     );
     await writeReactNativeConfigJs(parsedReactNativeConfig);
+
+    // Always ensure react-native-push-notification stub is registered
+    // This is required because apptile-core's Firebase Analytics calls PushNotification.configure()
+    // but the native module is force-unlinked (OneSignal handles all push notifications)
+    await addForceUnlinkForNativePackage(
+      'react-native-push-notification',
+      extraModules,
+      parsedReactNativeConfig,
+    );
+    console.log('react-native-push-notification stub always registered for Firebase/OneSignal compatibility');
+
     await writeFile(
       path.resolve(__dirname, 'extra_modules.json'),
       JSON.stringify(extraModules.current, null, 2),
     );
+
+    // Download GoogleService-Info.plist
+    const googleServiceInfoPath = path.resolve(
+      __dirname,
+      'ios',
+      'GoogleService-Info.plist',
+    );
+    let downloadedGoogleServiceInfo = false;
+    for (let i = 0; i < apptileConfig.assets.length; ++i) {
+      try {
+        const asset = apptileConfig.assets[i];
+        if (asset.assetClass === 'iosFirebaseServiceFile') {
+          await downloadFile(asset.url, googleServiceInfoPath);
+          downloadedGoogleServiceInfo = true;
+          console.log('GoogleService-Info.plist downloaded successfully');
+          break;
+        }
+      } catch (err) {
+        console.error('Failed to download GoogleService-Info.plist:', err.message);
+      }
+    }
+
+    if (!downloadedGoogleServiceInfo) {
+      console.log(
+        chalk.yellow(
+          '⚠️ GoogleService-Info.plist not found in assets. Using existing file if available.',
+        ),
+      );
+    }
   } catch (err) {
     console.error('Uncaught exception in iosProjectSetup: ', err);
     process.exit(1);

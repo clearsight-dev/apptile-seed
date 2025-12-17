@@ -258,75 +258,126 @@ function deleteAndroidScheme(androidManifest) {
   }
 }
 
-function addHttpDeepLinks(androidManifest, hosts) {
+function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false) {
   const mainActivity = getMainActivity(androidManifest);
+  if (useIntentFilters) {
+    console.log('Applying intent filters for http deep links');
+  }
   if (!mainActivity['intent-filter']) {
     mainActivity['intent-filter'] = [];
   }
-  let existingIntent = mainActivity['intent-filter'].find(intent => {
-    if (!intent.data) {
-      return false;
+
+  // Remove any existing HTTP/HTTPS intent filters first
+  mainActivity['intent-filter'] = mainActivity['intent-filter'].filter(
+    intent => {
+      if (!intent.data) {
+        return true;
+      }
+      const schemes = intent.data.reduce((schemes, data) => {
+        schemes[data.$['android:scheme']] = 1;
+        return schemes;
+      }, {});
+      // Remove if it has http and https schemes
+      return !(schemes.http && schemes.https);
+    },
+  );
+
+  // Expand wildcard hosts and filter out account subdomain
+  // This ensures account.domain.com (used for Google login) opens in browser
+  const expandedHosts = [];
+  const baseHost = hosts[0];
+
+  hosts.forEach(host => {
+    if (host.startsWith('*.')) {
+      // Expand wildcard to specific subdomains (excluding account.*)
+      // Add www subdomain
+      expandedHosts.push(`www.${baseHost}`);
+      // Add the base domain too
+      if (!expandedHosts.includes(baseHost)) {
+        expandedHosts.push(baseHost);
+      }
+    } else if (host !== `account.${baseHost}`) {
+      // Add all other hosts except account subdomain
+      if (!expandedHosts.includes(host)) {
+        expandedHosts.push(host);
+      }
     }
-    const schemes = intent.data.reduce((schemes, data) => {
-      schemes[data.$['android:scheme']] = 1;
-      return schemes;
-    }, {});
-    return schemes.http && schemes.https;
   });
 
-  /* <data android:host="host1"/>
-   * <data android:host="host2"/>
-   */
-  const hostDataNodes = hosts.map(host => {
+  const hostDataNodes = expandedHosts.map(host => {
     return {$: {'android:host': host}};
   });
 
-  /* <data android:scheme="https"/>
-   * <data android:scheme="http"/>
-   * <data android:host="host1"/>
-   * <data android:host="host2"/>
-   */
-  const deepLinkData = [
-    {
-      $: {'android:scheme': 'https'},
+  // Helper to create an intent-filter
+  const createIntentFilter = dataNodes => ({
+    $: {
+      'android:autoVerify': 'true',
     },
-    {
-      $: {'android:scheme': 'http'},
-    },
-    ...hostDataNodes,
-  ];
-
-  if (existingIntent) {
-    existingIntent.data = deepLinkData;
-  } else {
-    /*
-     * <intent-filter android:autoVerify="true">
-     *   <action android:name="android.intent.action.VIEW"/>
-     *   <category android:name="android.intent.category.DEFAULT/>
-     *   <category android:name="android.intent.category.BROWSABLE/>
-     *   <data...
-     * </intent-filter>
-     * */
-    mainActivity['intent-filter'].push({
-      $: {
-        'android:autoVerify': true,
+    action: [
+      {
+        $: {'android:name': 'android.intent.action.VIEW'},
       },
-      action: [
-        {
-          $: {'android:name': 'android.intent.action.VIEW'},
-        },
-      ],
-      category: [
-        {
-          $: {'android:name': 'android.intent.category.DEFAULT'},
-        },
-        {
-          $: {'android:name': 'android.intent.category.BROWSABLE'},
-        },
-      ],
-      data: deepLinkData,
-    });
+    ],
+    category: [
+      {
+        $: {'android:name': 'android.intent.category.DEFAULT'},
+      },
+      {
+        $: {'android:name': 'android.intent.category.BROWSABLE'},
+      },
+    ],
+    data: dataNodes,
+  });
+
+  if (useIntentFilters) {
+    // New logic: Separate intent-filters for /, /products/, /collections/
+
+    // 1. Intent-filter for homepage "/" - needed for Google Login redirect
+    mainActivity['intent-filter'].push(
+      createIntentFilter([
+        {$: {'android:scheme': 'https'}},
+        {$: {'android:scheme': 'http'}},
+        {$: {'android:path': '/'}},
+        ...hostDataNodes,
+      ]),
+    );
+
+    // 2. Intent-filter for /products/ prefix
+    mainActivity['intent-filter'].push(
+      createIntentFilter([
+        {$: {'android:scheme': 'https'}},
+        {$: {'android:scheme': 'http'}},
+        {$: {'android:pathPrefix': '/products/'}},
+        ...hostDataNodes,
+      ]),
+    );
+
+    // 3. Intent-filter for /collections/ prefix
+    mainActivity['intent-filter'].push(
+      createIntentFilter([
+        {$: {'android:scheme': 'https'}},
+        {$: {'android:scheme': 'http'}},
+        {$: {'android:pathPrefix': '/collections/'}},
+        ...hostDataNodes,
+      ]),
+    );
+  } else {
+    // Old logic: Single intent-filter with all hosts (opens all URLs in app)
+    // But excludes account.* subdomain for Google login to work
+    mainActivity['intent-filter'].push(
+      createIntentFilter([
+        {$: {'android:scheme': 'https'}},
+        {$: {'android:scheme': 'http'}},
+        ...hostDataNodes,
+      ]),
+    );
   }
+
+  console.log(
+    chalk.green(
+      '✅ HTTP deep links configured (account.* subdomain excluded for Google login)',
+    ),
+  );
 }
 
 function deleteHttpDeepLinks(androidManifest) {
@@ -811,46 +862,14 @@ async function addZego(
     removeFromStringsXML(stringsObj, 'ENABLE_LIVELY_PIP');
   }
 
-  // Check if we should use local PIP version
-  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
-    // Use local copy instead of node_modules
-    parsedReactNativeConfig.dependencies['zego-express-engine-reactnative'] = {
-      root: path.resolve(__dirname, './zego-express-engine-reactnative'),
-      platforms: {
-        ios: {
-          podspecPath: path.resolve(
-            __dirname,
-            './zego-express-engine-reactnative/react-native-zego-express-engine.podspec',
-          ),
-          version: '3.14.5',
-          configurations: [],
-          scriptPhases: [],
-        },
-        android: {
-          sourceDir: path.resolve(
-            __dirname,
-            './zego-express-engine-reactnative/android',
-          ),
-          packageImportPath:
-            'import im.zego.reactnative.RCTZegoExpressEnginePackage;',
-          packageInstance: 'new RCTZegoExpressEnginePackage()',
-          buildTypes: [],
-          componentDescriptors: [],
-          cmakeListsPath: path.resolve(
-            __dirname,
-            './zego-express-engine-reactnative/android/build/generated/source/codegen/jni/CMakeLists.txt',
-          ),
-        },
-      },
-    };
-  } else {
-    // Use regular node_modules version
-    await removeForceUnlinkForNativePackage(
-      'zego-express-engine-reactnative',
-      extraModules,
-      parsedReactNativeConfig,
-    );
-  }
+  // For Android: Always use node_modules version (no custom PIP code in Android Zego package)
+  // The Android PIP implementation is in app-level code (PIPModule.kt, PIPActivity.kt)
+  // not in the Zego package itself
+  await removeForceUnlinkForNativePackage(
+    'zego-express-engine-reactnative',
+    extraModules,
+    parsedReactNativeConfig,
+  );
 }
 
 async function removeZego(
@@ -989,7 +1008,11 @@ async function main() {
       hosts.push(apptileConfig.app_host_2);
     }
     // Add HTTP/HTTPS deep links for the hosts
-    addHttpDeepLinks(androidManifest, hosts);
+    // If INTENT_FILTERS is true, use separate intent-filters for /, /products/, /collections/
+    // Otherwise, use single intent-filter for all URLs
+    const useIntentFilters =
+      apptileConfig.feature_flags?.INTENT_FILTERS === true;
+    addHttpDeepLinks(androidManifest, hosts, useIntentFilters);
   } else {
     // Remove HTTP deep links if no hosts are configured
     deleteHttpDeepLinks(androidManifest);

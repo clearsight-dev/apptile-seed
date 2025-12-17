@@ -62,6 +62,25 @@ const config = {
       for (let i = 0; i < extraModules.length; ++i) {
         const mod = extraModules[i];
         if (mod.name === moduleName) {
+          // Check if module has platform restriction
+          if (mod.platform && mod.platform !== platform) {
+            // Skip this module if platform doesn't match
+            if (moduleName === 'zego-express-engine-reactnative') {
+              console.log(
+                chalk.yellow(
+                  `[Metro] Skipping custom ${moduleName} for platform=${platform} (restricted to ${mod.platform})`,
+                ),
+              );
+            }
+            continue;
+          }
+          if (moduleName === 'zego-express-engine-reactnative') {
+            console.log(
+              chalk.green(
+                `[Metro] Using custom ${moduleName} for platform=${platform} from ${mod.path}`,
+              ),
+            );
+          }
           result = {
             [mod.returnKey]: mod.path,
             type: mod.returnType,

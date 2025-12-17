@@ -44,6 +44,7 @@ const analyticsTemplate = `// This file is generated at build time based on the 
 import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
+  Firebase as FirebaseAnalytics, 
   // __ENABLED_ANALYTICS_IMPORTS__
 } from 'apptile-core';
 
@@ -66,7 +67,7 @@ initNavs();
 
 // The plugins initialized here will not be available in the web
 // as an addon. This is only meant for toggling exsiting plugins which
-// are tightly integrated with apptile-core. Use remoteCode folder for
+// are tightly integrated with apptile-core. Use remoteCode folder for 
 // everything else
 // __EXTRA_LEGACY_INITIALIZERS__
 
@@ -76,11 +77,12 @@ export async function init() {
       await checkATTPermission();
     } catch (err) {
       console.log('Failure in att check', err);
-    }
+    } 
   }
 
   try {
     await ApptileAnalytics.initialize([
+      FirebaseAnalytics, 
       // __ENABLED_ANALYTICS__
     ]);
   } catch (err) {
@@ -99,13 +101,13 @@ async function generateAnalytics(
 ) {
   integrations = integrations || {};
   let enabledAnalytics = '';
-  if (featureFlags?.ENABLE_FIREBASE_ANALYTICS) {
-    analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
-      /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
-      `Firebase as FirebaseAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
-    );
-    enabledAnalytics += `FirebaseAnalytics,\n      `;
-  }
+  // if (featureFlags?.ENABLE_FIREBASE_ANALYTICS) {
+  //   analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
+  //     /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
+  //     `Firebase as FirebaseAnalytics,\n  \/\/ __ENABLED_ANALYTICS_IMPORTS__`,
+  //   );
+  //   enabledAnalytics += `FirebaseAnalytics,\n      `;
+  // }
   if (featureFlags?.ENABLE_FBSDK) {
     analyticsTemplateRef.current = analyticsTemplateRef.current.replace(
       /\/\/ __ENABLED_ANALYTICS_IMPORTS__/g,
@@ -229,6 +231,41 @@ onDeepLink: () => console.log('stubbed appsflyer onDeeplink')
   'klaviyo-react-native-sdk': `export default {};`,
   '@react-native-community/push-notification-ios': 'export default {}',
   'zego-express-engine-reactnative': `export default {};`,
+  'react-native-push-notification': `
+// Stub for react-native-push-notification
+// Firebase Analytics in apptile-core calls PushNotification.configure(), so we need these methods
+const PushNotification = {
+  configure: (options) => {
+    console.log('[PushNotification Stub] configure() called - using OneSignal instead');
+    if (options && options.onRegister) {
+      options.onRegister({ token: 'stub-token', os: 'ios' });
+    }
+  },
+  localNotification: () => {},
+  localNotificationSchedule: () => {},
+  requestPermissions: () => Promise.resolve(),
+  checkPermissions: (cb) => cb && cb({ alert: false, badge: false, sound: false }),
+  cancelLocalNotification: () => {},
+  cancelAllLocalNotifications: () => {},
+  setApplicationIconBadgeNumber: () => {},
+  getApplicationIconBadgeNumber: (cb) => cb && cb(0),
+  popInitialNotification: (cb) => cb && cb(null),
+  abandonPermissions: () => {},
+  registerNotificationActions: () => {},
+  clearAllNotifications: () => {},
+  removeAllDeliveredNotifications: () => {},
+  getDeliveredNotifications: (cb) => cb && cb([]),
+  getScheduledLocalNotifications: (cb) => cb && cb([]),
+  removeDeliveredNotifications: () => {},
+  invokeApp: () => {},
+  getChannels: (cb) => cb && cb([]),
+  channelExists: (_id, cb) => cb && cb(false),
+  createChannel: (_ch, cb) => cb && cb(true),
+  channelBlocked: (_id, cb) => cb && cb(false),
+  deleteChannel: () => {},
+};
+export default PushNotification;
+`,
 };
 
 async function addForceUnlinkForNativePackage(
@@ -475,6 +512,8 @@ function getExtraModules(apptileConfig) {
     apptileConfig.feature_flags?.ENABLE_LIVELY_PIP
   ) {
     // Use local copy when both ENABLE_LIVELY and ENABLE_LIVELY_PIP are true
+    // This is for iOS ONLY - Android uses node_modules version
+    // The platform check is handled in metro.config.js resolver
     extraModules.current.push({
       name: 'zego-express-engine-reactnative',
       path: path.resolve(
@@ -484,6 +523,7 @@ function getExtraModules(apptileConfig) {
       watchPath: path.resolve(__dirname, 'zego-express-engine-reactnative'),
       returnKey: 'filePath',
       returnType: 'sourceFile',
+      platform: 'ios',
     });
   }
   // Note: When ENABLE_LIVELY is true but ENABLE_LIVELY_PIP is false,
@@ -547,7 +587,9 @@ async function downloadIconAndSplash(apptileConfig) {
           const splashPngPath = path.resolve(androidDrawablePath, 'splash.png');
           try {
             if (fs.existsSync(splashPngPath)) {
-              console.log('Deleting splash.png to avoid conflict with splash.gif');
+              console.log(
+                'Deleting splash.png to avoid conflict with splash.gif',
+              );
               fs.unlinkSync(splashPngPath);
             }
           } catch (err) {
@@ -557,7 +599,9 @@ async function downloadIconAndSplash(apptileConfig) {
           const splashGifPath = path.resolve(androidDrawablePath, 'splash.gif');
           try {
             if (fs.existsSync(splashGifPath)) {
-              console.log('Deleting splash.gif to avoid conflict with splash.png');
+              console.log(
+                'Deleting splash.gif to avoid conflict with splash.png',
+              );
               fs.unlinkSync(splashGifPath);
             }
           } catch (err) {
