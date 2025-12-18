@@ -396,6 +396,12 @@ async function addZego(
   // Add ENABLE_LIVELY_PIP to Info.plist when PIP is enabled
   if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
     infoPlist.ENABLE_LIVELY_PIP = 'true';
+    // Add UIBackgroundModes for audio to support PIP
+    infoPlist.UIBackgroundModes = ['audio'];
+  } else {
+    // Remove ENABLE_LIVELY_PIP and UIBackgroundModes when PIP is disabled (even if ENABLE_LIVELY is true)
+    delete infoPlist.ENABLE_LIVELY_PIP;
+    delete infoPlist.UIBackgroundModes;
   }
 
   // Check if we should use local PIP version
@@ -453,6 +459,9 @@ async function removeZego(
 
   // Remove ENABLE_LIVELY_PIP from Info.plist
   delete infoPlist.ENABLE_LIVELY_PIP;
+
+  // Remove UIBackgroundModes
+  delete infoPlist.UIBackgroundModes;
 
   // Always force unlink when removing zego (regardless of PIP setting)
   await addForceUnlinkForNativePackage(
@@ -645,7 +654,9 @@ async function main() {
     apptileSeedEntitlements['com.apple.developer.associated-domains'] =
       associatedDomains;
 
-    console.log('iOS Associated Domains configured (account.* subdomain excluded for Google login)');
+    console.log(
+      'iOS Associated Domains configured (account.* subdomain excluded for Google login)',
+    );
 
     await updateAppleTeamID(
       apptileConfig.ios?.team_id,
@@ -775,10 +786,15 @@ async function main() {
 
     // Disable Firebase's push notification delegate when both Firebase Analytics and OneSignal are enabled
     // This prevents delegate conflicts that cause crashes when clicking "Allow" for notifications
-    if (apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS && apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+    if (
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS &&
+      apptileConfig.feature_flags?.ENABLE_ONESIGNAL
+    ) {
       infoPlist.FirebaseAppDelegateProxyEnabled = false;
       infoPlist.FirebaseMessagingAutoInitEnabled = false;
-      console.log('Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts');
+      console.log(
+        'Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts',
+      );
     }
 
     // For zego live streaming
@@ -828,11 +844,11 @@ async function main() {
         process.env.apptile_analytics_segment_key;
       if (!segmentKey) {
         console.error(
-          chalk.red('ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing'),
+          chalk.red(
+            'ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing',
+          ),
         );
-        throw new Error(
-          'apptile_analytics_segment_key is missing',
-        );
+        throw new Error('apptile_analytics_segment_key is missing');
       }
       infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
     } else {
@@ -840,8 +856,12 @@ async function main() {
     }
 
     // For App Tracking Transparency
-    if (apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY || apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS || apptileConfig.feature_flags?.ENABLE_FBSDK) {
-      console.log("Enabling App Tracking Transparency");
+    if (
+      apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY ||
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS ||
+      apptileConfig.feature_flags?.ENABLE_FBSDK
+    ) {
+      console.log('Enabling App Tracking Transparency');
       await addAppTrackingTransparency(infoPlist, apptileConfig);
     } else {
       await removeAppTrackingTransparency(infoPlist);
@@ -857,9 +877,13 @@ async function main() {
     // Intent Filters handled via #if INTENT_FILTERS preprocessor directive in AppDelegate.mm
     // The INTENT_FILTERS flag is automatically set in GCC_PREPROCESSOR_DEFINITIONS via Podfile
     if (apptileConfig.feature_flags?.INTENT_FILTERS) {
-      console.log('Intent Filters enabled (only /, /products/, /collections/ open in app)');
+      console.log(
+        'Intent Filters enabled (only /, /products/, /collections/ open in app)',
+      );
     } else {
-      console.log('Intent Filters disabled (all URLs open in app, account.* still excluded)');
+      console.log(
+        'Intent Filters disabled (all URLs open in app, account.* still excluded)',
+      );
     }
 
     const updatedPlist = plist.build(infoPlist);
@@ -963,7 +987,9 @@ async function main() {
       extraModules,
       parsedReactNativeConfig,
     );
-    console.log('react-native-push-notification stub always registered for Firebase/OneSignal compatibility');
+    console.log(
+      'react-native-push-notification stub always registered for Firebase/OneSignal compatibility',
+    );
 
     await writeFile(
       path.resolve(__dirname, 'extra_modules.json'),
@@ -987,7 +1013,10 @@ async function main() {
           break;
         }
       } catch (err) {
-        console.error('Failed to download GoogleService-Info.plist:', err.message);
+        console.error(
+          'Failed to download GoogleService-Info.plist:',
+          err.message,
+        );
       }
     }
 
