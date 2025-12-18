@@ -375,7 +375,7 @@ function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false) {
 
   console.log(
     chalk.green(
-      '✅ HTTP deep links configured (account.* subdomain excluded for Google login)',
+      'HTTP deep links configured (account.* subdomain excluded for Google login)',
     ),
   );
 }
@@ -593,7 +593,26 @@ async function addCleverTap(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[CleverTap][Android]';
+  if(!apptileConfig.integrations.cleverTap) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.cleverTap object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing CleverTap integration`);
   const cleverTapIntegration = apptileConfig.integrations.cleverTap;
+  if(!cleverTapIntegration.cleverTap_id) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its account id is missing`));
+    throw new Error('cleverTap_id is not found inside apptileConfig.integrations.cleverTap');
+  }
+  if(!cleverTapIntegration.cleverTap_token) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its token is missing`));
+    throw new Error('cleverTap_token is not found inside apptileConfig.integrations.cleverTap');
+  }
+  if(!cleverTapIntegration.cleverTap_region) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its region is missing`));
+    throw new Error('cleverTap_region is not found inside apptileConfig.integrations.cleverTap');
+  }
+  console.log(`${LOG_PREFIX} Adding CleverTap metadata to AndroidManifest`);
   addMetadata(
     androidManifest,
     'CLEVERTAP_ACCOUNT_ID',
@@ -622,6 +641,7 @@ async function addCleverTap(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} CleverTap integration complete`);
 }
 
 async function removeCleverTap(
@@ -652,7 +672,17 @@ async function addFacebook(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[Facebook][Android]';
+  if(!apptileConfig.integrations.metaAds) {
+    console.log(chalk.red(`${LOG_PREFIX} Facebook is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.metaAds object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing Facebook integration`);
   const facebookIntegration = apptileConfig.integrations.metaAds;
+  if(!facebookIntegration.fb_appId) {
+    console.log(chalk.red(`${LOG_PREFIX} Facebook is connected but its app id is missing`));
+    throw new Error('fb_appId is not found inside apptileConfig.integrations.metaAds');
+  }
   upsertInStringsXML(
     stringsObj,
     'facebook_app_id',
@@ -664,6 +694,10 @@ async function addFacebook(
     '@string/facebook_app_id',
   );
 
+  if(!facebookIntegration.fb_clientToken) {
+    console.log(chalk.red(`${LOG_PREFIX} Facebook is connected but its client token is missing`));
+    throw new Error('fb_clientToken is not found inside apptileConfig.integrations.metaAds');
+  }
   upsertInStringsXML(
     stringsObj,
     'facebook_client_token',
@@ -680,6 +714,8 @@ async function addFacebook(
     extraModules,
     parsedReactNativeConfig,
   );
+
+  console.log(`${LOG_PREFIX} Facebook integration complete`);
 }
 
 async function removeFacebook(
@@ -708,7 +744,18 @@ async function addOnesignal(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[OneSignal][Android]';
+  if(!apptileConfig.integrations.oneSignal) {
+    chalk.red(`${LOG_PREFIX} OneSignal is enabled but seems like its not connected`);
+    throw new Error('Mssing apptileConfig.integrations.oneSignal object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing OneSignal integration`);
+  
   const onesignalIntegration = apptileConfig.integrations.oneSignal;
+  if(!onesignalIntegration.onesignal_app_id) {
+    console.log(chalk.red('OneSignal is connected but its app id is missing'));
+    throw new Error('onesignal_app_id is not found inside apptileConfig.integrations.oneSignal');
+  }
   upsertInStringsXML(
     stringsObj,
     'ONESIGNAL_APPID',
@@ -719,6 +766,7 @@ async function addOnesignal(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} OneSignal integration complete`);
 }
 
 async function removeOnesignal(
@@ -748,6 +796,7 @@ async function addLogrocket(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} LogRocket integration complete`);
 }
 
 async function removeLogrocket(
@@ -771,13 +820,28 @@ async function addMoengage(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[MoEngage][Android]';
+  if(!apptileConfig.integrations.moengage) {
+    console.log(chalk.red(`${LOG_PREFIX} MoEngage is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.moengage object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing MoEngage integration`);
   const moengageIntegration = apptileConfig.integrations.moengage;
+  if(!moengageIntegration.appId) {
+    console.log(chalk.red(`${LOG_PREFIX} MoEngage is connected but its app id is missing`));
+    throw new Error('appId is not found inside apptileConfig.integrations.moengage');
+  }
   upsertInStringsXML(stringsObj, 'moengage_app_id', moengageIntegration.appId);
+  if(!moengageIntegration.datacenter) {
+    console.log(chalk.red(`${LOG_PREFIX} MoEngage is connected but its datacenter is missing`));
+    throw new Error('datacenter is not found inside apptileConfig.integrations.moengage');
+  }
   upsertInStringsXML(
     stringsObj,
     'moengage_datacenter',
     moengageIntegration.datacenter,
   );
+  console.log(`${LOG_PREFIX} Adding MoEngage service to AndroidManifest`);
   deleteMessagingService(androidManifest);
   addService(
     androidManifest,
@@ -791,6 +855,7 @@ async function addMoengage(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} MoEngage integration complete`);
 }
 
 async function removeMoengage(
@@ -820,9 +885,20 @@ async function addKlaviyo(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[Klaviyo][Android]';
+  if(!apptileConfig.integrations.klaviyo) {
+    console.log(chalk.red(`${LOG_PREFIX} Klaviyo is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.klaviyo object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing Klaviyo integration`);
   const klaviyoCompanyId =
     apptileConfig.integrations.klaviyo.klaviyo_company_id;
+  if(!klaviyoCompanyId) {
+    console.log(chalk.red(`${LOG_PREFIX} Klaviyo is connected but its company id is missing`));
+    throw new Error('klaviyo_company_id is not found inside apptileConfig.integrations.klaviyo');
+  }
   upsertInStringsXML(stringsObj, 'klaviyo_company_id', klaviyoCompanyId);
+  console.log(`${LOG_PREFIX} Adding Klaviyo service to AndroidManifest`);
   addService(
     androidManifest,
     'com.klaviyo.pushFcm.KlaviyoPushService',
@@ -839,6 +915,7 @@ async function addKlaviyo(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} Klaviyo integration complete`);
 }
 
 async function removeKlaviyo(
@@ -884,10 +961,12 @@ async function addZego(
   });
 
   // Add ENABLE_LIVELY_PIP string when both flags are true
-  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+  const enableLivelyPIP = apptileConfig.feature_flags?.ENABLE_LIVELY_PIP;
+  logFeature('LivelyPIP', enableLivelyPIP);
+
+  if (enableLivelyPIP) {
     upsertInStringsXML(stringsObj, 'ENABLE_LIVELY_PIP', 'true');
   } else {
-    // Remove ENABLE_LIVELY_PIP string when flag is false
     removeFromStringsXML(stringsObj, 'ENABLE_LIVELY_PIP');
   }
 
@@ -899,6 +978,7 @@ async function addZego(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} Zego integration complete`);
 }
 
 async function removeZego(
@@ -933,6 +1013,17 @@ async function removeZego(
   );
 }
 
+function logFeature(feature, enabled) {
+  if (enabled) {
+    console.log(chalk.green(`[FeatureFlag] ${feature} → ENABLED`));
+    return;
+  } else {
+    console.log(
+      `[FeatureFlag] ${feature} → DISABLED`,
+    );
+  }
+}
+
 async function main() {
   const analyticsTemplateRef = {current: analyticsTemplate};
   // Get location of ios folder in project
@@ -948,6 +1039,7 @@ async function main() {
   );
   const apptileConfig = JSON.parse(apptileConfigRaw);
   console.log(apptileConfig, 'config');
+  console.log('Running android project setup....');
   try {
     const success = await downloadIconAndSplash(apptileConfig);
     if (success) {
@@ -1049,7 +1141,10 @@ async function main() {
 
   const parsedReactNativeConfig = await readReactNativeConfigJs();
 
-  if (apptileConfig.feature_flags?.ENABLE_CLEVERTAP) {
+  const isCleverTapEnabled = apptileConfig.feature_flags?.ENABLE_CLEVERTAP;
+  logFeature('CleverTap', isCleverTapEnabled);
+
+  if (isCleverTapEnabled) {
     await addCleverTap(
       androidManifest,
       stringsObj,
@@ -1065,7 +1160,11 @@ async function main() {
       parsedReactNativeConfig,
     );
   }
-  if (apptileConfig.feature_flags?.ENABLE_FBSDK) {
+
+  const isFacebookEnabled = apptileConfig.feature_flags?.ENABLE_FBSDK;
+  logFeature('Facebook/MetaAds', isFacebookEnabled);
+
+  if (isFacebookEnabled) {
     await addFacebook(
       androidManifest,
       stringsObj,
@@ -1082,7 +1181,10 @@ async function main() {
     );
   }
 
-  if (apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+  const isOneSignalEnabled = apptileConfig.feature_flags?.ENABLE_ONESIGNAL;
+  logFeature('OneSignal', isOneSignalEnabled);
+
+  if (isOneSignalEnabled) {
     await addOnesignal(
       androidManifest,
       stringsObj,
@@ -1099,7 +1201,10 @@ async function main() {
     );
   }
 
-  if (apptileConfig.feature_flags?.ENABLE_MOENGAGE) {
+  const isMoengageEnabled = apptileConfig.feature_flags?.ENABLE_MOENGAGE;
+  logFeature('MoEngage', isMoengageEnabled);
+
+  if (isMoengageEnabled) {
     await addMoengage(
       androidManifest,
       stringsObj,
@@ -1116,7 +1221,10 @@ async function main() {
     );
   }
 
-  if (apptileConfig.feature_flags?.ENABLE_KLAVIYO) {
+  const isKlaviyoEnabled = apptileConfig.feature_flags?.ENABLE_KLAVIYO;
+  logFeature('Klaviyo', isKlaviyoEnabled);
+
+  if (isKlaviyoEnabled) {
     await addKlaviyo(
       androidManifest,
       stringsObj,
@@ -1133,8 +1241,10 @@ async function main() {
     );
   }
 
-  if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
-    console.log('Lively is getting enabled...');
+  const isLivelyEnabled = apptileConfig.feature_flags?.ENABLE_LIVELY;
+  logFeature('Lively', isLivelyEnabled);
+
+  if (isLivelyEnabled) {
     await addZego(
       androidManifest,
       stringsObj,
@@ -1143,7 +1253,6 @@ async function main() {
       parsedReactNativeConfig,
     );
   } else {
-    console.log('Lively is getting disabled...');
     await removeZego(
       androidManifest,
       stringsObj,
@@ -1152,7 +1261,10 @@ async function main() {
     );
   }
 
-  if (apptileConfig.feature_flags?.ENABLE_LOGROCKET) {
+  const isLogRocketEnabled = apptileConfig.feature_flags?.ENABLE_LOGROCKET;
+  logFeature('LogRocket', isLogRocketEnabled);
+
+  if (isLogRocketEnabled) {
     await addLogrocket(
       androidManifest,
       stringsObj,
@@ -1169,8 +1281,13 @@ async function main() {
     );
   }
 
-  if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
-    // Handle Segment Analytics key for strings.xml
+  const isSegmentEnabled =
+    apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS;
+  logFeature('Segment', isSegmentEnabled);
+
+  const SEGMENT_LOG_PREFIX = '[Segment][Android]';
+  if (isSegmentEnabled) {
+    console.log(`${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`);
     if (
       apptileConfig.apptile_analytics_segment_key ||
       process.env.apptile_analytics_segment_key
@@ -1184,8 +1301,11 @@ async function main() {
         segment_analyticsKey,
       );
     } else {
-      removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
+      console.log(chalk.red(`${SEGMENT_LOG_PREFIX} Segment is enabled but its key is missing`));
+      throw new Error('apptile_analytics_segment_key is not found in apptileConfig');
     }
+  } else {
+    removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
   }
   const strObj = JSON.parse(JSON.stringify(stringsObj));
 
@@ -1221,7 +1341,8 @@ async function main() {
       const appConfigPath = path.resolve(assetsDir, 'appConfig.json');
       console.log('Writing appConfig to: ' + appConfigPath);
       await downloadFile(appConfigUrl, appConfigPath);
-      console.log('appConfig downloaded');
+      console.log(chalk.green('APPCONFIG DOWNLOADED'));
+
       await writeFile(
         bundleTrackerPath,
         `{"publishedCommitId": ${publishedCommit}, "androidBundleId": ${
@@ -1242,7 +1363,6 @@ async function main() {
       `{"publishedCommitId": null, "androidBundleId": null}`,
     );
   }
-  console.log('Running android project setup');
   await generateAnalytics(
     analyticsTemplateRef,
     apptileConfig.integrations,
