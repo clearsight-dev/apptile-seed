@@ -945,6 +945,7 @@ async function addZego(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[ZEGO][ANDROID]'
   // Add permissions for live streaming (matching old script)
   addPermission(androidManifest, 'ACCESS_WIFI_STATE');
   addPermission(androidManifest, 'RECORD_AUDIO');
