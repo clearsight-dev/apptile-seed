@@ -92,7 +92,45 @@ class MainApplication : Application(), ReactApplication {
 
         // Capturing unCaught Errors & resetting the bundle & app config
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            Log.e(APPTILE_LOG_TAG, "")
+            Log.e(APPTILE_LOG_TAG, "========================================")
+            Log.e(APPTILE_LOG_TAG, "❌❌❌ NATIVE CRASH DETECTED ❌❌❌")
+            Log.e(APPTILE_LOG_TAG, "========================================")
+            Log.e(APPTILE_LOG_TAG, "Thread: ${thread.name} (ID: ${thread.id})")
+            Log.e(APPTILE_LOG_TAG, "Exception Type: ${throwable.javaClass.name}")
+            Log.e(APPTILE_LOG_TAG, "Exception Message: ${throwable.message}")
+            Log.e(APPTILE_LOG_TAG, "")
+            Log.e(APPTILE_LOG_TAG, "Stack Trace:")
+            Log.e(APPTILE_LOG_TAG, "----------------------------------------")
+
+            // Print full stack trace
+            throwable.stackTrace.forEachIndexed { index, element ->
+                Log.e(APPTILE_LOG_TAG, String.format("%2d: %s", index, element.toString()))
+            }
+
+            // Print cause if exists
+            var cause = throwable.cause
+            var causeLevel = 1
+            while (cause != null) {
+                Log.e(APPTILE_LOG_TAG, "")
+                Log.e(APPTILE_LOG_TAG, "Caused by (level $causeLevel): ${cause.javaClass.name}")
+                Log.e(APPTILE_LOG_TAG, "Message: ${cause.message}")
+                cause.stackTrace.forEachIndexed { index, element ->
+                    Log.e(APPTILE_LOG_TAG, String.format("  %2d: %s", index, element.toString()))
+                }
+                cause = cause.cause
+                causeLevel++
+            }
+
+            Log.e(APPTILE_LOG_TAG, "----------------------------------------")
+            Log.e(APPTILE_LOG_TAG, "")
+            Log.w(APPTILE_LOG_TAG, "Marking bundle as broken...")
+
             BundleTrackerPrefs.markCurrentBundleBroken()
+
+            Log.e(APPTILE_LOG_TAG, "Passing to system exception handler...")
+            Log.e(APPTILE_LOG_TAG, "========================================")
+
             systemDefaultExceptionHandler?.uncaughtException(thread, throwable)
         }
 

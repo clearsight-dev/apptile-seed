@@ -482,7 +482,7 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
         [self transactDisplayLayer:self.previewLayer to:uiView.bounds];
       }
       [uiView.layer insertSublayer:self.previewLayer above:0];
-      [self setupPipViewController];
+     [self setupPipViewController];
     }
     [[ZegoExpressEngine sharedEngine] startPreview:nil];
 //    [[ZegoExpressEngine sharedEngine] startPreview:canvas channel: (ZegoPublishChannel)channel];

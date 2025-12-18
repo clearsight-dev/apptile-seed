@@ -969,9 +969,10 @@ async function main() {
         apptileConfig.apptile_analytics_segment_key ||
         process.env.apptile_analytics_segment_key;
       if (!segmentKey) {
-        console.log(chalk.red(`${SEGMENT_LOG_PREFIX} Segment is enabled but its key is missing`));
-        throw new Error(
-          'apptile_analytics_segment_key is not found in apptileConfig',
+        console.error(
+          chalk.red(
+            'ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing',
+          ),
         );
         throw new Error('apptile_analytics_segment_key is missing');
       }
@@ -983,11 +984,12 @@ async function main() {
     }
 
     // For App Tracking Transparency
-    const isAppTrackingTransparencyEnabled = apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY;
-    const isFirebaseAnalytics = apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
-
-    if (isAppTrackingTransparencyEnabled || isFirebaseAnalytics || isFacebookEnabled) {
-      logFeature('App Tracking Transparency', true);
+    if (
+      apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY ||
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS ||
+      apptileConfig.feature_flags?.ENABLE_FBSDK
+    ) {
+      console.log('Enabling App Tracking Transparency');
       await addAppTrackingTransparency(infoPlist, apptileConfig);
     } else {
       await removeAppTrackingTransparency(infoPlist);
@@ -1005,8 +1007,15 @@ async function main() {
 
     // Intent Filters handled via #if INTENT_FILTERS preprocessor directive in AppDelegate.mm
     // The INTENT_FILTERS flag is automatically set in GCC_PREPROCESSOR_DEFINITIONS via Podfile
-    const useIntentFilters = apptileConfig.feature_flags?.INTENT_FILTERS;
-    logFeature('Intent Filters (only /, /products/, /collections/ open in app)', useIntentFilters);
+    if (apptileConfig.feature_flags?.INTENT_FILTERS) {
+      console.log(
+        'Intent Filters enabled (only /, /products/, /collections/ open in app)',
+      );
+    } else {
+      console.log(
+        'Intent Filters disabled (all URLs open in app, account.* still excluded)',
+      );
+    }
 
     const updatedPlist = plist.build(infoPlist);
     await writeFile(infoPlistLocation, updatedPlist);

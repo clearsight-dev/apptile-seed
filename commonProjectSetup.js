@@ -470,6 +470,13 @@ function getExtraModules(apptileConfig) {
         returnType: 'assetFiles',
       },
       {
+        name: 'asset_apptile-icon',
+        path: [path.resolve(__dirname, './assets/apptile-icon.png')],
+        watchPath: path.resolve(__dirname),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
+      },
+      {
         name: 'apptile-datasource',
         path: path.resolve(
           !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,

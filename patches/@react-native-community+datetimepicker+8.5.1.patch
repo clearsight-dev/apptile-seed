@@ -1,0 +1,20 @@
+diff --git a/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePicker.m b/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePicker.m
+index 9c73c8e..78dd923 100644
+--- a/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePicker.m
++++ b/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePicker.m
+@@ -23,13 +23,13 @@
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+   if ((self = [super initWithFrame:frame])) {
+-    #ifndef RCT_NEW_ARCH_ENABLED
++    //     #ifndef RCT_NEW_ARCH_ENABLED
+       // somehow, with Fabric, the callbacks are executed here as well as in RNDateTimePickerComponentView
+       // so do not register it with Fabric, to avoid potential problems
+       [self addTarget:self action:@selector(didChange)
+                forControlEvents:UIControlEventValueChanged];
+       [self addTarget:self action:@selector(onDismiss:) forControlEvents:UIControlEventEditingDidEnd];
+-    #endif
++    //     #endif
+ 
+     _reactMinuteInterval = 1;
+   }

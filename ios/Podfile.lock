@@ -1514,7 +1514,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-slider (5.0.1):
+  - react-native-slider (5.0.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.11.18.00)
@@ -1527,7 +1527,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-slider/common (= 5.0.1)
+    - react-native-slider/common (= 5.0.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1536,50 +1536,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-slider/common (5.0.1):
-    - DoubleConversion
-    - glog
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-video (6.16.1):
-    - DoubleConversion
-    - glog
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - react-native-video/Video (= 6.16.1)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-video/Fabric (6.16.1):
+  - react-native-slider/common (5.0.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.11.18.00)
@@ -1600,7 +1557,50 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-video/Video (6.16.1):
+  - react-native-video (6.18.0):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - react-native-video/Video (= 6.18.0)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-video/Fabric (6.18.0):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-video/Video (6.18.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.11.18.00)
@@ -1643,6 +1643,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-zego-express-engine (3.22.0):
+    - React
+    - ZegoExpressEngine (= 3.22.0)
   - React-nativeconfig (0.77.3)
   - React-NativeModulesApple (0.77.3):
     - glog
@@ -1980,6 +1983,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNDateTimePicker (8.5.1):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNDeviceInfo (14.1.1):
     - React-Core
   - RNFastImage (8.6.3):
@@ -2023,12 +2047,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNIap (12.16.4):
-    - RCT-Folly
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - ReactCommon/turbomodule/core
   - RNPermissions (5.4.2):
     - DoubleConversion
     - glog
@@ -2248,6 +2266,7 @@ PODS:
     - React-Core
   - SSZipArchive (2.5.5)
   - Yoga (0.0.0)
+  - ZegoExpressEngine (3.22.0)
   - ZIPFoundation (0.9.20)
 
 DEPENDENCIES:
@@ -2311,6 +2330,7 @@ DEPENDENCIES:
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
+  - react-native-zego-express-engine (from `../node_modules/zego-express-engine-reactnative`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -2343,6 +2363,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
+  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
@@ -2350,7 +2371,6 @@ DEPENDENCIES:
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
-  - RNIap (from `../node_modules/react-native-iap`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2389,6 +2409,7 @@ SPEC REPOS:
     - ShopifyCheckoutSheetKit
     - SocketRocket
     - SSZipArchive
+    - ZegoExpressEngine
     - ZIPFoundation
 
 EXTERNAL SOURCES:
@@ -2494,6 +2515,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-video"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
+  react-native-zego-express-engine:
+    :path: "../node_modules/zego-express-engine-reactnative"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -2558,6 +2581,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
+  RNDateTimePicker:
+    :path: "../node_modules/@react-native-community/datetimepicker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNFastImage:
@@ -2572,8 +2597,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
-  RNIap:
-    :path: "../node_modules/react-native-iap"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
@@ -2663,9 +2686,10 @@ SPEC CHECKSUMS:
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-restart: 7595693413fe3ca15893702f2c8306c62a708162
   react-native-safe-area-context: 4fdf1bb3886f27b5796a33608796f82b1c3943d7
-  react-native-slider: 6f8e6534a80d5ea9271c5ff5e6eba4ec90a9e334
-  react-native-video: e112d3419a5e82b0c1d40b06e42c501dda621d1d
+  react-native-slider: bd0f8597a1bc8136a698cd21d624f1fcce55a92a
+  react-native-video: 61f44a0ab841e50170a5ce7d2d4b0aeb6ef59e9e
   react-native-webview: f48dcf0515f367692b649d01a46e099bfef80796
+  react-native-zego-express-engine: c63ab5d1df87806097649cc486f9a7020c36a659
   React-nativeconfig: 29f53f7caa03e1d3f49396320f4f055ae42ab8db
   React-NativeModulesApple: d26770cfaa90cb28ad6a1d7eea85a5f15357bef3
   React-perflogger: 6820403fcb3daf843cb89772f2ba7b25cf7d5797
@@ -2698,6 +2722,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 4c32787a46dbd99f862e4b86b543a9a73995c107
   RNCClipboard: 4c958f59363f9a82ea11d9a104c4b88d7d3dd8e9
   RNCMaskedView: 1fd3de9cb6e9247311f25ac8e9ea42afd7838c27
+  RNDateTimePicker: deb30fc3aa637aedd38c941f3f45ed63e50f30ce
   RNDeviceInfo: 8b6fa8379062949dd79a009cf3d6b02a9c03ca59
   RNFastImage: 2c0b5e588f129839b576669a4e429181ec39c61e
   RNFBAnalytics: 9f3345d721110c85f31b16f5b581d56cd260d658
@@ -2705,8 +2730,7 @@ SPEC CHECKSUMS:
   RNFBMessaging: d738068a1ec59046d8203c942ffdcddae7072a4d
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 6b4c9a4992e93e4a7d88cd802a802077ee93ad2a
-  RNIap: f193da865e819a25638d29c845629e17a943590c
-  RNPermissions: 574e1a9dc92a1847fd35b59dd3159451a2a7df67
+  RNPermissions: 2f12d58d7509c5df2d76d5dada009fd34995b9a5
   RNReactNativeHapticFeedback: 93618c8bf04577fcf702082c518b276ee7a22fe7
   RNScreens: 64b565f207a31eb0182c85ce939a979b0b532748
   RNSentry: 26b9722127cd424f0095cb8ce6672bc4e3b905e4
@@ -2723,8 +2747,9 @@ SPEC CHECKSUMS:
   sovran-react-native: eec37f82e4429f0e3661f46aaf4fcd85d1b54f60
   SSZipArchive: c69881e8ac5521f0e622291387add5f60f30f3c4
   Yoga: 2b02f3f767761bb4ffd25b1bb56fd264be57bd6b
+  ZegoExpressEngine: c1b01551fc817e6fd32b3a877a9d15de6d93f68e
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 419fbcbfe2aa970ff75b18a724b25abfd16decf6
+PODFILE CHECKSUM: 12beb3f2cb5fb41fe2f1647f74664042a93f2bf4
 
 COCOAPODS: 1.16.2
