@@ -481,6 +481,12 @@ async function addZego(
   // Add ENABLE_LIVELY_PIP to Info.plist when PIP is enabled
   if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
     infoPlist.ENABLE_LIVELY_PIP = 'true';
+    // Add UIBackgroundModes for audio to support PIP
+    infoPlist.UIBackgroundModes = ['audio'];
+  } else {
+    // Remove ENABLE_LIVELY_PIP and UIBackgroundModes when PIP is disabled (even if ENABLE_LIVELY is true)
+    delete infoPlist.ENABLE_LIVELY_PIP;
+    delete infoPlist.UIBackgroundModes;
   }
 
   // Check if we should use local PIP version
@@ -538,6 +544,9 @@ async function removeZego(
 
   // Remove ENABLE_LIVELY_PIP from Info.plist
   delete infoPlist.ENABLE_LIVELY_PIP;
+
+  // Remove UIBackgroundModes
+  delete infoPlist.UIBackgroundModes;
 
   // Always force unlink when removing zego (regardless of PIP setting)
   await addForceUnlinkForNativePackage(
@@ -741,7 +750,9 @@ async function main() {
     apptileSeedEntitlements['com.apple.developer.associated-domains'] =
       associatedDomains;
 
-    console.log('iOS Associated Domains configured (account.* subdomain excluded for Google login)');
+    console.log(
+      'iOS Associated Domains configured (account.* subdomain excluded for Google login)',
+    );
 
     await updateAppleTeamID(
       apptileConfig.ios?.team_id,
@@ -889,10 +900,15 @@ async function main() {
 
     // Disable Firebase's push notification delegate when both Firebase Analytics and OneSignal are enabled
     // This prevents delegate conflicts that cause crashes when clicking "Allow" for notifications
-    if (apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS && apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+    if (
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS &&
+      apptileConfig.feature_flags?.ENABLE_ONESIGNAL
+    ) {
       infoPlist.FirebaseAppDelegateProxyEnabled = false;
       infoPlist.FirebaseMessagingAutoInitEnabled = false;
-      console.log('Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts');
+      console.log(
+        'Firebase + OneSignal: Disabled Firebase push notification handling to prevent delegate conflicts',
+      );
     }
 
     // For zego live streaming
@@ -955,6 +971,7 @@ async function main() {
         throw new Error(
           'apptile_analytics_segment_key is not found in apptileConfig',
         );
+        throw new Error('apptile_analytics_segment_key is missing');
       }
       console.log(`${SEGMENT_LOG_PREFIX} Adding Segment key to Info.plist`);
       infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
@@ -1090,7 +1107,9 @@ async function main() {
       extraModules,
       parsedReactNativeConfig,
     );
-    console.log('react-native-push-notification stub always registered for Firebase/OneSignal compatibility');
+    console.log(
+      'react-native-push-notification stub always registered for Firebase/OneSignal compatibility',
+    );
 
     await writeFile(
       path.resolve(__dirname, 'extra_modules.json'),
@@ -1114,7 +1133,10 @@ async function main() {
           break;
         }
       } catch (err) {
-        console.error('Failed to download GoogleService-Info.plist:', err.message);
+        console.error(
+          'Failed to download GoogleService-Info.plist:',
+          err.message,
+        );
       }
     }
 
