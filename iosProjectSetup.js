@@ -989,7 +989,7 @@ async function main() {
       apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS ||
       apptileConfig.feature_flags?.ENABLE_FBSDK
     ) {
-      console.log('Enabling App Tracking Transparency');
+      logFeature('Enabling App Tracking Transparency', true);
       await addAppTrackingTransparency(infoPlist, apptileConfig);
     } else {
       await removeAppTrackingTransparency(infoPlist);
@@ -1008,13 +1008,9 @@ async function main() {
     // Intent Filters handled via #if INTENT_FILTERS preprocessor directive in AppDelegate.mm
     // The INTENT_FILTERS flag is automatically set in GCC_PREPROCESSOR_DEFINITIONS via Podfile
     if (apptileConfig.feature_flags?.INTENT_FILTERS) {
-      console.log(
-        'Intent Filters enabled (only /, /products/, /collections/ open in app)',
-      );
+      logFeature('Intent Filters', true);
     } else {
-      console.log(
-        'Intent Filters disabled (all URLs open in app, account.* still excluded)',
-      );
+      logFeature('Intent Filters', false);
     }
 
     const updatedPlist = plist.build(infoPlist);
