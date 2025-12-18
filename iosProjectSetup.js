@@ -61,7 +61,26 @@ async function addCleverTap(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  const LOG_PREFIX = '[CleverTap][iOS]';
+  if(!apptileConfig.integrations.cleverTap) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.cleverTap object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing CleverTap integration`);
   const cleverTapIntegration = apptileConfig.integrations.cleverTap;
+  if(!cleverTapIntegration.cleverTap_id) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its account id is missing`));
+    throw new Error('cleverTap_id is not found inside apptileConfig.integrations.cleverTap');
+  }
+  if(!cleverTapIntegration.cleverTap_token) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its token is missing`));
+    throw new Error('cleverTap_token is not found inside apptileConfig.integrations.cleverTap');
+  }
+  if(!cleverTapIntegration.cleverTap_region) {
+    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its region is missing`));
+    throw new Error('cleverTap_region is not found inside apptileConfig.integrations.cleverTap');
+  }
+  console.log(`${LOG_PREFIX} Adding CleverTap config to Info.plist`);
   infoPlist.CleverTapAccountID = cleverTapIntegration.cleverTap_id;
   infoPlist.CleverTapToken = cleverTapIntegration.cleverTap_token;
   infoPlist.CleverTapRegion = cleverTapIntegration.cleverTap_region;
@@ -72,6 +91,7 @@ async function addCleverTap(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} CleverTap integration complete`);
 }
 
 async function removeCleverTap(
@@ -106,7 +126,22 @@ async function addMoengage(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  const LOG_PREFIX = '[MoEngage][iOS]';
+  if(!apptileConfig.integrations.moengage) {
+    console.log(chalk.red(`${LOG_PREFIX} MoEngage is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.moengage object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing MoEngage integration`);
   const moengageIntegration = apptileConfig.integrations.moengage;
+  if(!moengageIntegration.appId) {
+    console.log(chalk.red(`${LOG_PREFIX} MoEngage is connected but its app id is missing`));
+    throw new Error('appId is not found inside apptileConfig.integrations.moengage');
+  }
+  if(!moengageIntegration.datacenter) {
+    console.log(chalk.red(`${LOG_PREFIX} MoEngage is connected but its datacenter is missing`));
+    throw new Error('datacenter is not found inside apptileConfig.integrations.moengage');
+  }
+  console.log(`${LOG_PREFIX} Adding MoEngage config to Info.plist`);
   infoPlist.MOENGAGE_APPID = moengageIntegration.appId;
   infoPlist.MOENGAGE_DATACENTER = moengageIntegration.datacenter;
   infoPlist.MoEngageAppDelegateProxyEnabled = false;
@@ -127,6 +162,7 @@ async function addMoengage(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} MoEngage integration complete`);
 }
 
 async function removeMoengage(
@@ -164,8 +200,19 @@ async function addKlaviyo(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  const LOG_PREFIX = '[Klaviyo][iOS]';
+  if(!apptileConfig.integrations.klaviyo) {
+    console.log(chalk.red(`${LOG_PREFIX} Klaviyo is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.klaviyo object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing Klaviyo integration`);
   const klaviyoCompanyId =
     apptileConfig.integrations.klaviyo.klaviyo_company_id;
+  if(!klaviyoCompanyId) {
+    console.log(chalk.red(`${LOG_PREFIX} Klaviyo is connected but its company id is missing`));
+    throw new Error('klaviyo_company_id is not found inside apptileConfig.integrations.klaviyo');
+  }
+  console.log(`${LOG_PREFIX} Adding Klaviyo config to Info.plist`);
   infoPlist.klaviyo_company_id = klaviyoCompanyId;
   infoPlist.FirebaseAppDelegateProxyEnabled = false;
   imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE =
@@ -180,6 +227,7 @@ async function addKlaviyo(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} Klaviyo integration complete`);
 }
 
 async function removeKlaviyo(
@@ -211,7 +259,16 @@ async function addAppsflyer(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  if(!apptileConfig.integrations.appsflyer) {
+    throw new Error('appsflyer is not connected');
+  }
   const appsflyerIntegration = apptileConfig.integrations.appsflyer;
+  if(!appsflyerIntegration.devkey) {
+    throw new Error('appsflyer devkey is missing');
+  }
+  if(!appsflyerIntegration.appId) {
+    throw new Error('appsflyer appId is missing');
+  }
   infoPlist.APPSFLYER_DEVKEY = appsflyerIntegration.devkey;
   infoPlist.APPSFLYER_APPID = appsflyerIntegration.appId;
 
@@ -247,7 +304,22 @@ async function addFacebook(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  const LOG_PREFIX = '[Facebook][iOS]';
+  if(!apptileConfig.integrations.metaAds) {
+    console.log(chalk.red(`${LOG_PREFIX} Facebook is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.metaAds object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing Facebook integration`);
   const metaIntegration = apptileConfig.integrations.metaAds;
+  if(!metaIntegration.fb_appId) {
+    console.log(chalk.red(`${LOG_PREFIX} Facebook is connected but its app id is missing`));
+    throw new Error('fb_appId is not found inside apptileConfig.integrations.metaAds');
+  }
+  if(!metaIntegration.fb_clientToken) {
+    console.log(chalk.red(`${LOG_PREFIX} Facebook is connected but its client token is missing`));
+    throw new Error('fb_clientToken is not found inside apptileConfig.integrations.metaAds');
+  }
+  console.log(`${LOG_PREFIX} Adding Facebook config to Info.plist`);
   infoPlist.FacebookAppID = metaIntegration.fb_appId;
   infoPlist.FacebookClientToken = metaIntegration.fb_clientToken;
   infoPlist.FacebookDisplayName = apptileConfig.app_name;
@@ -258,6 +330,7 @@ async function addFacebook(
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} Facebook integration complete`);
 }
 async function removeFacebook(
   infoPlist,
@@ -286,13 +359,25 @@ async function addOnesignal(
   parsedReactNativeConfig,
   extraModules,
 ) {
+  const LOG_PREFIX = '[OneSignal][iOS]';
+  if(!apptileConfig.integrations.oneSignal) {
+    console.log(chalk.red(`${LOG_PREFIX} OneSignal is enabled but seems like its not connected`));
+    throw new Error('Missing apptileConfig.integrations.oneSignal object not found');
+  }
+  console.log(`${LOG_PREFIX} Initializing OneSignal integration`);
   const onesignalIntegration = apptileConfig.integrations.oneSignal;
+  if(!onesignalIntegration.onesignal_app_id) {
+    console.log(chalk.red(`${LOG_PREFIX} OneSignal is connected but its app id is missing`));
+    throw new Error('onesignal_app_id is not found inside apptileConfig.integrations.oneSignal');
+  }
+  console.log(`${LOG_PREFIX} Adding OneSignal config to Info.plist`);
   infoPlist.ONESIGNAL_APPID = onesignalIntegration.onesignal_app_id;
   removeForceUnlinkForNativePackage(
     'react-native-onesignal',
     extraModules,
     parsedReactNativeConfig,
   );
+  console.log(`${LOG_PREFIX} OneSignal integration complete`);
 }
 
 async function removeOnesignal(
@@ -469,6 +554,17 @@ async function removeZego(
     extraModules,
     parsedReactNativeConfig,
   );
+}
+
+function logFeature(feature, enabled) {
+  if (enabled) {
+    console.log(chalk.green(`[FeatureFlag] ${feature} → ENABLED`));
+    return;
+  } else {
+    console.log(
+      `[FeatureFlag] ${feature} → DISABLED`,
+    );
+  }
 }
 
 async function main() {
@@ -665,7 +761,11 @@ async function main() {
 
     // For facebook analytics
     const parsedReactNativeConfig = await readReactNativeConfigJs();
-    if (apptileConfig.feature_flags?.ENABLE_FBSDK) {
+
+    const isFacebookEnabled = apptileConfig.feature_flags?.ENABLE_FBSDK;
+    logFeature('Facebook/MetaAds', isFacebookEnabled);
+
+    if (isFacebookEnabled) {
       await addFacebook(
         infoPlist,
         imageNotificationPlist,
@@ -685,7 +785,10 @@ async function main() {
     }
 
     // For clevertap analytics
-    if (apptileConfig.feature_flags?.ENABLE_CLEVERTAP) {
+    const isCleverTapEnabled = apptileConfig.feature_flags?.ENABLE_CLEVERTAP;
+    logFeature('CleverTap', isCleverTapEnabled);
+
+    if (isCleverTapEnabled) {
       await addCleverTap(
         infoPlist,
         imageNotificationPlist,
@@ -705,7 +808,9 @@ async function main() {
     }
 
     // For appsflyer analytics
-    if (apptileConfig.feature_flags?.ENABLE_APPSFLYER) {
+    const isAppsflyerEnabled = apptileConfig.feature_flags?.ENABLE_APPSFLYER;
+    logFeature('AppsFlyer', isAppsflyerEnabled);
+    if (isAppsflyerEnabled) {
       await addAppsflyer(
         infoPlist,
         imageNotificationPlist,
@@ -725,7 +830,10 @@ async function main() {
     }
 
     // For moengage analytics
-    if (apptileConfig.feature_flags?.ENABLE_MOENGAGE) {
+    const isMoengageEnabled = apptileConfig.feature_flags?.ENABLE_MOENGAGE;
+    logFeature('MoEngage', isMoengageEnabled);
+
+    if (isMoengageEnabled) {
       await addMoengage(
         infoPlist,
         imageNotificationPlist,
@@ -745,7 +853,10 @@ async function main() {
     }
 
     // Onesignal notifications
-    if (apptileConfig.feature_flags?.ENABLE_ONESIGNAL) {
+    const isOneSignalEnabled = apptileConfig.feature_flags?.ENABLE_ONESIGNAL;
+    logFeature('OneSignal', isOneSignalEnabled);
+
+    if (isOneSignalEnabled) {
       await addOnesignal(
         infoPlist,
         imageNotificationPlist,
@@ -765,7 +876,10 @@ async function main() {
     }
 
     // For klaviyo notifications
-    if (apptileConfig.feature_flags?.ENABLE_KLAVIYO) {
+    const isKlaviyoEnabled = apptileConfig.feature_flags?.ENABLE_KLAVIYO;
+    logFeature('Klaviyo', isKlaviyoEnabled);
+    
+    if (isKlaviyoEnabled) {
       await addKlaviyo(
         infoPlist,
         imageNotificationPlist,
@@ -798,7 +912,9 @@ async function main() {
     }
 
     // For zego live streaming
-    if (apptileConfig.feature_flags?.ENABLE_LIVELY) {
+    const isLivelyEnabled = apptileConfig.feature_flags?.ENABLE_LIVELY;
+    logFeature('Lively', isLivelyEnabled);
+    if (isLivelyEnabled) {
       await addZego(
         infoPlist,
         imageNotificationPlist,
@@ -818,7 +934,10 @@ async function main() {
     }
 
     // For LogRocket
-    if (apptileConfig.feature_flags?.ENABLE_LOGROCKET) {
+    const isLogRocketEnabled = apptileConfig.feature_flags?.ENABLE_LOGROCKET;
+    logFeature('LogRocket', isLogRocketEnabled);
+
+    if (isLogRocketEnabled) {
       await addLogrocket(
         infoPlist,
         imageNotificationPlist,
@@ -838,53 +957,54 @@ async function main() {
     }
 
     // For Segment Analytics
-    if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
+    const isSegmentEnabled = apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS;
+    logFeature('Segment', isSegmentEnabled);
+    const SEGMENT_LOG_PREFIX = '[Segment][iOS]';
+
+    if (isSegmentEnabled) {
+      console.log(`${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`);
       const segmentKey =
         apptileConfig.apptile_analytics_segment_key ||
         process.env.apptile_analytics_segment_key;
       if (!segmentKey) {
-        console.error(
-          chalk.red(
-            'ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing',
-          ),
+        console.log(chalk.red(`${SEGMENT_LOG_PREFIX} Segment is enabled but its key is missing`));
+        throw new Error(
+          'apptile_analytics_segment_key is not found in apptileConfig',
         );
         throw new Error('apptile_analytics_segment_key is missing');
       }
+      console.log(`${SEGMENT_LOG_PREFIX} Adding Segment key to Info.plist`);
       infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
+      console.log(`${SEGMENT_LOG_PREFIX} Segment Analytics integration complete`);
     } else {
       delete infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY;
     }
 
     // For App Tracking Transparency
-    if (
-      apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY ||
-      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS ||
-      apptileConfig.feature_flags?.ENABLE_FBSDK
-    ) {
-      console.log('Enabling App Tracking Transparency');
+    const isAppTrackingTransparencyEnabled = apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY;
+    const isFirebaseAnalytics = apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+
+    if (isAppTrackingTransparencyEnabled || isFirebaseAnalytics || isFacebookEnabled) {
+      logFeature('App Tracking Transparency', true);
       await addAppTrackingTransparency(infoPlist, apptileConfig);
     } else {
       await removeAppTrackingTransparency(infoPlist);
     }
 
     // For iPad Support
-    if (apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT) {
-      await addIpadSupport(infoPlist);
+    const isIpadSupportEnabled = apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT;
+    logFeature('iPad Support', isIpadSupportEnabled);
+
+    if (isIpadSupportEnabled) {
+      await addIpadSupport(infoPlist)
     } else {
       await removeIpadSupport(infoPlist);
     }
 
     // Intent Filters handled via #if INTENT_FILTERS preprocessor directive in AppDelegate.mm
     // The INTENT_FILTERS flag is automatically set in GCC_PREPROCESSOR_DEFINITIONS via Podfile
-    if (apptileConfig.feature_flags?.INTENT_FILTERS) {
-      console.log(
-        'Intent Filters enabled (only /, /products/, /collections/ open in app)',
-      );
-    } else {
-      console.log(
-        'Intent Filters disabled (all URLs open in app, account.* still excluded)',
-      );
-    }
+    const useIntentFilters = apptileConfig.feature_flags?.INTENT_FILTERS;
+    logFeature('Intent Filters (only /, /products/, /collections/ open in app)', useIntentFilters);
 
     const updatedPlist = plist.build(infoPlist);
     await writeFile(infoPlistLocation, updatedPlist);
