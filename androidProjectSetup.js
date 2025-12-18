@@ -375,7 +375,7 @@ function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false) {
 
   console.log(
     chalk.green(
-      '✅ HTTP deep links configured (account.* subdomain excluded for Google login)',
+      'HTTP deep links configured (account.* subdomain excluded for Google login)',
     ),
   );
 }
@@ -1184,8 +1184,15 @@ async function main() {
         segment_analyticsKey,
       );
     } else {
-      removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
+      console.error(
+        chalk.red(
+          'ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing',
+        ),
+      );
+      throw new Error('apptile_analytics_segment_key is missing');
     }
+  } else {
+    removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
   }
   const strObj = JSON.parse(JSON.stringify(stringsObj));
 
