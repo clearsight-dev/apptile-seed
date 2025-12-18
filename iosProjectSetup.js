@@ -479,7 +479,9 @@ async function addZego(
     'Microphone for Live Streaming';
 
   // Add ENABLE_LIVELY_PIP to Info.plist when PIP is enabled
-  if (apptileConfig.feature_flags?.ENABLE_LIVELY_PIP) {
+  const enableLivelyPIP = apptileConfig.feature_flags?.ENABLE_LIVELY_PIP;
+  logFeature('LivelyPIP', enableLivelyPIP);
+  if (enableLivelyPIP) {
     infoPlist.ENABLE_LIVELY_PIP = 'true';
     // Add UIBackgroundModes for audio to support PIP
     infoPlist.UIBackgroundModes = ['audio'];
