@@ -9,7 +9,7 @@
     "build-ios": "react-native build-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "postinstall": "patch-package && node scripts/ios/patch-datetimepicker.js"
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@apollo/client": "3.10.7",
