@@ -375,7 +375,7 @@ function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false) {
 
   console.log(
     chalk.green(
-      '✅ HTTP deep links configured (account.* subdomain excluded for Google login)',
+      'HTTP deep links configured (account.* subdomain excluded for Google login)',
     ),
   );
 }
@@ -730,6 +730,35 @@ async function removeOnesignal(
   removeFromStringsXML(stringsObj, 'ONESIGNAL_APPID');
   await addForceUnlinkForNativePackage(
     'react-native-onesignal',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
+async function addLogrocket(
+  androidManifest,
+  stringsObj,
+  apptileConfig,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // LogRocket is initialized in JS (App.tsx), no native config needed
+  await removeForceUnlinkForNativePackage(
+    '@logrocket/react-native',
+    extraModules,
+    parsedReactNativeConfig,
+  );
+}
+
+async function removeLogrocket(
+  androidManifest,
+  stringsObj,
+  extraModules,
+  parsedReactNativeConfig,
+) {
+  // LogRocket is initialized in JS (App.tsx), no native config needed
+  await addForceUnlinkForNativePackage(
+    '@logrocket/react-native',
     extraModules,
     parsedReactNativeConfig,
   );
@@ -1123,6 +1152,23 @@ async function main() {
     );
   }
 
+  if (apptileConfig.feature_flags?.ENABLE_LOGROCKET) {
+    await addLogrocket(
+      androidManifest,
+      stringsObj,
+      apptileConfig,
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  } else {
+    await removeLogrocket(
+      androidManifest,
+      stringsObj,
+      extraModules,
+      parsedReactNativeConfig,
+    );
+  }
+
   if (apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS) {
     // Handle Segment Analytics key for strings.xml
     if (
@@ -1138,8 +1184,15 @@ async function main() {
         segment_analyticsKey,
       );
     } else {
-      removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
+      console.error(
+        chalk.red(
+          'ENABLE_SEGMENT_ANALYTICS is true but apptile_analytics_segment_key is missing',
+        ),
+      );
+      throw new Error('apptile_analytics_segment_key is missing');
     }
+  } else {
+    removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
   }
   const strObj = JSON.parse(JSON.stringify(stringsObj));
 

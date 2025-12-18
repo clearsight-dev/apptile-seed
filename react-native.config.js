@@ -65,6 +65,12 @@ module.exports = {
         "android": null,
         "ios": null
       }
+    },
+    "@logrocket/react-native": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
     }
   }
 }

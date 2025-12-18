@@ -8,6 +8,7 @@ import {
   ApptileAppRoot,
   useStartApptile,
 } from 'apptile-core';
+import LogRocket from '@logrocket/react-native';
 
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
@@ -30,14 +31,17 @@ function App(): React.JSX.Element {
   const status = useStartApptile(initAnalytics, true);
 
   const splashPath = apptileConfig?.ios?.splash_path;
-  const isGifSplash = Platform.OS === 'ios' && splashPath?.toLowerCase().endsWith('.gif');
+  const isGifSplash =
+    Platform.OS === 'ios' && splashPath?.toLowerCase().endsWith('.gif');
 
   const [showSplash, setShowSplash] = useState(isGifSplash);
 
-  const gifSplashDuration = apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
-  const splashDuration = typeof gifSplashDuration === 'number' && gifSplashDuration > 0
-    ? gifSplashDuration * 1000
-    : 1000;
+  const gifSplashDuration =
+    apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
+  const splashDuration =
+    typeof gifSplashDuration === 'number' && gifSplashDuration > 0
+      ? gifSplashDuration * 1000
+      : 1000;
 
   const getSplashSource = () => {
     try {
@@ -49,6 +53,32 @@ function App(): React.JSX.Element {
   };
 
   const splashSource = getSplashSource();
+
+  useEffect(() => {
+    if (apptileConfig?.feature_flags?.ENABLE_LOGROCKET) {
+      LogRocket.init(
+        apptileConfig?.integrations?.logrocket?.id ||
+          '97heiy/mobile-apps-ur1xt',
+        {
+          network: {
+            requestSanitizer: request => {
+              if (request?.headers['x-auth-token']) {
+                request.headers['x-auth-token'] = '';
+              }
+              return request;
+            },
+          },
+          console: {
+            isEnabled: {
+              warn: false,
+            },
+            shouldAggregateConsoleErrors: true,
+          },
+          redactionTags: ['RedactionString'],
+        },
+      );
+    }
+  }, []);
 
   useEffect(() => {
     RNApptile.notifyJSReady();
