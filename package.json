@@ -25,7 +25,7 @@
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/datetimepicker": "^8.5.1",
     "@react-native-community/push-notification-ios": "^1.11.0",
-    "@react-native-community/slider": "^5.0.1",
+    "@react-native-community/slider": "4.5.6",
     "@react-native-firebase/analytics": "23.5.0",
     "@react-native-firebase/app": "23.5.0",
     "@react-native-firebase/messaging": "23.5.0",
