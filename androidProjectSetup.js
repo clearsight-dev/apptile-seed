@@ -790,6 +790,7 @@ async function addLogrocket(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  const LOG_PREFIX = '[LogRocket][Android]';
   // LogRocket is initialized in JS (App.tsx), no native config needed
   await removeForceUnlinkForNativePackage(
     '@logrocket/react-native',
