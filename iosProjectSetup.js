@@ -101,11 +101,17 @@ async function removeCleverTap(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  infoPlist.CleverTapAccountID = 'xxx';
-  infoPlist.CleverTapToken = 'xxx';
-  infoPlist.CleverTapRegion = 'xxx';
+  if (infoPlist.CleverTapAccountID) {
+    delete infoPlist.CleverTapAccountID;
+  }
+  if (infoPlist.CleverTapToken) {
+    delete infoPlist.CleverTapToken;
+  }
+  if (infoPlist.CleverTapRegion) {
+    delete infoPlist.CleverTapRegion;
+  }
   if (
-    imageNotificationPlist.NSExtension.NSExtensionPrincipalClass ===
+    imageNotificationPlist.NSExtension?.NSExtensionPrincipalClass ===
     'CTNotificationServiceExtension'
   ) {
     imageNotificationPlist.NSExtension.NSExtensionPrincipalClass =
@@ -172,18 +178,30 @@ async function removeMoengage(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  infoPlist.MOENGAGE_APPID = 'xxx';
-  infoPlist.MOENGAGE_DATACENTER = 'xxx';
-  infoPlist.MoEngageAppDelegateProxyEnabled = 'xxx';
-  infoPlist.MoEngage = 'xxx';
-  delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
-    .UNNotificationExtensionCategory;
-  delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
-    .UNNotificationExtensionInitialContentSizeRatio;
-  delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
-    .UNNotificationExtensionUserInteractionEnabled;
-  delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
-    .UNNotificationExtensionDefaultContentHidden;
+  if (infoPlist.MOENGAGE_APPID) {
+    delete infoPlist.MOENGAGE_APPID;
+  }
+  if (infoPlist.MOENGAGE_DATACENTER) {
+    delete infoPlist.MOENGAGE_DATACENTER;
+  }
+  if (infoPlist.MoEngageAppDelegateProxyEnabled) {
+    delete infoPlist.MoEngageAppDelegateProxyEnabled;
+  }
+  if (infoPlist.MoEngage) {
+    delete infoPlist.MoEngage;
+  }
+  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionCategory) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionCategory;
+  }
+  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionInitialContentSizeRatio) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionInitialContentSizeRatio;
+  }
+  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionUserInteractionEnabled) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionUserInteractionEnabled;
+  }
+  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionDefaultContentHidden) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionDefaultContentHidden;
+  }
 
   await addForceUnlinkForNativePackage(
     'react-native-moengage',
@@ -237,8 +255,12 @@ async function removeKlaviyo(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  infoPlist.klaviyo_company_id = 'xxx';
-  imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE = 'Apptile';
+  if (infoPlist.klaviyo_company_id) {
+    delete infoPlist.klaviyo_company_id;
+  }
+  if (imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE) {
+    delete imageNotificationPlist.APPTILE_DEFAULT_NOTIFICATION_TITLE;
+  }
   await addForceUnlinkForNativePackage(
     'klaviyo-react-native-sdk',
     extraModules,
@@ -286,8 +308,12 @@ async function removeAppsflyer(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  infoPlist.APPSFLYER_DEVKEY = 'xxx';
-  infoPlist.APPSFLYER_APPID = 'xxx';
+  if (infoPlist.APPSFLYER_DEVKEY) {
+    delete infoPlist.APPSFLYER_DEVKEY;
+  }
+  if (infoPlist.APPSFLYER_APPID) {
+    delete infoPlist.APPSFLYER_APPID;
+  }
 
   await addForceUnlinkForNativePackage(
     'react-native-appsflyer',
@@ -339,11 +365,21 @@ async function removeFacebook(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  infoPlist.FacebookAppID = 'xxx';
-  infoPlist.FacebookClientToken = 'xxx';
-  infoPlist.FacebookDisplayName = 'xxx';
-  infoPlist.FacebookAutoLogAppEventsEnabled = 'xxx';
-  infoPlist.FacebookAdvertiserIDCollectionEnabled = 'xxx';
+  if (infoPlist.FacebookAppID) {
+    delete infoPlist.FacebookAppID;
+  }
+  if (infoPlist.FacebookClientToken) {
+    delete infoPlist.FacebookClientToken;
+  }
+  if (infoPlist.FacebookDisplayName) {
+    delete infoPlist.FacebookDisplayName;
+  }
+  if (infoPlist.FacebookAutoLogAppEventsEnabled) {
+    delete infoPlist.FacebookAutoLogAppEventsEnabled;
+  }
+  if (infoPlist.FacebookAdvertiserIDCollectionEnabled) {
+    delete infoPlist.FacebookAdvertiserIDCollectionEnabled;
+  }
   addForceUnlinkForNativePackage(
     'react-native-fbsdk-next',
     extraModules,
@@ -387,7 +423,9 @@ async function removeOnesignal(
   extraModules,
   parsedReactNativeConfig,
 ) {
-  infoPlist.ONESIGNAL_APPID = 'xxx';
+  if (infoPlist.ONESIGNAL_APPID) {
+    delete infoPlist.ONESIGNAL_APPID;
+  }
   addForceUnlinkForNativePackage(
     'react-native-onesignal',
     extraModules,
