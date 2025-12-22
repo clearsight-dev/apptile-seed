@@ -1413,6 +1413,23 @@ async function main() {
       apptileConfig.android?.bundle_id;
     await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
+
+  // Download Android signing keystore
+  const LOG_PREFIX_SIGNING = '[Signing][Android]';
+  const keystorePath = path.resolve(__dirname, 'android', 'app', 'release.keystore');
+  for (let i = 0; i < apptileConfig.assets.length; ++i) {
+    try {
+      const asset = apptileConfig.assets[i];
+      if (asset.assetClass === 'androidStoreFile') {
+        console.log(`${LOG_PREFIX_SIGNING} Downloading keystore file...`);
+        await downloadFile(asset.url, keystorePath);
+        console.log(chalk.green(`${LOG_PREFIX_SIGNING} Keystore downloaded to ${keystorePath}`));
+        break;
+      }
+    } catch (err) {
+      console.error(chalk.red(`${LOG_PREFIX_SIGNING} Failed to download keystore: ${err.message}`));
+    }
+  }
 }
 
 main();

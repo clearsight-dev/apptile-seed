@@ -94,6 +94,11 @@ def enable_moengage = false
 def enable_clevertap = false
 def enable_klaviyo = false
 
+def signingKeyAlias = null
+def signingStorePassword = null
+def signingKeyPassword = null
+def signingStoreFile = null
+
 if (configFile.exists()) {
     def json = new JsonSlurper().parseText(configFile.text)
     if (json.android && json.android.bundle_id) {
@@ -125,6 +130,36 @@ if (configFile.exists()) {
     if (json.feature_flags.ENABLE_KLAVIYO) {
         enable_klaviyo = json.feature_flags.ENABLE_KLAVIYO
     }
+
+    if (json.secrets) {
+        json.secrets.each { secret ->
+            switch (secret.secretClass) {
+                case 'keyAlias':
+                    signingKeyAlias = secret.secret
+                    break
+                case 'storePassword':
+                    signingStorePassword = secret.secret
+                    break
+                case 'keyPassword':
+                    signingKeyPassword = secret.secret
+                    break
+            }
+        }
+    }
+
+    // Check if release.keystore exists (downloaded by androidProjectSetup.js)
+    def releaseKeystoreFile = file("release.keystore")
+    if (releaseKeystoreFile.exists()) {
+        signingStoreFile = releaseKeystoreFile
+        println "[Signing] Found release.keystore"
+    }
+
+    if (signingKeyAlias && signingStorePassword && signingKeyPassword && signingStoreFile) {
+        println "[Signing] Release signing config loaded from apptile.config.json"
+        println "[Signing] Key alias: ${signingKeyAlias}"
+    } else {
+        println "[Signing] Release signing not configured - using debug keystore"
+    }
 }
 
 android {
@@ -146,18 +181,24 @@ android {
         missingDimensionStrategy 'react-native-camera', 'general'
     }
 
-      signingConfigs {
+    signingConfigs {
         debug {
-            String appUploadStoreFile = project.hasProperty('SIGNING_STORE_FILE') ? project.property('SIGNING_STORE_FILE') : 'debug.keystore'
-            if (appUploadStoreFile) {
-                storeFile file(appUploadStoreFile)
-                storePassword project.hasProperty('SIGNING_STORE_PASSWORD') ? project.property('SIGNING_STORE_PASSWORD') : 'android'
-                keyAlias project.hasProperty('SIGNING_KEY_ALIAS') ? project.property('SIGNING_KEY_ALIAS') : 'androiddebugkey'
-                keyPassword project.hasProperty('SIGNING_KEY_PASSWORD') ? project.property('SIGNING_KEY_PASSWORD') : 'android'
-                println "Using signing config: ${appUploadStoreFile}"
-                println "Store password: ${project.hasProperty('SIGNING_STORE_PASSWORD') ? project.property('SIGNING_STORE_PASSWORD') : 'android'}"
-                println "Key alias: ${project.hasProperty('SIGNING_KEY_ALIAS') ? project.property('SIGNING_KEY_ALIAS') : 'androiddebugkey'}"
-                println "Key password: ${project.hasProperty('SIGNING_KEY_PASSWORD') ? project.property('SIGNING_KEY_PASSWORD') : 'android'}"
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            if (signingStoreFile != null && signingKeyAlias != null && signingStorePassword != null && signingKeyPassword != null) {
+                storeFile signingStoreFile
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            } else {
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
             }
         }
     }
@@ -166,9 +207,7 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
