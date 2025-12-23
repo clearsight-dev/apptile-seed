@@ -500,7 +500,7 @@ async function updateTargetedDeviceFamily(enableIpad) {
 
   // Get all build configurations and update TARGETED_DEVICE_FAMILY
   const buildConfigs = project.pbxXCBuildConfigurationSection();
-  console.log(buildConfigs, 'buildConfigs');
+
   for (const configKey in buildConfigs) {
     const config = buildConfigs[configKey];
     if (config.buildSettings && config.buildSettings.TARGETED_DEVICE_FAMILY) {
