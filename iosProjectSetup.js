@@ -12,9 +12,9 @@
 // of the project. This is what used to happen in the /temp folder strategy and that strategy is painful enough to discourage
 // most developers from even running projects with all features specific to the app enabled.
 
-// const xcode = require('xcode');
+const xcode = require('xcode');
 const plist = require('plist');
-// const fs = require('fs');
+const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const axios = require('axios');
@@ -476,7 +476,45 @@ async function removeAppTrackingTransparency(infoPlist) {
   delete infoPlist.NSUserTrackingUsageDescription;
 }
 
+async function updateTargetedDeviceFamily(enableIpad) {
+  const LOG_PREFIX = '[iPad Support][iOS]';
+  const pbxprojPath = path.resolve(
+    __dirname,
+    'ios',
+    'apptileSeed.xcodeproj',
+    'project.pbxproj',
+  );
+
+  // TARGETED_DEVICE_FAMILY: 1 = iPhone only, 2 = iPad only, "1,2" = Universal
+  const targetValue = enableIpad ? '"1,2"' : '"1"';
+
+  const project = xcode.project(pbxprojPath);
+
+  // Parse the project file synchronously
+  await new Promise((resolve, reject) => {
+    project.parse((err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+
+  // Get all build configurations and update TARGETED_DEVICE_FAMILY
+  const buildConfigs = project.pbxXCBuildConfigurationSection();
+  console.log(buildConfigs, 'buildConfigs');
+  for (const configKey in buildConfigs) {
+    const config = buildConfigs[configKey];
+    if (config.buildSettings && config.buildSettings.TARGETED_DEVICE_FAMILY) {
+      config.buildSettings.TARGETED_DEVICE_FAMILY = targetValue;
+    }
+  }
+
+  // Write the updated project file
+  fs.writeFileSync(pbxprojPath, project.writeSync());
+  console.log(`${LOG_PREFIX} Set TARGETED_DEVICE_FAMILY = ${targetValue}`);
+}
+
 async function addIpadSupport(infoPlist) {
+  const LOG_PREFIX = '[iPad Support][iOS]';
   // Set orientations for iPhone (portrait only by default)
   infoPlist.UISupportedInterfaceOrientations = [
     'UIInterfaceOrientationPortrait',
@@ -489,9 +527,14 @@ async function addIpadSupport(infoPlist) {
     'UIInterfaceOrientationLandscapeLeft',
     'UIInterfaceOrientationLandscapeRight',
   ];
+
+  // Update TARGETED_DEVICE_FAMILY in project.pbxproj to "1,2"
+  await updateTargetedDeviceFamily(true);
+  console.log(`${LOG_PREFIX} Enabled iPad support`);
 }
 
 async function removeIpadSupport(infoPlist) {
+  const LOG_PREFIX = '[iPad Support][iOS]';
   // Keep only portrait for iPhone
   infoPlist.UISupportedInterfaceOrientations = [
     'UIInterfaceOrientationPortrait',
@@ -499,6 +542,10 @@ async function removeIpadSupport(infoPlist) {
 
   // Remove iPad-specific orientations
   delete infoPlist['UISupportedInterfaceOrientations~ipad'];
+
+  // Update TARGETED_DEVICE_FAMILY in project.pbxproj to "1"
+  await updateTargetedDeviceFamily(false);
+  console.log(`${LOG_PREFIX} Disabled iPad support`);
 }
 
 async function addZego(
