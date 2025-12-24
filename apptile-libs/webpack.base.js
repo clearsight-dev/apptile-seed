@@ -82,7 +82,11 @@ function constructExternals(extra = []) {
     "asset_auction-gavel",
     "asset_auction-stars",
     "asset_gold-flare",
+    "asset_apptile-icon",
     "tslib",
+    "@react-native-community/datetimepicker",
+    "react-native-image-picker",
+    "@react-native-community/slider",
     ...extra,
   ];
 
