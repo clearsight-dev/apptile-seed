@@ -2,7 +2,8 @@
 import { NativeModules, NativeEventEmitter } from 'react-native';
 import * as zego from '../ZegoExpressDefines';
 const { ZegoExpressNativeModule } = NativeModules;
-const Prefix = ZegoExpressNativeModule.prefix;
+import { Platform } from 'react-native';
+const Prefix = Platform.OS == 'ios' ? ZegoExpressNativeModule.prefix : '';
 const ZegoEvent = new NativeEventEmitter(ZegoExpressNativeModule);
 let engine;
 export class ZegoExpressEngineImpl {
