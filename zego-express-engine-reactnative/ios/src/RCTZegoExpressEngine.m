@@ -28,6 +28,8 @@ AVPictureInPictureSampleBufferPlaybackDelegate
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoMediaPlayer *> *mediaPlayerMap;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, ZegoAudioEffectPlayer *>* audioEffectPlayerMap;
 @property (nonatomic, strong) AVPictureInPictureController *pipViewController;
+@property (nonatomic, assign) BOOL isPipRestoring;
+@property (nonatomic, assign) BOOL isPipStopping;
 
 @end
 
@@ -482,7 +484,7 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
         [self transactDisplayLayer:self.previewLayer to:uiView.bounds];
       }
       [uiView.layer insertSublayer:self.previewLayer above:0];
-     [self setupPipViewController];
+    //   [self setupPipViewController];
     }
     [[ZegoExpressEngine sharedEngine] startPreview:nil];
 //    [[ZegoExpressEngine sharedEngine] startPreview:canvas channel: (ZegoPublishChannel)channel];
@@ -493,11 +495,34 @@ RCT_EXPORT_METHOD(startPreview:(NSDictionary *)view
 - (void)setupPipViewController
 {
     if (@available(iOS 15.0, *)) {
+        // Skip setup if we're in the middle of restoring or stopping PiP
+        if (self.isPipRestoring || self.isPipStopping) {
+            NSLog(@"[PIP] setupController: SKIP (restoring=%d, stopping=%d)", self.isPipRestoring, self.isPipStopping);
+            return;
+        }
+
+        // Skip setup if PiP controller already exists and is active or has valid content
+        if (self.pipViewController) {
+            if (self.pipViewController.isPictureInPictureActive) {
+                NSLog(@"[PIP] setupController: SKIP (already active)");
+                return;
+            }
+            NSLog(@"[PIP] setupController: SKIP (controller exists)");
+            return;
+        }
+
+        // Only create PiP controller if we have a valid preview layer
+        if (!self.previewLayer) {
+            NSLog(@"[PIP] setupController: SKIP (no preview layer)");
+            return;
+        }
+
         AVPictureInPictureControllerContentSource *contentSource = [[AVPictureInPictureControllerContentSource alloc] initWithSampleBufferDisplayLayer:self.previewLayer playbackDelegate:self];
 
         self.pipViewController = [[AVPictureInPictureController alloc] initWithContentSource:contentSource];
         self.pipViewController.delegate = self;
         self.pipViewController.canStartPictureInPictureAutomaticallyFromInline = YES;
+        NSLog(@"[PIP] setupController: OK (created)");
     }
 }
 
@@ -506,15 +531,24 @@ RCT_EXPORT_METHOD(startPip:(int)ignored
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
      if (@available(iOS 15.0, *)) {
-         if (self.pipViewController){
+         // Prevent starting PiP while it's restoring or stopping
+         if (self.isPipRestoring || self.isPipStopping) {
+             NSLog(@"[PIP] startPip: BLOCKED (restoring=%d, stopping=%d)", self.isPipRestoring, self.isPipStopping);
+             resolve(nil);
+             return;
+         }
 
+         if (self.pipViewController){
              if (self.pipViewController.isPictureInPictureActive) {
+                 NSLog(@"[PIP] startPip: stopping (was active)");
                  [self.pipViewController stopPictureInPicture];
              } else {
+                 NSLog(@"[PIP] startPip: starting");
                  [self.pipViewController startPictureInPicture];
              }
            resolve(nil);
          } else {
+           NSLog(@"[PIP] startPip: SKIP (no controller)");
            resolve(nil);
          }
      } else {
@@ -528,14 +562,17 @@ RCT_EXPORT_METHOD(cleanupPip:(int)ignored
 {
      if (@available(iOS 15.0, *)) {
          if (self.pipViewController){
+            NSLog(@"[PIP] cleanup: stopping and destroying controller");
             [self.pipViewController stopPictureInPicture];
-           resolve(nil);
+            self.pipViewController = nil;
          } else {
-           resolve(nil);
+            NSLog(@"[PIP] cleanup: SKIP (no controller)");
          }
-     } else {
-       resolve(nil);
+         // Always clear flags on cleanup
+         self.isPipStopping = NO;
+         self.isPipRestoring = NO;
      }
+     resolve(nil);
 }
 
 RCT_EXPORT_METHOD(stopPreview:(int)channel
@@ -922,17 +959,13 @@ RCT_EXPORT_METHOD(startPlayingStream:(NSString *)streamID
         UIView *uiView = [self.bridge.uiManager viewForReactTag:viewTag];
         self.previewView = uiView;
 
-        // canvas = [[ZegoCanvas alloc] initWithView:uiView];
-        // canvas.viewMode = (ZegoViewMode)[RCTConvert int:view[@"viewMode"]];
-        // canvas.backgroundColor = [RCTConvert int:view[@"backgroundColor"]];
-
-        // if (view[@"alphaBlend"] && [RCTConvert BOOL:view[@"alphaBlend"]]) {
-        //     [uiView setBackgroundColor:UIColor.clearColor];
-        //     canvas.alphaBlend = [RCTConvert BOOL:view[@"alphaBlend"]];
-        // }
         if (!self.previewLayer) {
+          NSLog(@"[PIP] startPlayingStream: creating new previewLayer");
           self.previewLayer = [self createAVSampleBufferDisplayLayer:uiView.bounds];
         } else {
+          NSLog(@"[PIP] startPlayingStream: reusing existing previewLayer");
+          // Remove from current superlayer before re-adding to avoid duplicates/ghosts
+          [self.previewLayer removeFromSuperlayer];
           [self transactDisplayLayer:self.previewLayer to:uiView.bounds];
         }
         [uiView.layer insertSublayer:self.previewLayer above:0];
@@ -950,13 +983,37 @@ RCT_EXPORT_METHOD(stopPlayingStream:(NSString *)streamID
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    ZGLog(@"stopPlayingStream: stream id: %@", streamID);
-    
+    // If PiP is active or transitioning, don't stop the stream - let PiP continue
+    if (@available(iOS 15.0, *)) {
+        BOOL isPipActive = self.pipViewController && self.pipViewController.isPictureInPictureActive;
+        BOOL isPipTransitioning = self.isPipStopping || self.isPipRestoring;
+        if (isPipActive || isPipTransitioning) {
+            NSLog(@"[PIP] stopPlayingStream: SKIP (active=%d, stopping=%d, restoring=%d)",
+                  isPipActive, self.isPipStopping, self.isPipRestoring);
+            resolve(nil);
+            return;
+        }
+    }
+
+    NSLog(@"[PIP] stopPlayingStream: %@", streamID);
+
     [[ZegoExpressEngine sharedEngine] stopPlayingStream:streamID];
-    self.previewView = NULL;
-    self.pipViewController = NULL;
-    self.previewLayer = NULL;
-    
+
+    // Properly cleanup layers to avoid ghosts
+    if (self.previewLayer) {
+        [self.previewLayer removeFromSuperlayer];
+        self.previewLayer = nil;
+    }
+    if (self.pipViewController) {
+        [self.pipViewController stopPictureInPicture];
+        self.pipViewController = nil;
+    }
+    self.previewView = nil;
+
+    // Clear flags since we're fully stopping
+    self.isPipStopping = NO;
+    self.isPipRestoring = NO;
+
     resolve(nil);
 }
 
@@ -3259,63 +3316,86 @@ RCT_EXPORT_METHOD(setElectronicEffects:(BOOL)enable
 
 #pragma mark - AVPictureInPictureControllerDelegate
 - (void)pictureInPictureControllerWillStartPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
-    NSLog(@"pip WillStart");
+    NSLog(@"[PIP] >>> willStart");
+    self.isPipRestoring = NO;
+    self.isPipStopping = NO;
     [self enableMultiTaskForZegoSDK:true];
 }
 
 - (void)pictureInPictureControllerDidStartPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
-    NSLog(@"pip DidStart");
+    NSLog(@"[PIP] >>> didStart ✓");
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
 failedToStartPictureInPictureWithError:(NSError *)error {
-    NSLog(@"pip failed: %@", error);
+    NSLog(@"[PIP] >>> FAILED: %@", error);
+    self.isPipRestoring = NO;
+    self.isPipStopping = NO;
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
 restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void (^)(BOOL))completionHandler {
+    NSLog(@"[PIP] >>> restore (user tapped to return)");
+    self.isPipRestoring = YES;
+    self.isPipStopping = YES;
     [self sendEventWithName:RN_EVENT(@"onPipModeRestore")
                         body:@{@"data":@[]}];
-    NSLog(@"pip restore");
     completionHandler(true);
 }
 
 - (void)pictureInPictureControllerWillStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
-    NSLog(@"pip WillStop");
+    NSLog(@"[PIP] >>> willStop");
+    self.isPipStopping = YES;
     [self enableMultiTaskForZegoSDK:false];
 }
 
 - (void)pictureInPictureControllerDidStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
+    NSLog(@"[PIP] >>> didStop ✓");
+
+    // Reattach the preview layer to the main view if available
+    if (self.previewLayer && self.previewView) {
+        NSLog(@"[PIP] didStop: reattaching previewLayer to main view");
+        [self.previewLayer removeFromSuperlayer];
+        [self transactDisplayLayer:self.previewLayer to:self.previewView.bounds];
+        [self.previewView.layer insertSublayer:self.previewLayer above:0];
+    }
+
     [self sendEventWithName:RN_EVENT(@"onPipModeExit")
                         body:@{@"data":@[]}];
-    NSLog(@"pip DidStop");
+
+    // Clear the flags after a short delay to allow UI to settle
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.isPipRestoring = NO;
+        self.isPipStopping = NO;
+        NSLog(@"[PIP] flags cleared (ready for new PiP)");
+    });
 }
 
 
 #pragma mark - AVPictureInPictureSampleBufferPlaybackDelegate
 - (BOOL)pictureInPictureControllerIsPlaybackPaused:(nonnull AVPictureInPictureController *)pictureInPictureController {
-    NSLog(@"pip IsPlaybackPaused");
+    // Called frequently - omit log to reduce noise
     return NO;
 }
 
 - (CMTimeRange)pictureInPictureControllerTimeRangeForPlayback:(AVPictureInPictureController *)pictureInPictureController {
-    NSLog(@"pip TimeRangeForPlayback");
-    return  CMTimeRangeMake(kCMTimeZero, kCMTimePositiveInfinity); // for live streaming
+    // Called frequently - omit log to reduce noise
+    return CMTimeRangeMake(kCMTimeZero, kCMTimePositiveInfinity); // for live streaming
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
          didTransitionToRenderSize:(CMVideoDimensions)newRenderSize {
-    NSLog(@"pip didTransitionToRenderSize");
+    NSLog(@"[PIP] renderSize: %dx%d", newRenderSize.width, newRenderSize.height);
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController setPlaying:(BOOL)playing {
-    NSLog(@"pip setPlaying");
+    NSLog(@"[PIP] setPlaying: %d", playing);
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
                     skipByInterval:(CMTime)skipInterval
                  completionHandler:(void (^)(void))completionHandler {
-    NSLog(@"pip skipByInterval");
+    NSLog(@"[PIP] skipByInterval");
 }
 
 @end
