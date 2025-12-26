@@ -5,9 +5,12 @@ rootProject.name = 'apptileSeed'
 
 // Run androidProjectSetup.js BEFORE autolinking reads react-native.config.js
 // This must happen in settings.gradle because this is where modules are included
+// NOTE: On CodeBuild (androidProjectSetupSkip), we skip this and run the script explicitly in buildspec.yml
+// to avoid timing/race condition issues with file writes
 def nodeBinary = System.getenv("NODE_BINARY") ?: "node"
+def androidProjectSetupSkip = System.getenv("androidProjectSetupSkip") == "true"
 def setupScript = new File(rootDir.parentFile, "androidProjectSetup.js")
-if (setupScript.exists()) {
+if (!androidProjectSetupSkip && setupScript.exists()) {
     println ":ReactNative: Running androidProjectSetup.js before autolinking (settings.gradle)..."
     def setupProcess = [nodeBinary, setupScript.absolutePath].execute(null, rootDir.parentFile)
     setupProcess.waitForProcessOutput(System.out, System.err)
@@ -16,6 +19,8 @@ if (setupScript.exists()) {
         throw new GradleException("androidProjectSetup.js failed with exit code ${exitCode}")
     }
     println ":ReactNative: androidProjectSetup.js completed successfully"
+} else if (androidProjectSetupSkip) {
+    println ":ReactNative: androidProjectSetupSkip environment detected - androidProjectSetup.js make sure it's executed elsewhere"
 }
 
 include ':app'
