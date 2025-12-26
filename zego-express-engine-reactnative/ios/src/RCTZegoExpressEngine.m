@@ -538,17 +538,40 @@ RCT_EXPORT_METHOD(startPip:(int)ignored
              return;
          }
 
+         BOOL needsDelay = NO;
+         if (!self.pipViewController) {
+             NSLog(@"[PIP] startPip: no controller, attempting setup");
+             [self setupPipViewController];
+             needsDelay = YES; // Controller just created, needs time to become ready
+         }
+
          if (self.pipViewController){
              if (self.pipViewController.isPictureInPictureActive) {
                  NSLog(@"[PIP] startPip: stopping (was active)");
                  [self.pipViewController stopPictureInPicture];
+                 resolve(nil);
              } else {
-                 NSLog(@"[PIP] startPip: starting");
-                 [self.pipViewController startPictureInPicture];
+                 NSLog(@"[PIP] startPip: isPossible=%d, needsDelay=%d",
+                       self.pipViewController.isPictureInPicturePossible, needsDelay);
+
+                 if (needsDelay || !self.pipViewController.isPictureInPicturePossible) {
+                     // Delay start to allow controller to become ready
+                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                         if (self.pipViewController && self.pipViewController.isPictureInPicturePossible) {
+                             NSLog(@"[PIP] startPip: starting (after delay)");
+                             [self.pipViewController startPictureInPicture];
+                         } else {
+                             NSLog(@"[PIP] startPip: FAILED (still not possible after delay)");
+                         }
+                     });
+                 } else {
+                     NSLog(@"[PIP] startPip: starting");
+                     [self.pipViewController startPictureInPicture];
+                 }
+                 resolve(nil);
              }
-           resolve(nil);
          } else {
-           NSLog(@"[PIP] startPip: SKIP (no controller)");
+           NSLog(@"[PIP] startPip: SKIP (setup failed, no previewLayer?)");
            resolve(nil);
          }
      } else {
