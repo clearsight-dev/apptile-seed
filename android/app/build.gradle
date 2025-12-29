@@ -93,6 +93,7 @@ def enable_onesignal = false
 def enable_moengage = false
 def enable_clevertap = false
 def enable_klaviyo = false
+def minSplashDuration = 2.0f
 
 def signingKeyAlias = null
 def signingStorePassword = null
@@ -129,6 +130,11 @@ if (configFile.exists()) {
 
     if (json.feature_flags.ENABLE_KLAVIYO) {
         enable_klaviyo = json.feature_flags.ENABLE_KLAVIYO
+    }
+
+    if (json.feature_flags.GIF_SPLASH_DURATION != null) {
+        minSplashDuration = json.feature_flags.GIF_SPLASH_DURATION as float
+        println "[Splash] Set minSplashDuration = ${minSplashDuration}f"
     }
 
     if (json.secrets) {
@@ -179,6 +185,7 @@ android {
         versionName appVersionName
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general'
+        buildConfigField "float", "MIN_SPLASH_DURATION", "${minSplashDuration}f"
     }
 
     signingConfigs {
