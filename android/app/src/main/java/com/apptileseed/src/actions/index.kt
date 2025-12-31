@@ -64,10 +64,11 @@ object Actions {
     }
 
     private suspend fun updateAppConfig(
-        context: Context, appId: String, latestCommitId: Long
+        context: Context, appId: String, latestCommitId: Long, manifestBaseConfigUrl: String?
     ): Boolean {
         val fetchUrl = context.getString(R.string.APPTILE_UPDATE_ENDPOINT)
-        val downloadUrl = "$fetchUrl/$appId/main/main/$latestCommitId.json"
+        val downloadUrl = if (manifestBaseConfigUrl != null) manifestBaseConfigUrl else "$fetchUrl/$appId/main/main/$latestCommitId.json"
+        Log.d(APPTILE_LOG_TAG, "[OTA CHECK] Downloading appConfig from: $downloadUrl")
         val tempAppConfigPath = File(context.filesDir, "tempConfig.json").absolutePath
         val documentAppConfigPath = File(context.filesDir, APP_CONFIG_FILE_NAME).absolutePath
 
@@ -215,7 +216,8 @@ object Actions {
                         updateAppConfig(
                             context,
                             appId,
-                            latestCommitId
+                            latestCommitId,
+                            manifest.url
                         )
                     )
                     if (shouldUpdateBundle && latestBundleId != null) updateStatus.add(
