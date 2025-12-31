@@ -196,7 +196,7 @@ class Actions: NSObject {
 
     static func updateAppConfig(appId: String, latestCommitId: Int64, manifestBaseConfigUrl: String?) async -> Bool {
         let fetchUrl = "https://appconfigs.apptile.io"
-        let downloadUrl = manifestBaseConfigUrl != null ? manifestBaseConfigUrl! : "\(fetchUrl)/\(appId)/main/main/\(latestCommitId).json"
+        let downloadUrl = manifestBaseConfigUrl != nil ? manifestBaseConfigUrl! : "\(fetchUrl)/\(appId)/main/main/\(latestCommitId).json"
         Logger.info("[OTA CHECK] Downloading appConfig from: \(downloadUrl)")
         let tempAppConfigPath = FileUtils.documentsDirectory.appendingPathComponent("tempConfig.json").path
         let documentAppConfigPath = FileUtils.documentsDirectory.appendingPathComponent(Actions.APP_CONFIG_FILE_NAME).path
