@@ -21,7 +21,7 @@ import com.bumptech.glide.Glide
 class MainActivity : ReactActivity() {
     private var isJSLoaded = false
     private var isMinSplashDurationPlayed = false
-    private val minSplashDuration = 2.0f
+    private val minSplashDuration = BuildConfig.MIN_SPLASH_DURATION
     private val maxSplashDuration = 20.0f
     private var nativeSplashView: ImageView? = null
 
