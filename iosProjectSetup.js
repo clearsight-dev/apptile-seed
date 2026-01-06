@@ -441,7 +441,7 @@ async function addLogrocket(
   parsedReactNativeConfig,
   extraModules,
 ) {
-  // LogRocket is initialized in JS (App.tsx), no native config needed
+  infoPlist.ENABLE_LOGROCKET = 'true';
   removeForceUnlinkForNativePackage(
     '@logrocket/react-native',
     extraModules,
@@ -456,6 +456,8 @@ async function removeLogrocket(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  delete infoPlist.ENABLE_LOGROCKET;
+
   // LogRocket is initialized in JS (App.tsx), no native config needed
   addForceUnlinkForNativePackage(
     '@logrocket/react-native',
@@ -777,6 +779,10 @@ async function main() {
     infoPlist.APPTILE_APP_HOST_2 =
       `https://${apptileConfig.app_host_2}` || 'apptile.io';
     infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`;
+
+    // Add GIF_SPLASH_DURATION from feature_flags
+    const gifSplashDuration = apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
+    infoPlist.GIF_SPLASH_DURATION = String(gifSplashDuration);
 
     const bundle_id =
       apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';

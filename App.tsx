@@ -7,6 +7,7 @@ import {
   ApptileWrapper,
   ApptileAppRoot,
   useStartApptile,
+  getConfigValue,
 } from 'apptile-core';
 import LogRocket from '@logrocket/react-native';
 
@@ -37,7 +38,7 @@ function App(): React.JSX.Element {
   const [showSplash, setShowSplash] = useState(isGifSplash);
 
   const gifSplashDuration =
-    apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
+    getConfigValue('GIF_SPLASH_DURATION') ?? 1;
   const splashDuration =
     typeof gifSplashDuration === 'number' && gifSplashDuration > 0
       ? gifSplashDuration * 1000
@@ -55,7 +56,8 @@ function App(): React.JSX.Element {
   const splashSource = getSplashSource();
 
   useEffect(() => {
-    if (apptileConfig?.feature_flags?.ENABLE_LOGROCKET) {
+    const enableLogRocket = getConfigValue('ENABLE_LOGROCKET');
+    if (enableLogRocket === 'true') {
       LogRocket.init(
         apptileConfig?.integrations?.logrocket?.id ||
           '97heiy/mobile-apps-ur1xt',

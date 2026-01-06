@@ -16,6 +16,7 @@ import com.apptileseed.src.utils.deleteFile
 import com.apptileseed.src.utils.moveFile
 import com.apptileseed.src.utils.readFileContent
 import com.apptileseed.src.utils.saveFile
+import com.apptileseed.src.utils.showToast
 import com.apptileseed.src.utils.unzip
 import com.apptileseed.src.utils.verifyFileIntegrity
 import com.google.gson.Gson
@@ -68,17 +69,29 @@ object Actions {
     ): Boolean {
         val fetchUrl = context.getString(R.string.APPTILE_UPDATE_ENDPOINT)
         val downloadUrl = if (manifestBaseConfigUrl != null) manifestBaseConfigUrl else "$fetchUrl/$appId/main/main/$latestCommitId.json"
-        Log.d(APPTILE_LOG_TAG, "[OTA CHECK] Downloading appConfig from: $downloadUrl")
-        val tempAppConfigPath = File(context.filesDir, "tempConfig.json").absolutePath
+        val timestamp = System.currentTimeMillis()
+        val tempAppConfigPath = File(context.filesDir, "tempConfig_$timestamp.json").absolutePath
         val documentAppConfigPath = File(context.filesDir, APP_CONFIG_FILE_NAME).absolutePath
 
         return try {
             if (!downloadAndVerify(
                     downloadUrl, tempAppConfigPath, "this_is_dummy_hash"
                 )
-            ) return false
-            deleteFile(documentAppConfigPath)
-            moveFile(tempAppConfigPath, documentAppConfigPath)
+            ) {
+                showToast(context, "Failed to download AppConfig")
+                return false
+            }
+
+            // Atomic replacement: copy with overwrite, then delete temp
+            try {
+                File(tempAppConfigPath).copyTo(File(documentAppConfigPath), overwrite = true)
+            } catch (e: Exception) {
+                Log.e(APPTILE_LOG_TAG, "Failed to copy config file: ${e.message}", e)
+                showToast(context, "Failed to update AppConfig")
+                throw e
+            }
+            deleteFile(tempAppConfigPath)
+
             updateTrackerFile(context, latestCommitId, null)
             Log.d(APPTILE_LOG_TAG, "AppConfig updated successfully")
             true
