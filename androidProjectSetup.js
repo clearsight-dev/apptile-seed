@@ -792,12 +792,12 @@ async function addLogrocket(
 ) {
   const LOG_PREFIX = '[LogRocket][Android]';
   // LogRocket is initialized in JS (App.tsx), no native config needed
+  upsertInStringsXML(stringsObj, 'ENABLE_LOGROCKET', 'true');
   await removeForceUnlinkForNativePackage(
     '@logrocket/react-native',
     extraModules,
     parsedReactNativeConfig,
   );
-  console.log(`${LOG_PREFIX} LogRocket integration complete`);
 }
 
 async function removeLogrocket(
@@ -806,6 +806,8 @@ async function removeLogrocket(
   extraModules,
   parsedReactNativeConfig,
 ) {
+  removeFromStringsXML(stringsObj, 'ENABLE_LOGROCKET');
+
   // LogRocket is initialized in JS (App.tsx), no native config needed
   await addForceUnlinkForNativePackage(
     '@logrocket/react-native',
@@ -1120,6 +1122,10 @@ async function main() {
     // Remove deeplink scheme from AndroidManifest.xml
     deleteAndroidScheme(androidManifest);
   }
+
+  // Add GIF_SPLASH_DURATION from feature_flags
+  const gifSplashDuration = apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
+  upsertInStringsXML(stringsObj, 'GIF_SPLASH_DURATION', String(gifSplashDuration));
 
   // Handle HTTP deep links for app_host and app_host_2
   if (apptileConfig.app_host || apptileConfig.app_host_2) {

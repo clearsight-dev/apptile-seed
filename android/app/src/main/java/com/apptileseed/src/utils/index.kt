@@ -1,7 +1,10 @@
 package com.apptileseed.src.utils
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -201,5 +204,11 @@ suspend fun copyDirectoryContents(sourceDir: File, destinationDir: File) {
                 }
             }
         }
+    }
+}
+
+fun showToast(context: Context, message: String) {
+    Handler(Looper.getMainLooper()).post {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 }
