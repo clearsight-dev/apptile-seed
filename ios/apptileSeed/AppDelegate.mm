@@ -215,47 +215,10 @@
 }
 
 - (NSURL *)bundleURL {
-  return [self getBundleURL];
-}
-
-- (NSURL *)getBundleURL {
 #if DEBUG
-  return
-      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
-  // Get the path to the Documents directory
-  NSArray<NSURL *> *documentDirectories =
-      [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
-                                             inDomains:NSUserDomainMask];
-  NSURL *documentsDirectory = [documentDirectories firstObject];
-
-  // Construct the local bundle path
-  NSURL *bundlesDir =
-      [documentsDirectory URLByAppendingPathComponent:@"bundles"];
-  NSURL *jsBundleFile =
-      [bundlesDir URLByAppendingPathComponent:@"main.jsbundle"];
-
-  if ([[NSFileManager defaultManager] fileExistsAtPath:[jsBundleFile path]]) {
-    if ([BundleTrackerPrefs isBrokenBundle]) {
-      NSLog(@"[ApptileStartupProcess] ⚠️ Previous local bundle failed. ✅ Using "
-            @"embedded bundle.");
-      [BundleTrackerPrefs resetBundleState];
-      return [[NSBundle mainBundle] URLForResource:@"main"
-                                     withExtension:@"jsbundle"];
-    } else {
-      [BundleTrackerPrefs resetBundleState];
-      NSLog(@"[ApptileStartupProcess] ✅ Using local bundle: %@",
-            [jsBundleFile path]);
-      return jsBundleFile;
-    }
-  }
-
-  NSLog(@"[ApptileStartupProcess] ⚠️ No local bundle found. ✅ Using embedded "
-        @"bundle.");
-  [BundleTrackerPrefs resetBundleState];
-
-  return [[NSBundle mainBundle] URLForResource:@"main"
-                                 withExtension:@"jsbundle"];
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
 }
 

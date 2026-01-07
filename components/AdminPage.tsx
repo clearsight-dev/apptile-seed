@@ -1,7 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import {View, Text, ActivityIndicator, Button, Platform, ScrollView, Alert} from 'react-native';
-import {getConfigValue, setBundle} from 'apptile-core';
-import RNRestart from 'react-native-restart';
+import {View, Text, ActivityIndicator, Button, ScrollView, Alert} from 'react-native';
+import {getConfigValue} from 'apptile-core';
 
 type AppManifest = {
   loadingState: "notstarted"|"loading"|"error"|"success",
@@ -152,38 +151,8 @@ export default function AdminPage({route}) {
   }, [appId]);
 
   const applyPushFromLog = useCallback((log: PushLogs['logs'][0]) => {
-    const codepushBundleId = Platform.select({
-      ios: log.iosBundleId,
-      android: log.androidBundleId
-    });
-
-    let codepushBundleLink: null|string = null;
-    if (codepushBundleId) {
-      const bundle = pushLogs.artefacts.find(it => it.id === codepushBundleId);
-      if (bundle) {
-        codepushBundleLink = bundle.cdnlink;
-      }
-    }
-
-    const appconfigUrl = `https://dev-appconfigs.apptile.io/${appId}/main/main/${log.publishedCommitId}.json`;
-    setBundle(codepushBundleLink, appconfigUrl)
-      .then(() => {
-        Alert.alert('Codepush downloaded!', 'Click apply to restart', [
-          {
-            text: 'Apply',
-            onPress: () => RNRestart.restart(),
-          },
-          {
-            text: 'Cancel',
-            onPress: () => console.log('Cancel Pressed'),
-            style: 'cancel',
-          },
-        ]);     
-      })
-      .catch((err: any) => {
-        console.error("could not set bundle", err);
-      })
-  }, [pushLogs, appId]);
+    Alert.alert('OTA Removed', 'OTA updates are no longer supported. Please update via app store.');
+  }, []);
 
   const resetToLatest = () => {};
 
