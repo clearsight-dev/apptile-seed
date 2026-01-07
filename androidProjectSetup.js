@@ -35,6 +35,8 @@ const {
 
 const exec = util.promisify(exec_);
 
+console.log('Using OTA Fix')
+
 async function generateIconSet(scriptPath) {
   await exec(
     `${scriptPath} ${path.resolve(
