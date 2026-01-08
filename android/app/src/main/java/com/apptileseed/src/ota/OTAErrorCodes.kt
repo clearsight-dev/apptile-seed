@@ -19,10 +19,12 @@ enum class OTAErrorCode(val code: String, val message: String) {
     CONFIG_VERIFY_FAILED("OTA-041", "Verify error"),
     CONFIG_MOVE_FAILED("OTA-042", "Storage error"),
 
+    BUNDLE_DIR_CREATE_FAILED("OTA-049", "Storage error"),
     BUNDLE_DOWNLOAD_FAILED("OTA-050", "Download error"),
     BUNDLE_UNZIP_FAILED("OTA-051", "Extract error"),
     BUNDLE_VERIFY_FAILED("OTA-052", "Verify error"),
     BUNDLE_MOVE_FAILED("OTA-053", "Storage error"),
+    BUNDLE_EXTRACT_EMPTY("OTA-054", "Verify error"),
 
     ROLLBACK_TRIGGERED("OTA-060", "Recovery mode"),
     ROLLBACK_FAILED("OTA-061", "Recovery failed"),

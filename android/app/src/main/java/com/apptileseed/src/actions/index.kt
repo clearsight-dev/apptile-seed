@@ -12,6 +12,7 @@ import com.apptileseed.src.utils.APPTILE_LOG_TAG
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
+import java.util.zip.ZipInputStream
 
 const val BUNDLE_TRACKER_FILE_NAME = "localBundleTracker.json"
 const val APP_CONFIG_FILE_NAME = "appConfig.json"
@@ -31,12 +32,22 @@ object Actions {
             for (fileName in filesToCopy) {
                 val destFile = File(context.filesDir, fileName)
                 if (!destFile.exists()) {
-                    context.assets.open(fileName).use { input ->
-                        destFile.outputStream().use { output ->
-                            input.copyTo(output)
+                    try {
+                        context.assets.open(fileName).use { input ->
+                            destFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
                         }
+                        Log.d(APPTILE_LOG_TAG, "Copied $fileName from assets to filesDir")
+                    } catch (e: Exception) {
+                        Log.e(APPTILE_LOG_TAG, "Failed to copy $fileName: ${e.message}")
+                        val errorCode = if (fileName == APP_CONFIG_FILE_NAME) {
+                            OTAErrorCode.ASSET_COPY_CONFIG_FAILED
+                        } else {
+                            OTAErrorCode.ASSET_COPY_TRACKER_FAILED
+                        }
+                        OTAToast.show(context, errorCode)
                     }
-                    Log.d(APPTILE_LOG_TAG, "Copied $fileName from assets to filesDir")
                 } else {
                     Log.d(APPTILE_LOG_TAG, "$fileName already exists in filesDir")
                 }
@@ -85,7 +96,7 @@ object Actions {
         }
     }
 
-    suspend fun checkForForceUpdate(context: Context): ForceUpdateResult {
+    suspend fun checkForNavtiveForceUpdate(context: Context): ForceUpdateResult {
         return try {
             val appId = context.getString(R.string.APP_ID)
             if (appId.isNullOrEmpty() || appId == "YOUR_APPTILE_APP_ID") {
@@ -130,7 +141,7 @@ object Actions {
         }
     }
 
-    private fun updateTracker(context: Context, commitId: Long, bundleId: Long?) {
+    fun updateTracker(context: Context, commitId: Long, bundleId: Long?) {
         try {
             val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
             val mapType = object : TypeToken<MutableMap<String, Any>>() {}.type
@@ -153,12 +164,18 @@ object Actions {
         }
     }
 
-    private suspend fun downloadAppConfig(context: Context, manifest: ManifestResponse): Boolean {
+    suspend fun downloadAppConfig(context: Context, manifest: ManifestResponse): Boolean {
         val timestamp = System.currentTimeMillis()
         val tempFile = File(context.filesDir, "appConfig_${timestamp}.tmp")
 
         return try {
-            val configUrl = manifest.url
+            val appId = context.getString(R.string.APP_ID)
+            val baseUrl = context.getString(R.string.APPTILE_UPDATE_ENDPOINT)
+            val configUrl = if (!manifest.url.isNullOrEmpty()) {
+                manifest.url
+            } else {
+                "$baseUrl/$appId/${manifest.forkName}/main/${manifest.publishedCommitId}.json"
+            }
             Log.d(APPTILE_LOG_TAG, "Downloading appConfig from: $configUrl")
 
             val response = ApptileApiClient.service.downloadFile(configUrl)
@@ -176,7 +193,13 @@ object Actions {
                 return false
             }
 
-            tempFile.renameTo(destFile)
+            val moved = tempFile.renameTo(destFile)
+            if (!moved) {
+                Log.e(APPTILE_LOG_TAG, "Failed to move config to destination")
+                OTAToast.show(context, OTAErrorCode.CONFIG_MOVE_FAILED)
+                return false
+            }
+
             Log.d(APPTILE_LOG_TAG, "AppConfig downloaded successfully")
             true
         } catch (e: Exception) {
@@ -193,41 +216,96 @@ object Actions {
 
     private suspend fun downloadBundle(context: Context, bundleUrl: String): Boolean {
         val bundlesDir = File(context.filesDir, "bundles")
-        if (!bundlesDir.exists()) bundlesDir.mkdirs()
+        if (!bundlesDir.exists()) {
+            val created = bundlesDir.mkdirs()
+            if (!created) {
+                Log.e(APPTILE_LOG_TAG, "Failed to create bundles directory")
+                OTAToast.show(context, OTAErrorCode.BUNDLE_DIR_CREATE_FAILED)
+                return false
+            }
+        }
 
         val timestamp = System.currentTimeMillis()
-        val tempFile = File(bundlesDir, "bundle_${timestamp}.tmp")
+        val tempZipFile = File(bundlesDir, "bundle_${timestamp}.zip")
 
         return try {
             Log.d(APPTILE_LOG_TAG, "Downloading bundle from: $bundleUrl")
 
             val response = ApptileApiClient.service.downloadFile(bundleUrl)
-            val destFile = File(bundlesDir, "index.android.bundle")
 
-            tempFile.outputStream().use { output ->
+            // Download the zip file
+            tempZipFile.outputStream().use { output ->
                 response.byteStream().use { input ->
                     input.copyTo(output)
                 }
             }
 
-            if (tempFile.length() == 0L) {
-                Log.e(APPTILE_LOG_TAG, "Downloaded bundle is empty")
+            if (tempZipFile.length() == 0L) {
+                Log.e(APPTILE_LOG_TAG, "Downloaded bundle zip is empty")
                 OTAToast.show(context, OTAErrorCode.BUNDLE_VERIFY_FAILED)
                 return false
             }
 
-            tempFile.renameTo(destFile)
-            Log.d(APPTILE_LOG_TAG, "Bundle downloaded successfully")
+            Log.d(APPTILE_LOG_TAG, "Bundle zip downloaded, extracting...")
+
+            // Extract the zip file
+            val extracted = extractBundleFromZip(context, tempZipFile, bundlesDir)
+            if (!extracted) {
+                Log.e(APPTILE_LOG_TAG, "Failed to extract bundle from zip")
+                // Toast already shown in extractBundleFromZip
+                return false
+            }
+
+            Log.d(APPTILE_LOG_TAG, "Bundle downloaded and extracted successfully")
             true
         } catch (e: Exception) {
             Log.e(APPTILE_LOG_TAG, "Failed to download bundle: ${e.message}")
             OTAToast.show(context, OTAErrorCode.BUNDLE_DOWNLOAD_FAILED)
             false
         } finally {
-            if (tempFile.exists()) {
-                tempFile.delete()
-                Log.d(APPTILE_LOG_TAG, "Cleaned up temp bundle file")
+            if (tempZipFile.exists()) {
+                tempZipFile.delete()
+                Log.d(APPTILE_LOG_TAG, "Cleaned up temp zip file")
             }
+        }
+    }
+
+    private fun extractBundleFromZip(context: Context, zipFile: File, destDir: File): Boolean {
+        return try {
+            ZipInputStream(zipFile.inputStream()).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    val fileName = entry.name
+                    // Look for the bundle file (index.android.bundle or similar)
+                    if (!entry.isDirectory && (fileName.endsWith(".bundle") || fileName == "index.android.bundle")) {
+                        val destFile = File(destDir, "index.android.bundle")
+                        destFile.outputStream().use { output ->
+                            zis.copyTo(output)
+                        }
+                        zis.closeEntry()
+
+                        // Verify extracted bundle is not empty
+                        if (destFile.length() == 0L) {
+                            Log.e(APPTILE_LOG_TAG, "Extracted bundle is empty")
+                            OTAToast.show(context, OTAErrorCode.BUNDLE_EXTRACT_EMPTY)
+                            destFile.delete()
+                            return false
+                        }
+
+                        Log.d(APPTILE_LOG_TAG, "Extracted bundle: $fileName -> ${destFile.absolutePath} (${destFile.length()} bytes)")
+                        return true
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+            Log.e(APPTILE_LOG_TAG, "No bundle file found in zip")
+            OTAToast.show(context, OTAErrorCode.BUNDLE_VERIFY_FAILED)
+            false
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Failed to extract zip: ${e.message}")
+            OTAToast.show(context, OTAErrorCode.BUNDLE_UNZIP_FAILED)
+            false
         }
     }
 
@@ -241,7 +319,14 @@ object Actions {
 
             val forkName = getActiveForkName(context)
             ApptileApiClient.init(context)
-            val manifest = ApptileApiClient.service.getManifest(appId, forkName, FRAMEWORK_VERSION)
+
+            val manifest = try {
+                ApptileApiClient.service.getManifest(appId, forkName, FRAMEWORK_VERSION)
+            } catch (e: Exception) {
+                Log.e(APPTILE_LOG_TAG, "Failed to fetch manifest: ${e.message}")
+                OTAToast.show(context, OTAErrorCode.MANIFEST_FETCH_FAILED)
+                return false
+            }
 
             val localCommitId = getLocalCommitId(context)
             val publishedCommitId = manifest.publishedCommitId
@@ -258,14 +343,16 @@ object Actions {
             val configDownloaded = downloadAppConfig(context, manifest)
             if (!configDownloaded) return false
 
-            val androidBundle = manifest.artefacts.find { it.type == "android_bundle" }
+            val androidBundle = manifest.artefacts.find { it.type == "android-jsbundle" }
             var bundleId: Long? = null
 
             if (androidBundle != null) {
                 val bundleDownloaded = downloadBundle(context, androidBundle.cdnlink)
-                if (bundleDownloaded) {
-                    bundleId = androidBundle.id
+                if (!bundleDownloaded) {
+                    // Bundle download failed, don't update tracker
+                    return false
                 }
+                bundleId = androidBundle.id
             }
 
             updateTracker(context, publishedCommitId, bundleId)
@@ -286,7 +373,7 @@ object Actions {
 
         copyBundledAssetsToDocuments(context)
 
-        val forceUpdateResult = checkForForceUpdate(context)
+        val forceUpdateResult = checkForNavtiveForceUpdate(context)
         if (forceUpdateResult.updateRequired) {
             Log.w(APPTILE_LOG_TAG, "Force update required, redirecting to store")
             onForceUpdate(forceUpdateResult.storeUrl)

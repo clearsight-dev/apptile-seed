@@ -14,7 +14,7 @@ data class ManifestResponse(
     val createdAt: String,
     val updatedAt: String,
     val deletedAt: String?,
-    val url: String,
+    val url: String?,
     val artefacts: List<CodeArtefact>,
     val latestBuildNumberAndroid: Int?,
     val playStorePermanentLink: String?
