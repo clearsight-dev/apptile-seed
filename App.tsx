@@ -7,7 +7,6 @@ import {
   ApptileWrapper,
   ApptileAppRoot,
   useStartApptile,
-  getConfigValue,
 } from 'apptile-core';
 import LogRocket from '@logrocket/react-native';
 
@@ -38,7 +37,7 @@ function App(): React.JSX.Element {
   const [showSplash, setShowSplash] = useState(isGifSplash);
 
   const gifSplashDuration =
-    getConfigValue('GIF_SPLASH_DURATION') ?? 1;
+    apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
   const splashDuration =
     typeof gifSplashDuration === 'number' && gifSplashDuration > 0
       ? gifSplashDuration * 1000
@@ -56,34 +55,29 @@ function App(): React.JSX.Element {
   const splashSource = getSplashSource();
 
   useEffect(() => {
-    const startLogRocket = async () => {
-      const enableLogRocket = await getConfigValue('ENABLE_LOGROCKET');
-      if (enableLogRocket === 'true') {
-        console.log('ENABLING LOGROCKET');
-        LogRocket.init(
-          apptileConfig?.integrations?.logrocket?.id ||
-            '97heiy/mobile-apps-ur1xt',
-          {
-            network: {
-              requestSanitizer: request => {
-                if (request?.headers['x-auth-token']) {
-                  request.headers['x-auth-token'] = '';
-                }
-                return request;
-              },
+    if (apptileConfig?.feature_flags?.ENABLE_LOGROCKET) {
+      LogRocket.init(
+        apptileConfig?.integrations?.logrocket?.id ||
+          '97heiy/mobile-apps-ur1xt',
+        {
+          network: {
+            requestSanitizer: request => {
+              if (request?.headers['x-auth-token']) {
+                request.headers['x-auth-token'] = '';
+              }
+              return request;
             },
-            console: {
-              isEnabled: {
-                warn: false,
-              },
-              shouldAggregateConsoleErrors: true,
-            },
-            redactionTags: ['RedactionString'],
           },
-        );
-      }
-    };
-    startLogRocket();
+          console: {
+            isEnabled: {
+              warn: false,
+            },
+            shouldAggregateConsoleErrors: true,
+          },
+          redactionTags: ['RedactionString'],
+        },
+      );
+    }
   }, []);
 
   useEffect(() => {
