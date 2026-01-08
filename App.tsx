@@ -56,30 +56,34 @@ function App(): React.JSX.Element {
   const splashSource = getSplashSource();
 
   useEffect(() => {
-    const enableLogRocket = getConfigValue('ENABLE_LOGROCKET');
-    if (enableLogRocket === 'true') {
-      LogRocket.init(
-        apptileConfig?.integrations?.logrocket?.id ||
-          '97heiy/mobile-apps-ur1xt',
-        {
-          network: {
-            requestSanitizer: request => {
-              if (request?.headers['x-auth-token']) {
-                request.headers['x-auth-token'] = '';
-              }
-              return request;
+    const startLogRocket = async () => {
+      const enableLogRocket = await getConfigValue('ENABLE_LOGROCKET');
+      if (enableLogRocket === 'true') {
+        console.log('ENABLING LOGROCKET');
+        LogRocket.init(
+          apptileConfig?.integrations?.logrocket?.id ||
+            '97heiy/mobile-apps-ur1xt',
+          {
+            network: {
+              requestSanitizer: request => {
+                if (request?.headers['x-auth-token']) {
+                  request.headers['x-auth-token'] = '';
+                }
+                return request;
+              },
             },
-          },
-          console: {
-            isEnabled: {
-              warn: false,
+            console: {
+              isEnabled: {
+                warn: false,
+              },
+              shouldAggregateConsoleErrors: true,
             },
-            shouldAggregateConsoleErrors: true,
+            redactionTags: ['RedactionString'],
           },
-          redactionTags: ['RedactionString'],
-        },
-      );
-    }
+        );
+      }
+    };
+    startLogRocket();
   }, []);
 
   useEffect(() => {
