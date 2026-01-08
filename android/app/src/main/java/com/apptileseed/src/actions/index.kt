@@ -1,351 +1,301 @@
 package com.apptileseed.src.actions
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import com.apptileseed.BuildConfig
-import com.apptileseed.MainActivity
-import com.apptileseed.MainApplication
 import com.apptileseed.R
 import com.apptileseed.src.apis.ApptileApiClient
+import com.apptileseed.src.models.ManifestResponse
+import com.apptileseed.src.ota.OTAErrorCode
+import com.apptileseed.src.ota.OTAToast
 import com.apptileseed.src.utils.APPTILE_LOG_TAG
-import com.apptileseed.src.utils.BundleTrackerPrefs
-import com.apptileseed.src.utils.copyAssetToDocuments
-import com.apptileseed.src.utils.copyDirectoryContents
-import com.apptileseed.src.utils.deleteFile
-import com.apptileseed.src.utils.moveFile
-import com.apptileseed.src.utils.readFileContent
-import com.apptileseed.src.utils.saveFile
-import com.apptileseed.src.utils.showToast
-import com.apptileseed.src.utils.unzip
-import com.apptileseed.src.utils.verifyFileIntegrity
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 
-object Actions {
-    const val APP_CONFIG_FILE_NAME = "appConfig.json"
-    const val BUNDLE_TRACKER_FILE_NAME = "localBundleTracker.json"
+const val BUNDLE_TRACKER_FILE_NAME = "localBundleTracker.json"
+const val APP_CONFIG_FILE_NAME = "appConfig.json"
+const val FRAMEWORK_VERSION = "0.17.0"
 
-    private suspend fun fetchManifest(appId: String, context: Context) = withContext(Dispatchers.IO) {
+data class ForceUpdateResult(
+    val updateRequired: Boolean,
+    val storeUrl: String? = null
+)
+
+object Actions {
+
+    fun copyBundledAssetsToDocuments(context: Context) {
         try {
-            val forkName = context.getString(R.string.APPTILE_APP_FORK)
-            ApptileApiClient.service.getManifest(appId, forkName, "0.17.0") // hardcoding framework version
-//              ApptileApiClient.service.getManifest(appId)
+            val filesToCopy = listOf(APP_CONFIG_FILE_NAME, BUNDLE_TRACKER_FILE_NAME)
+
+            for (fileName in filesToCopy) {
+                val destFile = File(context.filesDir, fileName)
+                if (!destFile.exists()) {
+                    context.assets.open(fileName).use { input ->
+                        destFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    Log.d(APPTILE_LOG_TAG, "Copied $fileName from assets to filesDir")
+                } else {
+                    Log.d(APPTILE_LOG_TAG, "$fileName already exists in filesDir")
+                }
+            }
         } catch (e: Exception) {
-            Log.e(APPTILE_LOG_TAG, "Failed to fetch manifest: ${e.message}", e)
+            Log.e(APPTILE_LOG_TAG, "Failed to copy assets: ${e.message}")
+        }
+    }
+
+    fun getActiveForkName(context: Context): String {
+        val fallbackFork = try {
+            context.getString(R.string.APPTILE_APP_FORK)
+        } catch (e: Exception) {
+            "main"
+        }
+
+        return try {
+            val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
+            if (!trackerFile.exists()) {
+                Log.d(APPTILE_LOG_TAG, "Tracker file not found, using fallback fork: $fallbackFork")
+                return fallbackFork
+            }
+
+            val content = trackerFile.readText()
+            val mapType = object : TypeToken<MutableMap<String, Any>>() {}.type
+            val tracker: MutableMap<String, Any> = Gson().fromJson(content, mapType)
+            val forkName = tracker["activeForkName"] as? String
+
+            if (forkName.isNullOrEmpty()) {
+                Log.d(APPTILE_LOG_TAG, "activeForkName missing, adding fallback: $fallbackFork")
+                tracker["activeForkName"] = fallbackFork
+                try {
+                    trackerFile.writeText(Gson().toJson(tracker))
+                } catch (e: Exception) {
+                    Log.e(APPTILE_LOG_TAG, "Failed to update tracker with fork: ${e.message}")
+                }
+                fallbackFork
+            } else {
+                Log.d(APPTILE_LOG_TAG, "Active fork from tracker: $forkName")
+                forkName
+            }
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Error reading tracker file: ${e.message}")
+            OTAToast.show(context, OTAErrorCode.TRACKER_READ_FAILED)
+            fallbackFork
+        }
+    }
+
+    suspend fun checkForForceUpdate(context: Context): ForceUpdateResult {
+        return try {
+            val appId = context.getString(R.string.APP_ID)
+            if (appId.isNullOrEmpty() || appId == "YOUR_APPTILE_APP_ID") {
+                Log.w(APPTILE_LOG_TAG, "APP_ID not configured, skipping force update check")
+                return ForceUpdateResult(false)
+            }
+
+            val forkName = getActiveForkName(context)
+            ApptileApiClient.init(context)
+            val manifest: ManifestResponse = ApptileApiClient.service.getManifest(appId, forkName, FRAMEWORK_VERSION)
+
+            val currentBuild = BuildConfig.VERSION_CODE
+            val minimumBuild = manifest.latestBuildNumberAndroid
+
+            Log.d(APPTILE_LOG_TAG, "Force update check: current=$currentBuild, minimum=$minimumBuild")
+
+            if (minimumBuild != null && currentBuild < minimumBuild) {
+                Log.w(APPTILE_LOG_TAG, "🚨 Force Update Required")
+                OTAToast.show(context, OTAErrorCode.FORCE_UPDATE_REQUIRED)
+                ForceUpdateResult(true, manifest.playStorePermanentLink)
+            } else {
+                ForceUpdateResult(false)
+            }
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Force update check failed (fail-open): ${e.message}")
+            ForceUpdateResult(false)
+        }
+    }
+
+    private fun getLocalCommitId(context: Context): Long? {
+        return try {
+            val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
+            if (!trackerFile.exists()) return null
+
+            val content = trackerFile.readText()
+            val mapType = object : TypeToken<Map<String, Any>>() {}.type
+            val tracker: Map<String, Any> = Gson().fromJson(content, mapType)
+            (tracker["publishedCommitId"] as? Number)?.toLong()
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Failed to read local commitId: ${e.message}")
             null
         }
     }
 
-    private suspend fun downloadAndVerify(
-        url: String, tempPath: String, expectedHash: String
-    ): Boolean {
-        val downloadResponse = ApptileApiClient.service.downloadFile(url)
-
-        if (downloadResponse.contentLength() == 0L) {
-            Log.e(APPTILE_LOG_TAG, "Download failed: Empty response")
-            return false
-        }
-
-        if (!saveFile(downloadResponse, tempPath)) {
-            Log.e(APPTILE_LOG_TAG, "Failed to save downloaded file")
-            return false
-        }
-
-        if (!verifyFileIntegrity(tempPath, expectedHash)) {
-            Log.e(APPTILE_LOG_TAG, "Integrity check failed")
-            deleteFile(tempPath)
-            return false
-        }
-
-        return true
-    }
-
-    private suspend fun updateAppConfig(
-        context: Context, appId: String, latestCommitId: Long, manifestBaseConfigUrl: String?
-    ): Boolean {
-        val fetchUrl = context.getString(R.string.APPTILE_UPDATE_ENDPOINT)
-        val downloadUrl = if (manifestBaseConfigUrl != null) manifestBaseConfigUrl else "$fetchUrl/$appId/main/main/$latestCommitId.json"
-        val timestamp = System.currentTimeMillis()
-        val tempAppConfigPath = File(context.filesDir, "tempConfig_$timestamp.json").absolutePath
-        val documentAppConfigPath = File(context.filesDir, APP_CONFIG_FILE_NAME).absolutePath
-
-        return try {
-            if (!downloadAndVerify(
-                    downloadUrl, tempAppConfigPath, "this_is_dummy_hash"
-                )
-            ) {
-                showToast(context, "Failed to download AppConfig")
-                return false
-            }
-
-            // Atomic replacement: copy with overwrite, then delete temp
-            try {
-                File(tempAppConfigPath).copyTo(File(documentAppConfigPath), overwrite = true)
-            } catch (e: Exception) {
-                Log.e(APPTILE_LOG_TAG, "Failed to copy config file: ${e.message}", e)
-                showToast(context, "Failed to update AppConfig")
-                throw e
-            }
-            deleteFile(tempAppConfigPath)
-
-            updateTrackerFile(context, latestCommitId, null)
-            Log.d(APPTILE_LOG_TAG, "AppConfig updated successfully")
-            true
-        } catch (e: Exception) {
-            Log.e(APPTILE_LOG_TAG, "Error updating AppConfig: ${e.message}", e)
-            false
-        } finally {
-            Log.d(APPTILE_LOG_TAG, "Cleaning up temp app config path")
-            deleteFile(tempAppConfigPath)
-        }
-    }
-
-    private suspend fun updateBundle(
-        context: Context, bundleId: Long, bundleUrl: String?
-    ): Boolean {
-        if (bundleUrl == null) return false
-        val tempBundlePath =
-            File(context.filesDir, "tempBundles/bundle.zip").apply { parentFile?.mkdirs() }
-        val tempBundleExtractPath =
-            File(context.filesDir, "tempBundles/unzipped").apply { mkdirs() }
-        val destinationBundlesPath = File(context.filesDir, "bundles")
-
-        return try {
-            if (!downloadAndVerify(
-                    bundleUrl, tempBundlePath.absolutePath, "this_is_dummy_hash"
-                )
-            ) return false
-
-            if (!unzip(tempBundlePath.absolutePath, tempBundleExtractPath.absolutePath)) {
-                Log.e(APPTILE_LOG_TAG, "Failed to unzip the bundle")
-                return false
-            }
-
-            if (destinationBundlesPath.exists()) {
-                Log.d(
-                    APPTILE_LOG_TAG,
-                    "Deleting existing bundle files from : ${destinationBundlesPath.absolutePath}"
-                )
-                destinationBundlesPath.deleteRecursively()
-            }
-
-            destinationBundlesPath.mkdirs()
-            copyDirectoryContents(tempBundleExtractPath, destinationBundlesPath)
-            updateTrackerFile(context, null, bundleId)
-            Log.d(APPTILE_LOG_TAG, "Bundle updated successfully")
-            true
-        } catch (e: Exception) {
-            Log.e(APPTILE_LOG_TAG, "Error updating bundle: ${e.message}", e)
-            false
-        } finally {
-            Log.d(APPTILE_LOG_TAG, "Cleaning up temp bundles path & temp extraction path")
-            deleteFile(tempBundlePath.absolutePath)
-            tempBundleExtractPath.deleteRecursively()
-        }
-    }
-
-    private suspend fun updateTrackerFile(
-        context: Context, latestCommitId: Long?, latestBundleId: Long?
-    ) {
-        val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
-        val trackerData = readFileContent(trackerFile.absolutePath)
-
-        trackerData?.let {
-            val mapType = object : TypeToken<Map<String, Any>>() {}.type
-            val existingTrackerData: MutableMap<String, Any> = Gson().fromJson(it, mapType)
-
-            latestCommitId?.let { commitId -> existingTrackerData["publishedCommitId"] = commitId }
-            latestBundleId?.let { bundleId -> existingTrackerData["androidBundleId"] = bundleId }
-
-            val newTrackerConfig = Gson().toJson(existingTrackerData)
-            Log.d(
-                APPTILE_LOG_TAG, "Writing tracker config to local bundle tracker $newTrackerConfig"
-            )
-            trackerFile.writeText(newTrackerConfig)
-        }
-    }
-
-    // Function to check for Over-The-Air updates
-    // Returns a Pair: (Boolean -> update required?, String? -> app store URL)
-    // true in Boolean means MainActivity start should be prevented
-       private suspend fun checkForOTA(appId: String, context: Context): Pair<Boolean, String?> = withContext(Dispatchers.IO) {
-        val manifest = fetchManifest(appId, context) ?: return@withContext Pair(false, null) // Return false, null URL if manifest fetch fails
-        var updateRequired = false
-        var updateUrl: String? = null
-
-        val latestBuildNumberAndroid = manifest.latestBuildNumberAndroid
-        val currentBuildNumber = BuildConfig.VERSION_CODE
-
-        // *** Core Check for Build Number (Hard Update) ***
-        if (latestBuildNumberAndroid != null && currentBuildNumber < latestBuildNumberAndroid) {
-            Log.i(APPTILE_LOG_TAG, "OTA Check: Found newer build ($latestBuildNumberAndroid > $currentBuildNumber). App restart will be prevented.")
-            // Indicate update needed, return the app store URL from manifest
-            updateRequired = true
-            updateUrl = manifest.playStorePermanentLink
-            return@withContext Pair(updateRequired, updateUrl)
-        }
-
-        // Log appropriate message based on build number availability
-        if (latestBuildNumberAndroid == null) {
-            Log.d(APPTILE_LOG_TAG, "OTA Check: No latestBuildNumberAndroid in manifest. Proceeding with bundle/commit check.")
-        } else {
-            Log.d(APPTILE_LOG_TAG, "OTA Check: Current build ($currentBuildNumber) is up-to-date or newer than manifest ($latestBuildNumberAndroid). Checking bundle/commit.")
-        }
-
-        // Continue with commit/bundle check (soft OTA)
-        val trackerData =
-            readFileContent(File(context.filesDir, BUNDLE_TRACKER_FILE_NAME).absolutePath)
-
-        trackerData?.let {
-            val mapType = object : TypeToken<Map<String, Any>>() {}.type
-            val parsedTrackerData: Map<String, Any>? = Gson().fromJson(it, mapType)
-
-            val localCommitId = (parsedTrackerData?.get("publishedCommitId") as? Number)?.toLong()
-            val latestCommitId = manifest.publishedCommitId
-
-            val bundle = manifest.artefacts.find { it.type == "android-jsbundle" }
-            val localBundleId = (parsedTrackerData?.get("androidBundleId") as? Number)?.toLong()
-            val latestBundleId = bundle?.id
-            val latestBundleUrl = bundle?.cdnlink
-
-            Log.d(
-                APPTILE_LOG_TAG,
-                "OTA Check: latestCommitId=$latestCommitId, localCommitId=$localCommitId, " + "localAndroidBundleId=$localBundleId, latestAndroidBundleId=$latestBundleId"
-            )
-
-            if (latestCommitId != null || latestBundleId != null) {
-
-                val shouldUpdateCommit = latestCommitId != localCommitId
-                val shouldUpdateBundle =
-                    latestBundleId != localBundleId && !latestBundleUrl.isNullOrBlank()
-
-                if (shouldUpdateBundle || shouldUpdateCommit) {
-                    val updateStatus = mutableListOf<Boolean>()
-                    if (shouldUpdateCommit) updateStatus.add(
-                        updateAppConfig(
-                            context,
-                            appId,
-                            latestCommitId,
-                            manifest.url
-                        )
-                    )
-                    if (shouldUpdateBundle && latestBundleId != null) updateStatus.add(
-                        updateBundle(
-                            context, latestBundleId, latestBundleUrl
-                        )
-                    )
-
-                    // dev roll to make sure published bundle is always working
-                    if (updateStatus.all { status -> status }) {
-                        applyUpdates(context)
-                    } else {
-                        Log.e(APPTILE_LOG_TAG, "Update failed. App restart skipped.")
-                    }
-                }
-
-            }
-        }
-
-        // If we reach here, it means currentBuildNumber >= latestBuildNumberAndroid and bundle checks are done (or not needed)
-        return@withContext Pair(updateRequired, updateUrl) // Indicate no build number update needed, null URL
-    }
-
-    private fun restartReactNativeApp(context: Context) {
-        Log.d(APPTILE_LOG_TAG, "Restarting React Native app")
-        val intent = Intent(context, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        context.startActivity(intent)
-        Runtime.getRuntime().exit(0)
-    }
-
-    private suspend fun applyUpdates(context: Context) {
-        withContext(Dispatchers.Main) {
-            Log.i(APPTILE_LOG_TAG, "Reinitialize React Native instance manager from apply updates")
-            (context.applicationContext as? MainApplication)?.resetReactNativeHost()
-        }
-    }
-
-    suspend fun rollBackUpdates(context: Context): Boolean {
-        return try {
-            val filesDir = context.filesDir
-
-            val filesToDelete = listOf(
-                File(filesDir, BUNDLE_TRACKER_FILE_NAME),
-                File(filesDir, APP_CONFIG_FILE_NAME),
-                File(filesDir, "bundles")
-            )
-
-            val deletionResults = filesToDelete.map { file ->
-                val success =
-                    if (file.isDirectory) file.deleteRecursively() else deleteFile(file.absolutePath)
-                if (!success) Log.e(APPTILE_LOG_TAG, "Failed to delete: ${file.absolutePath}")
-                success
-            }
-
-            return if (deletionResults.all { it }) {
-                Log.d(APPTILE_LOG_TAG, "✅ Rollback Successfully Completed")
-                BundleTrackerPrefs.resetBundleState()
-                true
+    private fun updateTracker(context: Context, commitId: Long, bundleId: Long?) {
+        try {
+            val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
+            val mapType = object : TypeToken<MutableMap<String, Any>>() {}.type
+            val tracker: MutableMap<String, Any> = if (trackerFile.exists()) {
+                Gson().fromJson(trackerFile.readText(), mapType)
             } else {
-                Log.e(APPTILE_LOG_TAG, "❌ Rollback Failed")
-                false
+                mutableMapOf()
             }
+
+            tracker["publishedCommitId"] = commitId
+            if (bundleId != null) {
+                tracker["androidBundleId"] = bundleId
+            }
+
+            trackerFile.writeText(Gson().toJson(tracker))
+            Log.d(APPTILE_LOG_TAG, "Tracker updated: commitId=$commitId, bundleId=$bundleId")
         } catch (e: Exception) {
-            Log.e(APPTILE_LOG_TAG, "❌ Error while rolling back: ${e.message}", e)
+            Log.e(APPTILE_LOG_TAG, "Failed to update tracker: ${e.message}")
+            OTAToast.show(context, OTAErrorCode.TRACKER_WRITE_FAILED)
+        }
+    }
+
+    private suspend fun downloadAppConfig(context: Context, manifest: ManifestResponse): Boolean {
+        val timestamp = System.currentTimeMillis()
+        val tempFile = File(context.filesDir, "appConfig_${timestamp}.tmp")
+
+        return try {
+            val configUrl = manifest.url
+            Log.d(APPTILE_LOG_TAG, "Downloading appConfig from: $configUrl")
+
+            val response = ApptileApiClient.service.downloadFile(configUrl)
+            val destFile = File(context.filesDir, APP_CONFIG_FILE_NAME)
+
+            tempFile.outputStream().use { output ->
+                response.byteStream().use { input ->
+                    input.copyTo(output)
+                }
+            }
+
+            if (tempFile.length() == 0L) {
+                Log.e(APPTILE_LOG_TAG, "Downloaded config is empty")
+                OTAToast.show(context, OTAErrorCode.CONFIG_VERIFY_FAILED)
+                return false
+            }
+
+            tempFile.renameTo(destFile)
+            Log.d(APPTILE_LOG_TAG, "AppConfig downloaded successfully")
+            true
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Failed to download appConfig: ${e.message}")
+            OTAToast.show(context, OTAErrorCode.CONFIG_DOWNLOAD_FAILED)
+            false
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete()
+                Log.d(APPTILE_LOG_TAG, "Cleaned up temp config file")
+            }
+        }
+    }
+
+    private suspend fun downloadBundle(context: Context, bundleUrl: String): Boolean {
+        val bundlesDir = File(context.filesDir, "bundles")
+        if (!bundlesDir.exists()) bundlesDir.mkdirs()
+
+        val timestamp = System.currentTimeMillis()
+        val tempFile = File(bundlesDir, "bundle_${timestamp}.tmp")
+
+        return try {
+            Log.d(APPTILE_LOG_TAG, "Downloading bundle from: $bundleUrl")
+
+            val response = ApptileApiClient.service.downloadFile(bundleUrl)
+            val destFile = File(bundlesDir, "index.android.bundle")
+
+            tempFile.outputStream().use { output ->
+                response.byteStream().use { input ->
+                    input.copyTo(output)
+                }
+            }
+
+            if (tempFile.length() == 0L) {
+                Log.e(APPTILE_LOG_TAG, "Downloaded bundle is empty")
+                OTAToast.show(context, OTAErrorCode.BUNDLE_VERIFY_FAILED)
+                return false
+            }
+
+            tempFile.renameTo(destFile)
+            Log.d(APPTILE_LOG_TAG, "Bundle downloaded successfully")
+            true
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Failed to download bundle: ${e.message}")
+            OTAToast.show(context, OTAErrorCode.BUNDLE_DOWNLOAD_FAILED)
+            false
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete()
+                Log.d(APPTILE_LOG_TAG, "Cleaned up temp bundle file")
+            }
+        }
+    }
+
+    suspend fun checkAndDownloadOTAUpdate(context: Context): Boolean {
+        return try {
+            val appId = context.getString(R.string.APP_ID)
+            if (appId.isNullOrEmpty() || appId == "YOUR_APPTILE_APP_ID") {
+                Log.w(APPTILE_LOG_TAG, "APP_ID not configured, skipping OTA check")
+                return false
+            }
+
+            val forkName = getActiveForkName(context)
+            ApptileApiClient.init(context)
+            val manifest = ApptileApiClient.service.getManifest(appId, forkName, FRAMEWORK_VERSION)
+
+            val localCommitId = getLocalCommitId(context)
+            val publishedCommitId = manifest.publishedCommitId
+
+            Log.d(APPTILE_LOG_TAG, "OTA check: local=$localCommitId, remote=$publishedCommitId")
+
+            if (localCommitId != null && localCommitId == publishedCommitId) {
+                Log.d(APPTILE_LOG_TAG, "No OTA update needed")
+                return false
+            }
+
+            Log.d(APPTILE_LOG_TAG, "🔄 OTA update available, downloading...")
+
+            val configDownloaded = downloadAppConfig(context, manifest)
+            if (!configDownloaded) return false
+
+            val androidBundle = manifest.artefacts.find { it.type == "android_bundle" }
+            var bundleId: Long? = null
+
+            if (androidBundle != null) {
+                val bundleDownloaded = downloadBundle(context, androidBundle.cdnlink)
+                if (bundleDownloaded) {
+                    bundleId = androidBundle.id
+                }
+            }
+
+            updateTracker(context, publishedCommitId, bundleId)
+            Log.d(APPTILE_LOG_TAG, "✅ OTA update completed")
+            true
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "OTA check failed (fail-open): ${e.message}")
             false
         }
     }
 
-    /**
-     * Orchestrates the startup process: copies initial assets if needed, checks for OTA updates,
-     * and potentially applies them.
-     *
-     * @param appId The application ID.
-     * @param context The application context.
-     * @return Pair<Boolean, String?> True if checkForOTA determined MainActivity start should be prevented, String? is the potential update URL.
-     */
-    suspend fun startApptileAppProcess(appId: String, context: Context): Pair<Boolean, String?> =
-        withContext(Dispatchers.IO) {
-            // Default to no update needed, null URL
-            var updateRequired = false
-            var updateUrl = null
-            var otaResult: Pair<Boolean, String?> = Pair(updateRequired, updateUrl)
-            try {
-                if (BundleTrackerPrefs.isBrokenBundle()) {
-                    Log.d(
-                        APPTILE_LOG_TAG, "Previous bundle status: failed, starting rollback"
-                    )
-                    rollBackUpdates(context)
-                }
+    suspend fun startApptileAppProcess(
+        context: Context,
+        onForceUpdate: (storeUrl: String?) -> Unit,
+        onProceed: () -> Unit
+    ) {
+        Log.d(APPTILE_LOG_TAG, "========== APPTILE STARTUP PROCESS ==========")
 
-                val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
-                if (!trackerFile.exists()) {
-                    if (!listOf(
-                            copyAssetToDocuments(
-                                context, APP_CONFIG_FILE_NAME, APP_CONFIG_FILE_NAME
-                            ), copyAssetToDocuments(
-                                context, BUNDLE_TRACKER_FILE_NAME, BUNDLE_TRACKER_FILE_NAME
-                            )
-                        ).all { it }
-                    ) {
-                        Log.e(APPTILE_LOG_TAG, "Failed to copy initial assets.")
-                        // Return false, null URL if asset copy fails
-                        return@withContext Pair(updateRequired, updateUrl)
-                    }
-                }
+        copyBundledAssetsToDocuments(context)
 
-                // Capture the result of checkForOTA
-                otaResult = checkForOTA(appId, context)
-
-            } catch (e: Exception) {
-                Log.e(APPTILE_LOG_TAG, "Error starting app process: ${e.message}", e)
-                // Return false, null URL in case of error during startup process
-                otaResult = Pair(updateRequired, updateUrl)
-            }
-            return@withContext otaResult // Return the Pair result
+        val forceUpdateResult = checkForForceUpdate(context)
+        if (forceUpdateResult.updateRequired) {
+            Log.w(APPTILE_LOG_TAG, "Force update required, redirecting to store")
+            onForceUpdate(forceUpdateResult.storeUrl)
+            return
         }
+
+        checkAndDownloadOTAUpdate(context)
+
+        Log.d(APPTILE_LOG_TAG, "Proceeding to app")
+        onProceed()
+    }
 }
