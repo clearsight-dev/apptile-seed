@@ -1,5 +1,7 @@
 require 'json'
 
+project 'apptileSeed.xcodeproj'
+
 # Load config early to use for conditional setup
 apptile_config_path_early = File.join(__dir__, '../apptile.config.json')
 apptile_config_early = JSON.parse(File.read(apptile_config_path_early))
