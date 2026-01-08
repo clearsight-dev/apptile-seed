@@ -11,7 +11,6 @@ import {
 } from 'apptile-core';
 import LogRocket from '@logrocket/react-native';
 
-import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
 import BuildInfo from './components/BuildInfo';
 const {RNApptile} = NativeModules;
@@ -19,7 +18,6 @@ const {RNApptile} = NativeModules;
 const apptileConfig = require('./apptile.config.json');
 export type ScreenParams = {
   NocodeRoot: undefined;
-  NativeUtils: {appId: string};
   AdminPage: {appId: string};
   BuildInfo: undefined;
 };
@@ -122,12 +120,6 @@ function App(): React.JSX.Element {
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="NativeUtils"
-          component={UpdateModal}
-          options={{headerShown: true}}
-          initialParams={{appId: status.appId}}
-        />
-        <Stack.Screen
           name="AdminPage"
           component={AdminPage}
           options={{headerShown: true}}
@@ -144,7 +136,7 @@ function App(): React.JSX.Element {
 
   return (
     <ApptileWrapper
-      noNavigatePaths={['NativeUtils', 'AdminPage', 'BuildInfo']}
+      noNavigatePaths={['AdminPage', 'BuildInfo']}
       onNavigationEvent={ev => {
         console.log('handle navigation event', ev);
         apptileNavigationRef.current.navigate(ev.screenName, {

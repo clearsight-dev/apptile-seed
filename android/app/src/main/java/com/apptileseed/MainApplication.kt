@@ -15,6 +15,7 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
+import java.io.File
 
 
 class MainApplication : Application(), ReactApplication {
@@ -33,6 +34,17 @@ class MainApplication : Application(), ReactApplication {
 
         override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
         override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
+
+        override fun getJSBundleFile(): String? {
+            val otaBundle = File(filesDir, "bundles/index.android.bundle")
+            return if (otaBundle.exists() && otaBundle.length() > 0) {
+                Log.d(APPTILE_LOG_TAG, "Loading OTA bundle from: ${otaBundle.absolutePath}")
+                otaBundle.absolutePath
+            } else {
+                Log.d(APPTILE_LOG_TAG, "Loading bundled assets bundle")
+                null
+            }
+        }
     }
 
     override val reactHost: ReactHost

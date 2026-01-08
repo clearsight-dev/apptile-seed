@@ -2,14 +2,47 @@ package com.apptileseed
 
 import android.app.ActivityOptions
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.apptileseed.src.actions.Actions
+import kotlinx.coroutines.launch
 
 class LauncherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SplashOverlayManager.showOverlay(this)
-        startMainActivity()
+
+        lifecycleScope.launch {
+            Actions.startApptileAppProcess(
+                context = this@LauncherActivity,
+                onForceUpdate = { storeUrl -> showForceUpdateDialog(storeUrl) },
+                onProceed = { startMainActivity() }
+            )
+        }
+    }
+
+    private fun showForceUpdateDialog(storeUrl: String?) {
+        AlertDialog.Builder(this)
+            .setTitle("Update Required")
+            .setMessage("A new version of this app is available. Please update to continue.")
+            .setCancelable(false)
+            .setPositiveButton("Update") { _, _ ->
+                openPlayStore(storeUrl)
+            }
+            .show()
+    }
+
+    private fun openPlayStore(storeUrl: String?) {
+        val url = storeUrl ?: "https://play.google.com/store/apps/details?id=${packageName}"
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: Exception) {
+            // Fallback if Play Store not available
+        }
+        finish()
     }
 
     private fun startMainActivity() {
