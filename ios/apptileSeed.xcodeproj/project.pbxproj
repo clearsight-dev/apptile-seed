@@ -14,6 +14,11 @@
 		0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */; };
 		0574CFCC2E4353A800B6D888 /* ActionsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */; };
 		0574CFCE2E4353D600B6D888 /* RestartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCD2E4353D600B6D888 /* RestartHandler.swift */; };
+		AA0001012F00000100000001 /* OTAActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001002F00000100000001 /* OTAActions.swift */; };
+		AA0001032F00000100000002 /* OTAErrorCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001022F00000100000002 /* OTAErrorCodes.swift */; };
+		AA0001052F00000100000003 /* OTAManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001042F00000100000003 /* OTAManager.swift */; };
+		AA0001072F00000100000004 /* OTAManagerBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001062F00000100000004 /* OTAManagerBridge.m */; };
+		AA0001092F00000100000005 /* OTAToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001082F00000100000005 /* OTAToast.swift */; };
 		0574CFD02E4353FF00B6D888 /* ApiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCF2E4353FF00B6D888 /* ApiManager.swift */; };
 		0574CFD52E43545800B6D888 /* CrashHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD42E43545800B6D888 /* CrashHandler.m */; };
 		0574CFD72E43547A00B6D888 /* StartupHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD62E43547A00B6D888 /* StartupHandler.m */; };
@@ -108,6 +113,11 @@
 		0574CFD92E43550900B6D888 /* AppUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUtils.swift; sourceTree = "<group>"; };
 		0574CFDB2E43552400B6D888 /* BundleTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleTracker.swift; sourceTree = "<group>"; };
 		0574CFDD2E43553700B6D888 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		AA0001002F00000100000001 /* OTAActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAActions.swift; sourceTree = "<group>"; };
+		AA0001022F00000100000002 /* OTAErrorCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAErrorCodes.swift; sourceTree = "<group>"; };
+		AA0001042F00000100000003 /* OTAManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAManager.swift; sourceTree = "<group>"; };
+		AA0001062F00000100000004 /* OTAManagerBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OTAManagerBridge.m; sourceTree = "<group>"; };
+		AA0001082F00000100000005 /* OTAToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAToast.swift; sourceTree = "<group>"; };
 		057DB15E2D5B3B1F0058398E /* NotificationContentExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationContentExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		057DB1602D5B3B1F0058398E /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 		057DB67B2D60965900CD76F4 /* RNApptile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RNApptile.m; path = apptileSeed/RNApptile.m; sourceTree = "<group>"; };
@@ -234,6 +244,7 @@
 				0574CFC72E43536800B6D888 /* handlers */,
 				0574CFC62E43534F00B6D888 /* apis */,
 				0574CFC52E43534400B6D888 /* actions */,
+				AA00010A2F00000100000006 /* ota */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -246,6 +257,18 @@
 				0574CFCD2E4353D600B6D888 /* RestartHandler.swift */,
 			);
 			path = actions;
+			sourceTree = "<group>";
+		};
+		AA00010A2F00000100000006 /* ota */ = {
+			isa = PBXGroup;
+			children = (
+				AA0001002F00000100000001 /* OTAActions.swift */,
+				AA0001022F00000100000002 /* OTAErrorCodes.swift */,
+				AA0001042F00000100000003 /* OTAManager.swift */,
+				AA0001062F00000100000004 /* OTAManagerBridge.m */,
+				AA0001082F00000100000005 /* OTAToast.swift */,
+			);
+			path = ota;
 			sourceTree = "<group>";
 		};
 		0574CFC62E43534F00B6D888 /* apis */ = {
@@ -765,6 +788,11 @@
 				0574CFDE2E43553700B6D888 /* Logger.swift in Sources */,
 				0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */,
 				0574CFDC2E43552400B6D888 /* BundleTracker.swift in Sources */,
+				AA0001012F00000100000001 /* OTAActions.swift in Sources */,
+				AA0001032F00000100000002 /* OTAErrorCodes.swift in Sources */,
+				AA0001052F00000100000003 /* OTAManager.swift in Sources */,
+				AA0001072F00000100000004 /* OTAManagerBridge.m in Sources */,
+				AA0001092F00000100000005 /* OTAToast.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
