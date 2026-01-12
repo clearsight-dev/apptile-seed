@@ -7,6 +7,7 @@ import {
   ApptileWrapper,
   ApptileAppRoot,
   useStartApptile,
+  SentryHelper,
 } from 'apptile-core';
 import LogRocket from '@logrocket/react-native';
 
@@ -55,6 +56,7 @@ function App(): React.JSX.Element {
   const splashSource = getSplashSource();
 
   useEffect(() => {
+    SentryHelper.init();
     if (apptileConfig?.feature_flags?.ENABLE_LOGROCKET) {
       LogRocket.init(
         apptileConfig?.integrations?.logrocket?.id ||
