@@ -429,97 +429,113 @@ target 'apptileSeed' do
       end
     end
 
-    script_path = "./update_versions.rb"
-    if File.exist?(script_path)
-      File.chmod(0755, script_path) unless File.executable?(script_path)
-      system(script_path)
-    else
-      puts "Warning: update_versions.rb script not found at #{script_path}"
-    end
-
-    # NEW SECTION: Set preprocessor definitions in main app target
+    # CRITICAL: Update the user project through the installer's project reference
+    # This ensures we modify the same in-memory project that CocoaPods will save
     puts "\n" + "=" * 80
-    puts "Setting preprocessor definitions in main app target"
+    puts "Updating main app project (bundle IDs, versions, and preprocessor definitions)"
     puts "=" * 80
-    
-    main_project_path = File.join(__dir__, 'apptileSeed.xcodeproj')
-    if File.exist?(main_project_path)
-      begin
-        main_project = Xcodeproj::Project.open(main_project_path)
-        
-        main_project.targets.each do |target|
-          # Update all your targets (main app and extensions)
-          if ['apptileSeed', 'ImageNotification', 'NotificationContentExtension'].include?(target.name)
-            puts "Processing target: #{target.name}"
-            
-            target.build_configurations.each do |config|
-              puts "  Configuration: #{config.name}"
-              
-              # Get existing definitions
-              definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
-              
-              if definitions.nil?
-                definitions = ['$(inherited)']
-              elsif definitions.is_a?(String)
-                definitions = [definitions]
-              else
-                definitions = definitions.dup
-              end
-              
-              # Ensure $(inherited) is first
-              definitions.delete('$(inherited)')
-              definitions.unshift('$(inherited)')
-              
-              # Remove old flags first
-              FLAGS.each do |flag|
-                flag_def = "#{flag}=1"
-                definitions.delete(flag_def)
-              end
-              
-              # Add enabled feature flags
-              FLAGS.each do |flag|
-                if feature_flags[flag]
-                  flag_def = "#{flag}=1"
-                  definitions << flag_def
-                  puts "    ✅ Added #{flag_def}"
-                end
-              end
-              
-              config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
 
-              # Update PRODUCT_BUNDLE_IDENTIFIER based on target
-              target_bundle_id = case target.name
-              when 'apptileSeed'
-                bundle_id
-              when 'ImageNotification'
-                "#{bundle_id}.ImageNotification"
-              when 'NotificationContentExtension'
-                "#{bundle_id}.NotificationContentExtension"
-              else
-                bundle_id
-              end
+    # Get the user project from the installer
+    user_project = installer.aggregate_targets[0].user_project
 
-              current_bundle_id = config.build_settings['PRODUCT_BUNDLE_IDENTIFIER']
-              if current_bundle_id != target_bundle_id
-                config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = target_bundle_id
-                puts "    📦 Updated PRODUCT_BUNDLE_IDENTIFIER: #{current_bundle_id} → #{target_bundle_id}"
-              else
-                puts "    ✓ PRODUCT_BUNDLE_IDENTIFIER already correct: #{target_bundle_id}"
-              end
+    user_project.targets.each do |target|
+      # Update all your targets (main app and extensions)
+      if ['apptileSeed', 'ImageNotification', 'NotificationContentExtension'].include?(target.name)
+        puts "Processing target: #{target.name}"
+
+        target.build_configurations.each do |config|
+          puts "  Configuration: #{config.name}"
+
+          # Get existing definitions
+          definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
+
+          if definitions.nil?
+            definitions = ['$(inherited)']
+          elsif definitions.is_a?(String)
+            definitions = [definitions]
+          else
+            definitions = definitions.dup
+          end
+
+          # Ensure $(inherited) is first
+          definitions.delete('$(inherited)')
+          definitions.unshift('$(inherited)')
+
+          # Remove old flags first
+          FLAGS.each do |flag|
+            flag_def = "#{flag}=1"
+            definitions.delete(flag_def)
+          end
+
+          # Add enabled feature flags
+          FLAGS.each do |flag|
+            if feature_flags[flag]
+              flag_def = "#{flag}=1"
+              definitions << flag_def
+              puts "    ✅ Added #{flag_def}"
             end
           end
-        end
 
-        main_project.save
-        puts "✅ Main project preprocessor definitions and bundle IDs updated successfully"
-      rescue => e
-        puts "❌ Error updating main project: #{e.message}"
-        puts e.backtrace.join("\n")
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
+
+          # Update PRODUCT_BUNDLE_IDENTIFIER based on target
+          target_bundle_id = case target.name
+          when 'apptileSeed'
+            bundle_id
+          when 'ImageNotification'
+            "#{bundle_id}.ImageNotification"
+          when 'NotificationContentExtension'
+            "#{bundle_id}.NotificationContentExtension"
+          else
+            bundle_id
+          end
+
+          current_bundle_id = config.build_settings['PRODUCT_BUNDLE_IDENTIFIER']
+          if current_bundle_id != target_bundle_id
+            config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = target_bundle_id
+            puts "    📦 Updated PRODUCT_BUNDLE_IDENTIFIER: #{current_bundle_id} → #{target_bundle_id}"
+          else
+            puts "    ✓ PRODUCT_BUNDLE_IDENTIFIER already correct: #{target_bundle_id}"
+          end
+
+          # Update MARKETING_VERSION and CURRENT_PROJECT_VERSION
+          current_marketing_version = config.build_settings['MARKETING_VERSION']
+          current_project_version = config.build_settings['CURRENT_PROJECT_VERSION']
+
+          if current_marketing_version != app_version
+            config.build_settings['MARKETING_VERSION'] = app_version
+            puts "    📱 Updated MARKETING_VERSION: #{current_marketing_version} → #{app_version}"
+          else
+            puts "    ✓ MARKETING_VERSION already correct: #{app_version}"
+          end
+
+          if current_project_version != build_number
+            config.build_settings['CURRENT_PROJECT_VERSION'] = build_number
+            puts "    🔢 Updated CURRENT_PROJECT_VERSION: #{current_project_version} → #{build_number}"
+          else
+            puts "    ✓ CURRENT_PROJECT_VERSION already correct: #{build_number}"
+          end
+        end
       end
-    else
-      puts "⚠️  Could not find main project at #{main_project_path}"
     end
-    
+
+    # Save the user project - CocoaPods will handle the final save
+    user_project.save
+    puts "✅ Main project updated successfully"
+
+    # Also update Info.plist files with version and build number
+    puts "\n📝 Updating Info.plist files with version and build number"
+    ["apptileSeed/Info.plist", "ImageNotification/Info.plist", "NotificationContentExtension/Info.plist"].each do |plist_path|
+      full_plist_path = File.join(__dir__, plist_path)
+      if File.exist?(full_plist_path)
+        system("plutil -replace CFBundleVersion -string #{build_number} #{full_plist_path}")
+        system("plutil -replace CFBundleShortVersionString -string #{app_version} #{full_plist_path}")
+        puts "  ✅ Updated #{plist_path}"
+      else
+        puts "  ⚠️  #{plist_path} not found"
+      end
+    end
+
     puts "=" * 80
   end
 end
