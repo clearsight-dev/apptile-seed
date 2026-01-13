@@ -18,6 +18,16 @@ configurations.all {
  */
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
+// Apply Sentry Gradle integration for automatic source map upload (only in PRODUCTION)
+def buildEnvironment = System.getenv("BUILD_ENVIRONMENT") ?: "DEVELOPMENT"
+if (buildEnvironment == "PRODUCTION") {
+    logger.lifecycle("BUILD_ENVIRONMENT is PRODUCTION - Enabling Sentry source map upload")
+    apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+} else {
+    logger.lifecycle("BUILD_ENVIRONMENT is ${buildEnvironment} - Skipping Sentry source map upload")
+}
+
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
@@ -65,6 +75,7 @@ react {
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
+
 
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
