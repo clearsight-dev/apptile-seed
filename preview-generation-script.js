@@ -5,6 +5,8 @@ const path = require('path');
 const archiver = require('archiver');
 const axios = require('axios');
 const FormData = require('form-data');
+const dotenv = require('dotenv');
+dotenv.config();
 
 // Helper function to execute commands with streaming output
 const executeCommand = (command, args = [], options = {}) => {
@@ -77,6 +79,9 @@ const branchName = previewConfig.branchName;
 const publishedCommitId = previewConfig.publishedCommitId;
 const isStaging = previewConfig.isStaging;
 const message = previewConfig.message || 'no message';
+
+let SDK_SHA = '';
+let GIT_SHA = '';
 
 console.log(
   'Received arguments:',
