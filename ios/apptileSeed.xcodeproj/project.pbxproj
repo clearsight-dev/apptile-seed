@@ -586,7 +586,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n# Enable source maps for Sentry\nexport SOURCEMAP_FILE=\"$CONFIGURATION_BUILD_DIR/main.jsbundle.map\"\necho \"SOURCEMAP_FILE: $SOURCEMAP_FILE\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n\n# Upload source maps to Sentry (Release builds only)\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  echo \"Uploading source maps to Sentry...\"\n  \n  # Source environment to get NODE_BINARY and SENTRY_AUTH_TOKEN\n  # Source .xcode.env first (defaults), then .xcode.env.local (overrides)\n  if [ -f \"$SRCROOT/.xcode.env\" ]; then\n    . \"$SRCROOT/.xcode.env\"\n  fi\n  if [ -f \"$SRCROOT/.xcode.env.local\" ]; then\n    . \"$SRCROOT/.xcode.env.local\"\n  fi\n  \n  # Derive paths from NODE_BINARY (same directory contains node and sentry-cli)\n  if [ -n \"$NODE_BINARY\" ]; then\n    NODE_DIR=$(dirname \"$NODE_BINARY\")\n    export PATH=\"$NODE_DIR:$PATH\"\n    SENTRY_CLI=\"$NODE_DIR/sentry-cli\"\n    echo \"NODE_DIR: $NODE_DIR\"\n    echo \"SENTRY_CLI: $SENTRY_CLI\"\n  else\n    echo \"Warning: NODE_BINARY not set in .xcode.env.local\"\n    exit 0\n  fi\n  \n  # Verify sentry-cli exists\n  if [ ! -f \"$SENTRY_CLI\" ]; then\n    echo \"Warning: sentry-cli not found at $SENTRY_CLI\"\n    exit 0\n  fi\n  \n  export SENTRY_ORG=\"apptile-qv\"\n  export SENTRY_PROJECT=\"apptile-core-editor\"\n  \n  SENTRY_RELEASE=\"$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$CURRENT_PROJECT_VERSION\"\n  SENTRY_DIST=\"$CURRENT_PROJECT_VERSION\"\n  BUNDLE_FILE=\"$CONFIGURATION_BUILD_DIR/main.jsbundle\"\n  \n  if [ -f \"$BUNDLE_FILE\" ] && [ -f \"$SOURCEMAP_FILE\" ]; then\n    echo \"Uploading sourcemaps...\"\n    echo \"Release: $SENTRY_RELEASE, Dist: $SENTRY_DIST\"\n    \n    \"$SENTRY_CLI\" sourcemaps upload \\\n      --release \"$SENTRY_RELEASE\" \\\n      --dist \"$SENTRY_DIST\" \\\n      \"$BUNDLE_FILE\" \"$SOURCEMAP_FILE\" || echo \"Warning: Sentry upload failed\"\n      \n    echo \"Source maps uploaded to Sentry\"\n  else\n    echo \"Warning: Bundle or sourcemap file not found\"\n    echo \"BUNDLE_FILE: $BUNDLE_FILE\"\n    echo \"SOURCEMAP_FILE: $SOURCEMAP_FILE\"\n  fi\nfi\n";
+			shellScript = "#!/bin/sh\nset -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n# Enable source maps for Sentry\nexport SOURCEMAP_FILE=\"$CONFIGURATION_BUILD_DIR/main.jsbundle.map\"\necho \"SOURCEMAP_FILE: $SOURCEMAP_FILE\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n\n# Upload source maps to Sentry (Release builds only)\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  # Source environment to get NODE_BINARY and SENTRY_AUTH_TOKEN\n  # Source .xcode.env first (defaults), then .xcode.env.local (overrides)\n  if [ -f \"$SRCROOT/.xcode.env\" ]; then\n    . \"$SRCROOT/.xcode.env\"\n  fi\n  if [ -f \"$SRCROOT/.xcode.env.local\" ]; then\n    . \"$SRCROOT/.xcode.env.local\"\n  fi\n  \n  # Check NODE_BINARY\n  if [ -z \"$NODE_BINARY\" ]; then\n    echo \"Warning: NODE_BINARY not set in .xcode.env.local\"\n    exit 0\n  fi\n  \n  # Read ENABLE_SOURCE_MAP from apptile.config.json\n  ENABLE_SOURCE_MAP=$(\"$NODE_BINARY\" -e \"console.log(require('$SRCROOT/../apptile.config.json').feature_flags?.ENABLE_SOURCE_MAP ?? false)\")\n  echo \"ENABLE_SOURCE_MAP: $ENABLE_SOURCE_MAP\"\n  \n  if [ \"$ENABLE_SOURCE_MAP\" != \"true\" ]; then\n    echo \"ENABLE_SOURCE_MAP is false - Skipping Sentry source map upload\"\n    exit 0\n  fi\n  \n  echo \"Uploading source maps to Sentry...\"\n  \n  # Derive paths from NODE_BINARY (same directory contains node and sentry-cli)\n  NODE_DIR=$(dirname \"$NODE_BINARY\")\n  export PATH=\"$NODE_DIR:$PATH\"\n  SENTRY_CLI=\"$NODE_DIR/sentry-cli\"\n  echo \"NODE_DIR: $NODE_DIR\"\n  echo \"SENTRY_CLI: $SENTRY_CLI\"\n  \n  # Verify sentry-cli exists\n  if [ ! -f \"$SENTRY_CLI\" ]; then\n    echo \"Warning: sentry-cli not found at $SENTRY_CLI\"\n    exit 0\n  fi\n  \n  export SENTRY_ORG=\"apptile-qv\"\n  export SENTRY_PROJECT=\"apptile-core-editor\"\n  \n  SENTRY_RELEASE=\"$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$CURRENT_PROJECT_VERSION\"\n  SENTRY_DIST=\"$CURRENT_PROJECT_VERSION\"\n  BUNDLE_FILE=\"$CONFIGURATION_BUILD_DIR/main.jsbundle\"\n  \n  if [ -f \"$BUNDLE_FILE\" ] && [ -f \"$SOURCEMAP_FILE\" ]; then\n    echo \"Uploading sourcemaps...\"\n    echo \"Release: $SENTRY_RELEASE, Dist: $SENTRY_DIST\"\n    \n    \"$SENTRY_CLI\" sourcemaps upload \\\n      --release \"$SENTRY_RELEASE\" \\\n      --dist \"$SENTRY_DIST\" \\\n      \"$BUNDLE_FILE\" \"$SOURCEMAP_FILE\" || echo \"Warning: Sentry upload failed\"\n      \n    echo \"Source maps uploaded to Sentry\"\n  else\n    echo \"Warning: Bundle or sourcemap file not found\"\n    echo \"BUNDLE_FILE: $BUNDLE_FILE\"\n    echo \"SOURCEMAP_FILE: $SOURCEMAP_FILE\"\n  fi\nfi\n";
 		};
 		05A846DA2CF33FE300784D02 /* Apptile Setup */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -797,15 +797,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = NotificationContentExtension/NotificationContentExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationContentExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationContentExtension;
@@ -820,14 +817,14 @@
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.NotificationContentExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapcart.DB1rpFTEQG.NotificationContentExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -845,15 +842,12 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationContentExtension/NotificationContentExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationContentExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationContentExtension;
@@ -867,13 +861,13 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.NotificationContentExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapcart.DB1rpFTEQG.NotificationContentExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -890,15 +884,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ImageNotification/ImageNotification.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ImageNotification/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ImageNotification;
@@ -913,11 +904,11 @@
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.ImageNotification;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapcart.DB1rpFTEQG.ImageNotification;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -935,15 +926,12 @@
 				CODE_SIGN_ENTITLEMENTS = ImageNotification/ImageNotification.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ImageNotification/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ImageNotification;
@@ -957,11 +945,11 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.ImageNotification;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapcart.DB1rpFTEQG.ImageNotification;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -974,8 +962,8 @@
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -985,7 +973,6 @@
 					"PB_FIELD_32BIT=1",
 					"PB_NO_PACKED_STRUCTS=1",
 					"PB_ENABLE_MALLOC=1",
-					"ENABLE_FIREBASE_ANALYTICS=1",
 				);
 				INFOPLIST_FILE = apptileSeed/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -999,7 +986,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapcart.DB1rpFTEQG;
 				PRODUCT_NAME = apptileSeed;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1009,7 +996,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "src/actions/apptileSeed-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -1023,8 +1010,8 @@
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"COCOAPODS=1",
@@ -1032,7 +1019,6 @@
 					"PB_FIELD_32BIT=1",
 					"PB_NO_PACKED_STRUCTS=1",
 					"PB_ENABLE_MALLOC=1",
-					"ENABLE_FIREBASE_ANALYTICS=1",
 				);
 				INFOPLIST_FILE = apptileSeed/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -1046,7 +1032,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapcart.DB1rpFTEQG;
 				PRODUCT_NAME = apptileSeed;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1055,7 +1041,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "src/actions/apptileSeed-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -1091,7 +1077,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
@@ -1180,7 +1166,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = PJU6GE9E2N;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
