@@ -478,6 +478,26 @@ target 'apptileSeed' do
 
           config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
 
+          # Handle SWIFT_ACTIVE_COMPILATION_CONDITIONS for Klaviyo Swift files
+          swift_conditions = config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']
+
+          if swift_conditions.nil?
+            swift_conditions = config.name == 'Debug' ? ['DEBUG'] : []
+          elsif swift_conditions.is_a?(String)
+            swift_conditions = swift_conditions.split(' ')
+          else
+            swift_conditions = swift_conditions.dup
+          end
+
+          # Handle ENABLE_KLAVIYO for Swift
+          swift_conditions.delete('ENABLE_KLAVIYO')
+          if feature_flags['ENABLE_KLAVIYO']
+            swift_conditions << 'ENABLE_KLAVIYO'
+            puts
+          end
+
+          config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = swift_conditions.join(' ')
+
           # Update PRODUCT_BUNDLE_IDENTIFIER based on target
           target_bundle_id = case target.name
           when 'apptileSeed'
