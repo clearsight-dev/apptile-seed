@@ -1126,8 +1126,13 @@ async function main() {
   }
 
   // Add GIF_SPLASH_DURATION from feature_flags
-  const gifSplashDuration = apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
-  upsertInStringsXML(stringsObj, 'GIF_SPLASH_DURATION', String(gifSplashDuration));
+  const gifSplashDuration =
+    apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
+  upsertInStringsXML(
+    stringsObj,
+    'GIF_SPLASH_DURATION',
+    String(gifSplashDuration),
+  );
 
   // Handle HTTP deep links for app_host and app_host_2
   if (apptileConfig.app_host || apptileConfig.app_host_2) {
@@ -1297,7 +1302,9 @@ async function main() {
 
   const SEGMENT_LOG_PREFIX = '[Segment][Android]';
   if (isSegmentEnabled) {
-    console.log(`${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`);
+    console.log(
+      `${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`,
+    );
     if (
       apptileConfig.apptile_analytics_segment_key ||
       process.env.apptile_analytics_segment_key
@@ -1311,8 +1318,14 @@ async function main() {
         segment_analyticsKey,
       );
     } else {
-      console.log(chalk.red(`${SEGMENT_LOG_PREFIX} Segment is enabled but its key is missing`));
-      throw new Error('apptile_analytics_segment_key is not found in apptileConfig');
+      console.log(
+        chalk.red(
+          `${SEGMENT_LOG_PREFIX} Segment is enabled but its key is missing`,
+        ),
+      );
+      throw new Error(
+        'apptile_analytics_segment_key is not found in apptileConfig',
+      );
     }
   } else {
     removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
@@ -1388,54 +1401,72 @@ async function main() {
     JSON.stringify(parsedReactNativeConfig),
     'thiis is the react-native.config.js',
   );
-  // Update google-services.json
-  const googleServicesPath = path.resolve(
-    __dirname,
-    'android',
-    'app',
-    'google-services.json',
-  );
-  let downloadedGoogleServices = false;
-  for (let i = 0; i < apptileConfig.assets.length; ++i) {
-    try {
-      const asset = apptileConfig.assets[i];
-      if (asset.assetClass === 'androidFirebaseServiceFile') {
-        await downloadFile(asset.url, googleServicesPath);
-        downloadedGoogleServices = true;
-        break;
+  // Update google-services.json only if ENABLE_FIREBASE_ANALYTICS is true
+  const enableFirebaseAnalytics =
+    apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+  if (enableFirebaseAnalytics) {
+    const googleServicesPath = path.resolve(
+      __dirname,
+      'android',
+      'app',
+      'google-services.json',
+    );
+    let downloadedGoogleServices = false;
+    for (let i = 0; i < apptileConfig.assets.length; ++i) {
+      try {
+        const asset = apptileConfig.assets[i];
+        if (asset.assetClass === 'androidFirebaseServiceFile') {
+          await downloadFile(asset.url, googleServicesPath);
+          downloadedGoogleServices = true;
+          break;
+        }
+      } catch (err) {
+        console.error('failed to download google-services.json');
       }
-    } catch (err) {
-      console.error('failed to download google-services.json');
     }
-  }
 
-  if (!downloadedGoogleServices) {
+    if (!downloadedGoogleServices) {
+      console.error(
+        chalk.red(
+          '❌ Failed to download google-services.json. ENABLE_FIREBASE_ANALYTICS is true but no Firebase config file found in assets.',
+        ),
+      );
+    }
+  } else {
     console.log(
-      chalk.red(
-        'Failed to download google-services.json. Will try to use the template',
+      chalk.yellow(
+        '⚠️ ENABLE_FIREBASE_ANALYTICS is false - Skipping google-services.json download',
       ),
     );
-    const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
-    const gsParsed = JSON.parse(gsRaw);
-    gsParsed.client[0].client_info.android_client_info.package_name =
-      apptileConfig.android?.bundle_id;
-    await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
   }
 
   // Download Android signing keystore
   const LOG_PREFIX_SIGNING = '[Signing][Android]';
-  const keystorePath = path.resolve(__dirname, 'android', 'app', 'release.keystore');
+  const keystorePath = path.resolve(
+    __dirname,
+    'android',
+    'app',
+    'release.keystore',
+  );
   for (let i = 0; i < apptileConfig.assets.length; ++i) {
     try {
       const asset = apptileConfig.assets[i];
       if (asset.assetClass === 'androidStoreFile') {
         console.log(`${LOG_PREFIX_SIGNING} Downloading keystore file...`);
         await downloadFile(asset.url, keystorePath);
-        console.log(chalk.green(`${LOG_PREFIX_SIGNING} Keystore downloaded to ${keystorePath}`));
+        console.log(
+          chalk.green(
+            `${LOG_PREFIX_SIGNING} Keystore downloaded to ${keystorePath}`,
+          ),
+        );
         break;
       }
     } catch (err) {
-      console.error(chalk.red(`${LOG_PREFIX_SIGNING} Failed to download keystore: ${err.message}`));
+      console.error(
+        chalk.red(
+          `${LOG_PREFIX_SIGNING} Failed to download keystore: ${err.message}`,
+        ),
+      );
     }
   }
 }

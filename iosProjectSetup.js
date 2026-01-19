@@ -781,7 +781,8 @@ async function main() {
     infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`;
 
     // Add GIF_SPLASH_DURATION from feature_flags
-    const gifSplashDuration = apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
+    const gifSplashDuration =
+      apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
     infoPlist.GIF_SPLASH_DURATION = String(gifSplashDuration);
 
     const bundle_id =
@@ -971,7 +972,7 @@ async function main() {
     // For klaviyo notifications
     const isKlaviyoEnabled = apptileConfig.feature_flags?.ENABLE_KLAVIYO;
     logFeature('Klaviyo', isKlaviyoEnabled);
-    
+
     if (isKlaviyoEnabled) {
       await addKlaviyo(
         infoPlist,
@@ -1050,12 +1051,15 @@ async function main() {
     }
 
     // For Segment Analytics
-    const isSegmentEnabled = apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS;
+    const isSegmentEnabled =
+      apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS;
     logFeature('Segment', isSegmentEnabled);
     const SEGMENT_LOG_PREFIX = '[Segment][iOS]';
 
     if (isSegmentEnabled) {
-      console.log(`${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`);
+      console.log(
+        `${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`,
+      );
       const segmentKey =
         apptileConfig.apptile_analytics_segment_key ||
         process.env.apptile_analytics_segment_key;
@@ -1069,7 +1073,9 @@ async function main() {
       }
       console.log(`${SEGMENT_LOG_PREFIX} Adding Segment key to Info.plist`);
       infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
-      console.log(`${SEGMENT_LOG_PREFIX} Segment Analytics integration complete`);
+      console.log(
+        `${SEGMENT_LOG_PREFIX} Segment Analytics integration complete`,
+      );
     } else {
       delete infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY;
     }
@@ -1087,11 +1093,12 @@ async function main() {
     }
 
     // For iPad Support
-    const isIpadSupportEnabled = apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT;
+    const isIpadSupportEnabled =
+      apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT;
     logFeature('iPad Support', isIpadSupportEnabled);
 
     if (isIpadSupportEnabled) {
-      await addIpadSupport(infoPlist)
+      await addIpadSupport(infoPlist);
     } else {
       await removeIpadSupport(infoPlist);
     }
@@ -1214,34 +1221,44 @@ async function main() {
       JSON.stringify(extraModules.current, null, 2),
     );
 
-    // Download GoogleService-Info.plist
-    const googleServiceInfoPath = path.resolve(
-      __dirname,
-      'ios',
-      'GoogleService-Info.plist',
-    );
-    let downloadedGoogleServiceInfo = false;
-    for (let i = 0; i < apptileConfig.assets.length; ++i) {
-      try {
-        const asset = apptileConfig.assets[i];
-        if (asset.assetClass === 'iosFirebaseServiceFile') {
-          await downloadFile(asset.url, googleServiceInfoPath);
-          downloadedGoogleServiceInfo = true;
-          console.log('GoogleService-Info.plist downloaded successfully');
-          break;
+    // Download GoogleService-Info.plist only if ENABLE_FIREBASE_ANALYTICS is true
+    const enableFirebaseAnalytics =
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+    if (enableFirebaseAnalytics) {
+      const googleServiceInfoPath = path.resolve(
+        __dirname,
+        'ios',
+        'GoogleService-Info.plist',
+      );
+      let downloadedGoogleServiceInfo = false;
+      for (let i = 0; i < apptileConfig.assets.length; ++i) {
+        try {
+          const asset = apptileConfig.assets[i];
+          if (asset.assetClass === 'iosFirebaseServiceFile') {
+            await downloadFile(asset.url, googleServiceInfoPath);
+            downloadedGoogleServiceInfo = true;
+            console.log('GoogleService-Info.plist downloaded successfully');
+            break;
+          }
+        } catch (err) {
+          console.error(
+            'Failed to download GoogleService-Info.plist:',
+            err.message,
+          );
         }
-      } catch (err) {
+      }
+
+      if (!downloadedGoogleServiceInfo) {
         console.error(
-          'Failed to download GoogleService-Info.plist:',
-          err.message,
+          chalk.red(
+            '❌ Failed to download GoogleService-Info.plist. ENABLE_FIREBASE_ANALYTICS is true but no Firebase config file found in assets.',
+          ),
         );
       }
-    }
-
-    if (!downloadedGoogleServiceInfo) {
+    } else {
       console.log(
         chalk.yellow(
-          '⚠️ GoogleService-Info.plist not found in assets. Using existing file if available.',
+          '⚠️ ENABLE_FIREBASE_ANALYTICS is false - Skipping GoogleService-Info.plist download',
         ),
       );
     }
