@@ -1224,6 +1224,7 @@ async function main() {
     // Download GoogleService-Info.plist only if ENABLE_FIREBASE_ANALYTICS is true
     const enableFirebaseAnalytics =
       apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+    logFeature('Firebase Analytics', enableFirebaseAnalytics);
     if (enableFirebaseAnalytics) {
       const googleServiceInfoPath = path.resolve(
         __dirname,
@@ -1237,7 +1238,9 @@ async function main() {
           if (asset.assetClass === 'iosFirebaseServiceFile') {
             await downloadFile(asset.url, googleServiceInfoPath);
             downloadedGoogleServiceInfo = true;
-            console.log('GoogleService-Info.plist downloaded successfully');
+            console.log(
+              chalk.green('GoogleService-Info.plist downloaded successfully'),
+            );
             break;
           }
         } catch (err) {
@@ -1255,12 +1258,6 @@ async function main() {
           ),
         );
       }
-    } else {
-      console.log(
-        chalk.yellow(
-          '⚠️ ENABLE_FIREBASE_ANALYTICS is false - Skipping GoogleService-Info.plist download',
-        ),
-      );
     }
   } catch (err) {
     console.error('Uncaught exception in iosProjectSetup: ', err);

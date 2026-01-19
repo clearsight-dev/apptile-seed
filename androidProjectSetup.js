@@ -1404,6 +1404,7 @@ async function main() {
   // Update google-services.json only if ENABLE_FIREBASE_ANALYTICS is true
   const enableFirebaseAnalytics =
     apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+  logFeature('Firebase Analytics', enableFirebaseAnalytics);
   if (enableFirebaseAnalytics) {
     const googleServicesPath = path.resolve(
       __dirname,
@@ -1418,6 +1419,9 @@ async function main() {
         if (asset.assetClass === 'androidFirebaseServiceFile') {
           await downloadFile(asset.url, googleServicesPath);
           downloadedGoogleServices = true;
+          console.log(
+            chalk.green('google-services.json downloaded successfully'),
+          );
           break;
         }
       } catch (err) {
@@ -1432,12 +1436,6 @@ async function main() {
         ),
       );
     }
-  } else {
-    console.log(
-      chalk.yellow(
-        '⚠️ ENABLE_FIREBASE_ANALYTICS is false - Skipping google-services.json download',
-      ),
-    );
   }
 
   // Download Android signing keystore
