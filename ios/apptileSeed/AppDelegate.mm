@@ -34,6 +34,7 @@
 #if ENABLE_CLEVERTAP
 #import <CleverTap.h>
 #import <CleverTapReactManager.h>
+#import <UserNotifications/UserNotifications.h>
 #endif
 
 #if ENABLE_KLAVIYO
@@ -48,9 +49,17 @@
   [CrashHandler setupSignalHandlers];
 
 #if ENABLE_CLEVERTAP
+  // Enable CleverTap debug logging
+  [CleverTap setDebugLevel:CleverTapLogDebug];
+
   [CleverTap autoIntegrate];
   [[CleverTapReactManager sharedInstance]
       applicationDidLaunchWithOptions:launchOptions];
+
+  // Log CleverTap initialization info
+  NSLog(@"CleverTap: SDK initialized");
+  NSString *cleverTapID = [[CleverTap sharedInstance] profileGetCleverTapID];
+  NSLog(@"CleverTap: Initial Profile ID: %@", cleverTapID);
 #endif
   self.jsLoaded = NO;
   self.minDurationPassed = NO;
@@ -314,6 +323,74 @@
                    continueUserActivity:userActivity
                      restorationHandler:restorationHandler];
 }
+
+#if ENABLE_CLEVERTAP
+// Remote notification Registration callback methods for CleverTap
+- (void)application:(UIApplication *)application
+    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  // Convert device token to string for logging
+  const unsigned char *tokenBytes = (const unsigned char *)[deviceToken bytes];
+  NSMutableString *tokenString = [NSMutableString stringWithCapacity:deviceToken.length * 2];
+  for (NSUInteger i = 0; i < deviceToken.length; i++) {
+    [tokenString appendFormat:@"%02x", tokenBytes[i]];
+  }
+  NSLog(@"CleverTap: APNs Device Token: %@", tokenString);
+
+  // Set push token with CleverTap
+  [[CleverTap sharedInstance] setPushToken:deviceToken];
+
+  // Log CleverTap Profile ID
+  NSString *cleverTapID = [[CleverTap sharedInstance] profileGetCleverTapID];
+  NSLog(@"CleverTap: Profile CleverTap ID: %@", cleverTapID);
+}
+
+- (void)application:(UIApplication *)application
+    didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  NSLog(@"CleverTap: Failed to register for remote notifications: %@", error.localizedDescription);
+}
+
+// UserNotifications Framework Callback - Handle foreground notifications
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       willPresentNotification:(UNNotification *)notification
+         withCompletionHandler:
+             (void (^)(UNNotificationPresentationOptions options))
+                 completionHandler {
+  // Display notification with sound, banner, and badge
+  if (@available(iOS 14.0, *)) {
+    completionHandler(UNNotificationPresentationOptionSound |
+                      UNNotificationPresentationOptionList |
+                      UNNotificationPresentationOptionBanner |
+                      UNNotificationPresentationOptionBadge);
+  } else {
+    completionHandler(UNNotificationPresentationOptionSound |
+                      UNNotificationPresentationOptionAlert |
+                      UNNotificationPresentationOptionBadge);
+  }
+}
+
+// Handle notification tap/response
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+    didReceiveNotificationResponse:(UNNotificationResponse *)response
+             withCompletionHandler:(void (^)())completionHandler {
+  NSDictionary *userInfo = response.notification.request.content.userInfo;
+
+  // Handle the notification with CleverTap and open deep links
+  [CleverTap handlePushNotification:userInfo openDeepLinksInForeground:YES];
+
+  completionHandler();
+}
+
+// Handle background/silent notifications
+- (void)application:(UIApplication *)application
+    didReceiveRemoteNotification:(NSDictionary *)userInfo
+          fetchCompletionHandler:
+              (void (^)(UIBackgroundFetchResult))completionHandler {
+  // Handle push notification with CleverTap
+  [[CleverTap sharedInstance] handleNotificationWithData:userInfo];
+
+  completionHandler(UIBackgroundFetchResultNewData);
+}
+#endif
 
 #if ENABLE_MOENGAGE
 // Remote notification Registration callback methods only if
