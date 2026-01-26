@@ -417,6 +417,14 @@ target 'apptileSeed' do
         end
       end
 
+      # Add CoreLocation framework for CleverTap (required for location features)
+      if target.name == 'clevertap-react-native'
+        target.build_configurations.each do |config|
+          config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+          config.build_settings['OTHER_LDFLAGS'] << '-framework CoreLocation'
+        end
+      end
+
       # Ensure Zego view manager is not stripped in release builds
       if target.name == 'react-native-zego-express-engine'
         target.build_configurations.each do |config|
