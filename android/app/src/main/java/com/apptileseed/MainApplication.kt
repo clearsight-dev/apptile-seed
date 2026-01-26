@@ -86,6 +86,10 @@ class MainApplication : Application(), ReactApplication {
         get() = getDefaultReactHost(this.applicationContext, reactNativeHost)
 
     override fun onCreate() {
+        // Initialize CleverTap BEFORE super.onCreate() as per CleverTap docs
+        // ActivityLifecycleCallback.register() must be called before super.onCreate()
+        createCleverTapIntegration(this@MainApplication).initialize()
+
         super.onCreate()
         ApptileApiClient.init(this)
         BundleTrackerPrefs.init(this)
@@ -134,7 +138,6 @@ class MainApplication : Application(), ReactApplication {
             systemDefaultExceptionHandler?.uncaughtException(thread, throwable)
         }
 
-//        createCleverTapIntegration(this).initialize(intent);
         SoLoader.init(this, OpenSourceMergedSoMapping)
         // disable RTL
         val sharedI18nUtilInstance = I18nUtil.instance;

@@ -1,8 +1,7 @@
 package com.apptileseed
 
-import android.content.Context
-import android.content.Intent
+import android.app.Application
 
-fun createCleverTapIntegration(context: Context) {
-  return CleverTapIntegrationImpl(context);
+fun createCleverTapIntegration(context: Application): CleverTapIntegrationInterface {
+  return CleverTapIntegrationImpl(context)
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lint configuration file for the Android project.
+  This disables the NullSafeMutableLiveData lint check which has a bug
+  that causes build failures with the Kotlin/AGP version being used.
+  The check crashes on clevertap-react-native and potentially other packages.
+-->
+<lint>
+    <issue id="NullSafeMutableLiveData" severity="ignore" />
+</lint>
+

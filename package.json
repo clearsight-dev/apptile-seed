@@ -57,7 +57,7 @@
     "babel-plugin-module-resolver": "^4.1.0",
     "browser-image-compression": "2.0.2",
     "buffer": "^6.0.3",
-    "clevertap-react-native": "1.2.1",
+    "clevertap-react-native": "^3.8.1",
     "clsx": "1.2.1",
     "codemirror": "5.65.17",
     "coloring-palette": "1.0.0",
