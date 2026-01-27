@@ -36,4 +36,18 @@ allprojects {
     }
 }
 
+// Apply lint configuration to all subprojects (excluding root which is already evaluated)
+// This disables NullSafeMutableLiveData which has a bug with this Kotlin/AGP version
+subprojects {
+    afterEvaluate {
+        if (project.hasProperty('android')) {
+            project.android {
+                lint {
+                    lintConfig rootProject.file("lint.xml")
+                }
+            }
+        }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"
