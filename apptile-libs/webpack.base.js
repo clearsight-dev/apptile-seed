@@ -161,7 +161,7 @@ module.exports = ({ entryFile, outputDir, externals = [] }) => {
           use: {
             loader: "babel-loader",
             options: {
-              cacheDirectory: true,
+              cacheDirectory: false,
               cacheCompression: false,
               presets: ["module:@react-native/babel-preset"], //['module:@react-native/babel-preset', { enableBabelRuntime: false} ]]
             },
