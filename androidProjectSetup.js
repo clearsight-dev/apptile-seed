@@ -1338,7 +1338,7 @@ async function main() {
       it => it.forkName === (apptileConfig.fork_name || 'main'),
     )[0].publishedCommitId;
     const androidBundle = manifest.codeArtefacts.find(
-      it => it.type === 'android-bundle',
+      it => it.type === 'android-jsbundle',
     );
 
     if (publishedCommit) {
