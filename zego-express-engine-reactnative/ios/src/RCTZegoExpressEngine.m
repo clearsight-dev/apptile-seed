@@ -30,6 +30,7 @@ AVPictureInPictureSampleBufferPlaybackDelegate
 @property (nonatomic, strong) AVPictureInPictureController *pipViewController;
 @property (nonatomic, assign) BOOL isPipRestoring;
 @property (nonatomic, assign) BOOL isPipStopping;
+@property (nonatomic, strong) NSString *currentStreamID;
 
 @end
 
@@ -995,6 +996,7 @@ RCT_EXPORT_METHOD(startPlayingStream:(NSString *)streamID
         [self setupPipViewController];
     }
 
+    self.currentStreamID = streamID;
     [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID];
 
     // [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:canvas config:configObj];
@@ -1032,6 +1034,7 @@ RCT_EXPORT_METHOD(stopPlayingStream:(NSString *)streamID
         self.pipViewController = nil;
     }
     self.previewView = nil;
+    self.currentStreamID = nil;
 
     // Clear flags since we're fully stopping
     self.isPipStopping = NO;
@@ -3373,14 +3376,26 @@ restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void (^)(BOOL)
 }
 
 - (void)pictureInPictureControllerDidStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
-    NSLog(@"[PIP] >>> didStop ✓");
+    NSLog(@"[PIP] >>> didStop ✓ (isPipRestoring=%d)", self.isPipRestoring);
 
-    // Reattach the preview layer to the main view if available
-    if (self.previewLayer && self.previewView) {
-        NSLog(@"[PIP] didStop: reattaching previewLayer to main view");
-        [self.previewLayer removeFromSuperlayer];
-        [self transactDisplayLayer:self.previewLayer to:self.previewView.bounds];
-        [self.previewView.layer insertSublayer:self.previewLayer above:0];
+    if (self.isPipRestoring) {
+        // User tapped to return - reattach layer and keep stream playing
+        if (self.previewLayer && self.previewView) {
+            NSLog(@"[PIP] didStop: restoring - reattaching previewLayer to main view");
+            [self.previewLayer removeFromSuperlayer];
+            [self transactDisplayLayer:self.previewLayer to:self.previewView.bounds];
+            [self.previewView.layer insertSublayer:self.previewLayer above:0];
+        }
+    } else {
+        // Dismiss - always stop the stream (JS will restart if widget is focused)
+        NSLog(@"[PIP] didStop: dismiss - stopping stream");
+        if (self.currentStreamID) {
+            [[ZegoExpressEngine sharedEngine] stopPlayingStream:self.currentStreamID];
+        }
+        // Keep previewLayer - it will be reused when stream restarts
+        // Clear the PiP controller so a new one can be created when stream restarts
+        self.pipViewController = nil;
+        self.currentStreamID = nil;
     }
 
     [self sendEventWithName:RN_EVENT(@"onPipModeExit")
