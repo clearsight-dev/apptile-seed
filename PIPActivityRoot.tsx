@@ -47,23 +47,25 @@ export default function PIPActivity() {
 
   useEffect(() => {
     if (streamId && zgViewRef.current && global.activitySharedMem.isInPip) {
-      const zegoInstance = ZegoExpressEngine.instance();
-      console.log(
-        'Receive call from main activity',
-        streamId,
-        zegoInstance,
-        ScreenDims,
-      );
-      const zegoViewInstance = new ZegoView(
-        findNodeHandle(zgViewRef.current),
-        1,
-        0xffffff,
-      );
-      console.log('Entering PIP mode IN JS');
-
-      const safeDims = clampAspectRatio(ScreenDims.width, ScreenDims.height);
-      PIPModule.enterPictureInPictureMode(safeDims.width, safeDims.height);
-      zegoInstance.startPlayingStream(streamId, zegoViewInstance, undefined);
+      setTimeout(() => {
+        const zegoInstance = ZegoExpressEngine.instance();
+        console.log(
+          'Receive call from main activity',
+          streamId,
+          zegoInstance,
+          ScreenDims,
+        );
+        const zegoViewInstance = new ZegoView(
+          findNodeHandle(zgViewRef.current),
+          1,
+          0xffffff,
+        );
+        console.log('Entering PIP mode IN JS');
+  
+        const safeDims = clampAspectRatio(ScreenDims.width, ScreenDims.height);
+        PIPModule.enterPictureInPictureMode(safeDims.width, safeDims.height);
+        zegoInstance.startPlayingStream(streamId, zegoViewInstance, undefined);
+      }, 800)
     }
     return () => {
       if (streamId && zgViewRef.current) {
@@ -123,14 +125,14 @@ export default function PIPActivity() {
         minWidth: 100,
         minHeight: 230,
       }}>
-      <View
+      {/* <View
         style={{
           height: '100%',
           width: '100%',
           // opacity: loading ? 0 : 1,
           backgroundColor: '#fff',
           zIndex: 1,
-        }}>
+        }}> */}
         {
           <ZegoTextureView
             ref={zgViewRef}
@@ -140,7 +142,7 @@ export default function PIPActivity() {
             }}
           />
         }
-      </View>
+      {/* </View> */}
       {loading && (
         <View
           style={{
