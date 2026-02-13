@@ -62,23 +62,47 @@ async function addCleverTap(
   extraModules,
 ) {
   const LOG_PREFIX = '[CleverTap][iOS]';
-  if(!apptileConfig.integrations.cleverTap) {
-    console.log(chalk.red(`${LOG_PREFIX} CleverTap is enabled but seems like its not connected`));
-    throw new Error('Missing apptileConfig.integrations.cleverTap object not found');
+  if (!apptileConfig.integrations.cleverTap) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} CleverTap is enabled but seems like its not connected`,
+      ),
+    );
+    throw new Error(
+      'Missing apptileConfig.integrations.cleverTap object not found',
+    );
   }
   console.log(`${LOG_PREFIX} Initializing CleverTap integration`);
   const cleverTapIntegration = apptileConfig.integrations.cleverTap;
-  if(!cleverTapIntegration.cleverTap_id) {
-    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its account id is missing`));
-    throw new Error('cleverTap_id is not found inside apptileConfig.integrations.cleverTap');
+  if (!cleverTapIntegration.cleverTap_id) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} CleverTap is connected but its account id is missing`,
+      ),
+    );
+    throw new Error(
+      'cleverTap_id is not found inside apptileConfig.integrations.cleverTap',
+    );
   }
-  if(!cleverTapIntegration.cleverTap_token) {
-    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its token is missing`));
-    throw new Error('cleverTap_token is not found inside apptileConfig.integrations.cleverTap');
+  if (!cleverTapIntegration.cleverTap_token) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} CleverTap is connected but its token is missing`,
+      ),
+    );
+    throw new Error(
+      'cleverTap_token is not found inside apptileConfig.integrations.cleverTap',
+    );
   }
-  if(!cleverTapIntegration.cleverTap_region) {
-    console.log(chalk.red(`${LOG_PREFIX} CleverTap is connected but its region is missing`));
-    throw new Error('cleverTap_region is not found inside apptileConfig.integrations.cleverTap');
+  if (!cleverTapIntegration.cleverTap_region) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} CleverTap is connected but its region is missing`,
+      ),
+    );
+    throw new Error(
+      'cleverTap_region is not found inside apptileConfig.integrations.cleverTap',
+    );
   }
   console.log(`${LOG_PREFIX} Adding CleverTap config to Info.plist`);
   infoPlist.CleverTapAccountID = cleverTapIntegration.cleverTap_id;
@@ -133,19 +157,37 @@ async function addMoengage(
   extraModules,
 ) {
   const LOG_PREFIX = '[MoEngage][iOS]';
-  if(!apptileConfig.integrations.moengage) {
-    console.log(chalk.red(`${LOG_PREFIX} MoEngage is enabled but seems like its not connected`));
-    throw new Error('Missing apptileConfig.integrations.moengage object not found');
+  if (!apptileConfig.integrations.moengage) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} MoEngage is enabled but seems like its not connected`,
+      ),
+    );
+    throw new Error(
+      'Missing apptileConfig.integrations.moengage object not found',
+    );
   }
   console.log(`${LOG_PREFIX} Initializing MoEngage integration`);
   const moengageIntegration = apptileConfig.integrations.moengage;
-  if(!moengageIntegration.appId) {
-    console.log(chalk.red(`${LOG_PREFIX} MoEngage is connected but its app id is missing`));
-    throw new Error('appId is not found inside apptileConfig.integrations.moengage');
+  if (!moengageIntegration.appId) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} MoEngage is connected but its app id is missing`,
+      ),
+    );
+    throw new Error(
+      'appId is not found inside apptileConfig.integrations.moengage',
+    );
   }
-  if(!moengageIntegration.datacenter) {
-    console.log(chalk.red(`${LOG_PREFIX} MoEngage is connected but its datacenter is missing`));
-    throw new Error('datacenter is not found inside apptileConfig.integrations.moengage');
+  if (!moengageIntegration.datacenter) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} MoEngage is connected but its datacenter is missing`,
+      ),
+    );
+    throw new Error(
+      'datacenter is not found inside apptileConfig.integrations.moengage',
+    );
   }
   console.log(`${LOG_PREFIX} Adding MoEngage config to Info.plist`);
   infoPlist.MOENGAGE_APPID = moengageIntegration.appId;
@@ -190,17 +232,33 @@ async function removeMoengage(
   if (infoPlist.MoEngage) {
     delete infoPlist.MoEngage;
   }
-  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionCategory) {
-    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionCategory;
+  if (
+    notificationContentInfoPlist.NSExtension?.NSExtensionAttributes
+      ?.UNNotificationExtensionCategory
+  ) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
+      .UNNotificationExtensionCategory;
   }
-  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionInitialContentSizeRatio) {
-    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionInitialContentSizeRatio;
+  if (
+    notificationContentInfoPlist.NSExtension?.NSExtensionAttributes
+      ?.UNNotificationExtensionInitialContentSizeRatio
+  ) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
+      .UNNotificationExtensionInitialContentSizeRatio;
   }
-  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionUserInteractionEnabled) {
-    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionUserInteractionEnabled;
+  if (
+    notificationContentInfoPlist.NSExtension?.NSExtensionAttributes
+      ?.UNNotificationExtensionUserInteractionEnabled
+  ) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
+      .UNNotificationExtensionUserInteractionEnabled;
   }
-  if (notificationContentInfoPlist.NSExtension?.NSExtensionAttributes?.UNNotificationExtensionDefaultContentHidden) {
-    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes.UNNotificationExtensionDefaultContentHidden;
+  if (
+    notificationContentInfoPlist.NSExtension?.NSExtensionAttributes
+      ?.UNNotificationExtensionDefaultContentHidden
+  ) {
+    delete notificationContentInfoPlist.NSExtension.NSExtensionAttributes
+      .UNNotificationExtensionDefaultContentHidden;
   }
 
   await addForceUnlinkForNativePackage(
@@ -219,16 +277,28 @@ async function addKlaviyo(
   extraModules,
 ) {
   const LOG_PREFIX = '[Klaviyo][iOS]';
-  if(!apptileConfig.integrations.klaviyo) {
-    console.log(chalk.red(`${LOG_PREFIX} Klaviyo is enabled but seems like its not connected`));
-    throw new Error('Missing apptileConfig.integrations.klaviyo object not found');
+  if (!apptileConfig.integrations.klaviyo) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} Klaviyo is enabled but seems like its not connected`,
+      ),
+    );
+    throw new Error(
+      'Missing apptileConfig.integrations.klaviyo object not found',
+    );
   }
   console.log(`${LOG_PREFIX} Initializing Klaviyo integration`);
   const klaviyoCompanyId =
     apptileConfig.integrations.klaviyo.klaviyo_company_id;
-  if(!klaviyoCompanyId) {
-    console.log(chalk.red(`${LOG_PREFIX} Klaviyo is connected but its company id is missing`));
-    throw new Error('klaviyo_company_id is not found inside apptileConfig.integrations.klaviyo');
+  if (!klaviyoCompanyId) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} Klaviyo is connected but its company id is missing`,
+      ),
+    );
+    throw new Error(
+      'klaviyo_company_id is not found inside apptileConfig.integrations.klaviyo',
+    );
   }
   console.log(`${LOG_PREFIX} Adding Klaviyo config to Info.plist`);
   infoPlist.klaviyo_company_id = klaviyoCompanyId;
@@ -281,14 +351,14 @@ async function addAppsflyer(
   parsedReactNativeConfig,
   extraModules,
 ) {
-  if(!apptileConfig.integrations.appsflyer) {
+  if (!apptileConfig.integrations.appsflyer) {
     throw new Error('appsflyer is not connected');
   }
   const appsflyerIntegration = apptileConfig.integrations.appsflyer;
-  if(!appsflyerIntegration.devkey) {
+  if (!appsflyerIntegration.devkey) {
     throw new Error('appsflyer devkey is missing');
   }
-  if(!appsflyerIntegration.appId) {
+  if (!appsflyerIntegration.appId) {
     throw new Error('appsflyer appId is missing');
   }
   infoPlist.APPSFLYER_DEVKEY = appsflyerIntegration.devkey;
@@ -331,19 +401,37 @@ async function addFacebook(
   extraModules,
 ) {
   const LOG_PREFIX = '[Facebook][iOS]';
-  if(!apptileConfig.integrations.metaAds) {
-    console.log(chalk.red(`${LOG_PREFIX} Facebook is enabled but seems like its not connected`));
-    throw new Error('Missing apptileConfig.integrations.metaAds object not found');
+  if (!apptileConfig.integrations.metaAds) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} Facebook is enabled but seems like its not connected`,
+      ),
+    );
+    throw new Error(
+      'Missing apptileConfig.integrations.metaAds object not found',
+    );
   }
   console.log(`${LOG_PREFIX} Initializing Facebook integration`);
   const metaIntegration = apptileConfig.integrations.metaAds;
-  if(!metaIntegration.fb_appId) {
-    console.log(chalk.red(`${LOG_PREFIX} Facebook is connected but its app id is missing`));
-    throw new Error('fb_appId is not found inside apptileConfig.integrations.metaAds');
+  if (!metaIntegration.fb_appId) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} Facebook is connected but its app id is missing`,
+      ),
+    );
+    throw new Error(
+      'fb_appId is not found inside apptileConfig.integrations.metaAds',
+    );
   }
-  if(!metaIntegration.fb_clientToken) {
-    console.log(chalk.red(`${LOG_PREFIX} Facebook is connected but its client token is missing`));
-    throw new Error('fb_clientToken is not found inside apptileConfig.integrations.metaAds');
+  if (!metaIntegration.fb_clientToken) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} Facebook is connected but its client token is missing`,
+      ),
+    );
+    throw new Error(
+      'fb_clientToken is not found inside apptileConfig.integrations.metaAds',
+    );
   }
   console.log(`${LOG_PREFIX} Adding Facebook config to Info.plist`);
   infoPlist.FacebookAppID = metaIntegration.fb_appId;
@@ -396,15 +484,27 @@ async function addOnesignal(
   extraModules,
 ) {
   const LOG_PREFIX = '[OneSignal][iOS]';
-  if(!apptileConfig.integrations.oneSignal) {
-    console.log(chalk.red(`${LOG_PREFIX} OneSignal is enabled but seems like its not connected`));
-    throw new Error('Missing apptileConfig.integrations.oneSignal object not found');
+  if (!apptileConfig.integrations.oneSignal) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} OneSignal is enabled but seems like its not connected`,
+      ),
+    );
+    throw new Error(
+      'Missing apptileConfig.integrations.oneSignal object not found',
+    );
   }
   console.log(`${LOG_PREFIX} Initializing OneSignal integration`);
   const onesignalIntegration = apptileConfig.integrations.oneSignal;
-  if(!onesignalIntegration.onesignal_app_id) {
-    console.log(chalk.red(`${LOG_PREFIX} OneSignal is connected but its app id is missing`));
-    throw new Error('onesignal_app_id is not found inside apptileConfig.integrations.oneSignal');
+  if (!onesignalIntegration.onesignal_app_id) {
+    console.log(
+      chalk.red(
+        `${LOG_PREFIX} OneSignal is connected but its app id is missing`,
+      ),
+    );
+    throw new Error(
+      'onesignal_app_id is not found inside apptileConfig.integrations.oneSignal',
+    );
   }
   console.log(`${LOG_PREFIX} Adding OneSignal config to Info.plist`);
   infoPlist.ONESIGNAL_APPID = onesignalIntegration.onesignal_app_id;
@@ -494,7 +594,7 @@ async function updateTargetedDeviceFamily(enableIpad) {
 
   // Parse the project file synchronously
   await new Promise((resolve, reject) => {
-    project.parse((err) => {
+    project.parse(err => {
       if (err) reject(err);
       else resolve();
     });
@@ -650,9 +750,7 @@ function logFeature(feature, enabled) {
     console.log(chalk.green(`[FeatureFlag] ${feature} → ENABLED`));
     return;
   } else {
-    console.log(
-      `[FeatureFlag] ${feature} → DISABLED`,
-    );
+    console.log(`[FeatureFlag] ${feature} → DISABLED`);
   }
 }
 
@@ -781,7 +879,8 @@ async function main() {
     infoPlist.APPTILE_URL_SCHEME = `${apptileConfig.url_scheme}://`;
 
     // Add GIF_SPLASH_DURATION from feature_flags
-    const gifSplashDuration = apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
+    const gifSplashDuration =
+      apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
     infoPlist.GIF_SPLASH_DURATION = String(gifSplashDuration);
 
     const bundle_id =
@@ -971,7 +1070,7 @@ async function main() {
     // For klaviyo notifications
     const isKlaviyoEnabled = apptileConfig.feature_flags?.ENABLE_KLAVIYO;
     logFeature('Klaviyo', isKlaviyoEnabled);
-    
+
     if (isKlaviyoEnabled) {
       await addKlaviyo(
         infoPlist,
@@ -1050,12 +1149,15 @@ async function main() {
     }
 
     // For Segment Analytics
-    const isSegmentEnabled = apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS;
+    const isSegmentEnabled =
+      apptileConfig.feature_flags?.ENABLE_SEGMENT_ANALYTICS;
     logFeature('Segment', isSegmentEnabled);
     const SEGMENT_LOG_PREFIX = '[Segment][iOS]';
 
     if (isSegmentEnabled) {
-      console.log(`${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`);
+      console.log(
+        `${SEGMENT_LOG_PREFIX} Initializing Segment Analytics integration`,
+      );
       const segmentKey =
         apptileConfig.apptile_analytics_segment_key ||
         process.env.apptile_analytics_segment_key;
@@ -1069,47 +1171,29 @@ async function main() {
       }
       console.log(`${SEGMENT_LOG_PREFIX} Adding Segment key to Info.plist`);
       infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY = segmentKey;
-      console.log(`${SEGMENT_LOG_PREFIX} Segment Analytics integration complete`);
+      console.log(
+        `${SEGMENT_LOG_PREFIX} Segment Analytics integration complete`,
+      );
     } else {
       delete infoPlist.APPTILE_ANALYTICS_SEGMENT_KEY;
     }
 
     // Handle Disable Dynamic Type (font scaling)
     const isDisableDynamicTypeEnabled =
-    apptileConfig.feature_flags?.DISABLE_DYNAMIC_TYPE;
+      apptileConfig.feature_flags?.DISABLE_DYNAMIC_TYPE;
     logFeature('DisableDynamicType', isDisableDynamicTypeEnabled);
-
-    const indexJsPath = path.resolve(__dirname, 'index.js');
-    let indexJsContent = await readFile(indexJsPath, {encoding: 'utf8'});
 
     if (isDisableDynamicTypeEnabled) {
       console.log(
-        '[DisableDynamicType][IOS] Enabling dynamic type disable feature',
+        '[DisableDynamicType][IOS] Adding DISABLE_DYNAMIC_TYPE flag to Info.plist',
       );
-      // Remove the comment markers to uncomment the code
-      indexJsContent = indexJsContent.replace(
-        /\/\* ForDynamicType \(Don't remove\) /g,
-        '',
-      );
-      indexJsContent = indexJsContent.replace(/ ForDynamicTypeEnd \*\//g, '');
+      infoPlist.DISABLE_DYNAMIC_TYPE = 'true';
     } else {
       console.log(
-        '[DisableDynamicType][IOS] Dynamic type disable feature not enabled',
+        '[DisableDynamicType][IOS] Removing DISABLE_DYNAMIC_TYPE flag from Info.plist',
       );
-      // Ensure the code is commented (restore comments if they were removed)
-      // Check if the code block exists without comments
-      if (
-        indexJsContent.includes('// Disable dynamic type / font scaling') &&
-        !indexJsContent.includes('/* ForDynamicType')
-      ) {
-        // Re-add the comment markers
-        indexJsContent = indexJsContent.replace(
-          /(\/\/ Disable dynamic type \/ font scaling[\s\S]*?TextInput\.defaultProps\.allowFontScaling = false;)/,
-          "/* ForDynamicType (Don't remove) \n$1\n ForDynamicTypeEnd */",
-        );
-      }
+      delete infoPlist.DISABLE_DYNAMIC_TYPE;
     }
-    await writeFile(indexJsPath, indexJsContent);
 
     // For App Tracking Transparency
     if (
@@ -1124,11 +1208,12 @@ async function main() {
     }
 
     // For iPad Support
-    const isIpadSupportEnabled = apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT;
+    const isIpadSupportEnabled =
+      apptileConfig.feature_flags?.ENABLE_IPAD_SUPPORT;
     logFeature('iPad Support', isIpadSupportEnabled);
 
     if (isIpadSupportEnabled) {
-      await addIpadSupport(infoPlist)
+      await addIpadSupport(infoPlist);
     } else {
       await removeIpadSupport(infoPlist);
     }
