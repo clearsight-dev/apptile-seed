@@ -1317,6 +1317,44 @@ async function main() {
   } else {
     removeFromStringsXML(stringsObj, 'APPTILE_ANALYTICS_SEGMENT_KEY');
   }
+
+  // Handle Disable Dynamic Type (font scaling)
+  const isDisableDynamicTypeEnabled =
+    apptileConfig.feature_flags?.DISABLE_DYNAMIC_TYPE;
+  logFeature('DisableDynamicType', isDisableDynamicTypeEnabled);
+
+  const indexJsPath = path.resolve(__dirname, 'index.js');
+  let indexJsContent = await readFile(indexJsPath, {encoding: 'utf8'});
+
+  if (isDisableDynamicTypeEnabled) {
+    console.log(
+      '[DisableDynamicType][Android] Enabling dynamic type disable feature',
+    );
+    // Remove the comment markers to uncomment the code
+    indexJsContent = indexJsContent.replace(
+      /\/\* ForDynamicType \(Don't remove\) /g,
+      '',
+    );
+    indexJsContent = indexJsContent.replace(/ ForDynamicTypeEnd \*\//g, '');
+  } else {
+    console.log(
+      '[DisableDynamicType][Android] Dynamic type disable feature not enabled',
+    );
+    // Ensure the code is commented (restore comments if they were removed)
+    // Check if the code block exists without comments
+    if (
+      indexJsContent.includes('// Disable dynamic type / font scaling') &&
+      !indexJsContent.includes('/* ForDynamicType')
+    ) {
+      // Re-add the comment markers
+      indexJsContent = indexJsContent.replace(
+        /(\/\/ Disable dynamic type \/ font scaling[\s\S]*?TextInput\.defaultProps\.allowFontScaling = false;)/,
+        "/* ForDynamicType (Don't remove) \n$1\n ForDynamicTypeEnd */",
+      );
+    }
+  }
+  await writeFile(indexJsPath, indexJsContent);
+
   const strObj = JSON.parse(JSON.stringify(stringsObj));
 
   const updatedValuesXml = builder.buildObject(strObj);
