@@ -16,20 +16,29 @@ import PIPActivity from 'PIPActivityRoot';
 // Disable dynamic type / font scaling if flag is set
 const {RNGetValues} = NativeModules;
 if (RNGetValues) {
-  RNGetValues.getKey(
-    'DISABLE_DYNAMIC_TYPE',
-    () => {
-      // Error callback - flag not found, do nothing
-    },
-    value => {
-      if (value === 'true') {
-        Text.defaultProps = Text.defaultProps || {};
-        Text.defaultProps.allowFontScaling = false;
-        TextInput.defaultProps = TextInput.defaultProps || {};
-        TextInput.defaultProps.allowFontScaling = false;
+  const onSuccess = value => {
+    if (value === 'true') {
+      Text.defaultProps = Text.defaultProps || {};
+      Text.defaultProps.allowFontScaling = false;
+      TextInput.defaultProps = TextInput.defaultProps || {};
+      TextInput.defaultProps.allowFontScaling = false;
+    }
+  };
+  if (Platform.OS === 'ios') {
+    RNGetValues.getKey('DISABLE_DYNAMIC_TYPE', (error, value) => {
+      if (!error) {
+        onSuccess(value);
       }
-    },
-  );
+    });
+  } else {
+    RNGetValues.getKey(
+      'DISABLE_DYNAMIC_TYPE',
+      () => {
+        // Error callback - flag not found, do nothing
+      },
+      onSuccess,
+    );
+  }
 }
 
 AppRegistry.registerComponent(appName, () => App);
