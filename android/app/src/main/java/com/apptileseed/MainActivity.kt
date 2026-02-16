@@ -17,6 +17,10 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.bumptech.glide.Glide
+import android.graphics.Color
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : ReactActivity() {
     private var isJSLoaded = false
@@ -42,6 +46,35 @@ class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(null)
         showNativeSplash()
+
+        val TAG = "EDGE_TO_EDGE"
+        val root = window.decorView
+
+        Log.d(TAG, "Setting up Inset Listener. SDK_INT: ${Build.VERSION.SDK_INT}")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val density = v.resources.displayMetrics.density
+            val navBarHeightDp = navBars.bottom / density
+
+            Log.d(TAG, "Inset Received! Bottom Px: ${navBars.bottom}, Bottom Dp: $navBarHeightDp")
+
+            if (Build.VERSION.SDK_INT >= 35) {
+                window.navigationBarColor = Color.TRANSPARENT
+                if (navBarHeightDp > 35) {
+                    v.setPadding(0, 0, 0, navBars.bottom)
+                    val controller = WindowInsetsControllerCompat(window, v)
+                    controller.isAppearanceLightNavigationBars = true
+                } else {
+                    v.setPadding(0, 0, 0, 0)
+                }
+            }
+            ViewCompat.onApplyWindowInsets(v, insets)
+        }
 
         // Handle push notification when app is launched from notification (cold start)
         intent?.let {
