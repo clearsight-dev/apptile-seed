@@ -87,6 +87,8 @@ function constructExternals(extra = []) {
     "@react-native-community/datetimepicker",
     "react-native-image-picker",
     "@react-native-community/slider",
+    "react-native-turbo-image",
+    "react-native-vision-camera",
     ...extra,
   ];
 
