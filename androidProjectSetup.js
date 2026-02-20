@@ -1474,11 +1474,12 @@ async function main() {
       );
     }
   } catch (err) {
-    console.error('Failed to download appconfig');
+    console.error('Failed to download appconfig:', err.message);
     await writeFile(
       bundleTrackerPath,
       `{"publishedCommitId": null, "androidBundleId": null}`,
     );
+    throw new Error(`Failed to download appconfig: ${err.message}`);
   }
   await generateAnalytics(
     analyticsTemplateRef,
