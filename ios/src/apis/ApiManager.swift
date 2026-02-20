@@ -1,129 +1,39 @@
 //
-//  index.swift
+//  ApiManager.swift
 //  apptileSeed
 //
 //  Created by Vadivazhagan on 02/03/25.
 //
-import Alamofire
+
 import Foundation
-
-final class NetworkLogger: EventMonitor, @unchecked Sendable {
-    let queue = DispatchQueue(label: "com.apptile.networklogger", qos: .background)
-
-    func requestDidResume(_ request: Request) {
-        Logger.info("Request Started: \(request.cURLDescription())")
-    }
-
-    func requestDidFinish(_ request: Request) {
-        Logger.info("Request Finished: \(request.description)")
-    }
-
-    func request(_: DataRequest, didParseResponse response: DataResponse<Data?, AFError>) {
-        Logger.info("Response Received: \(response.response?.statusCode ?? 0)")
-    }
-}
 
 // MARK: - API Error Handling
 
-enum APIError: Error {
-    case missingBaseURL
+enum APIError: Error, LocalizedError {
+    case invalidURL
+    case networkError(Error)
     case invalidResponse
-}
+    case decodingError(Error)
+    case downloadFailed
+    case emptyResponse
+    case missingConfig(String)
 
-// MARK: - APIClient (Singleton)
-
-class APIClient {
-    static let shared = APIClient()
-
-    private var baseURL: String?
-
-    private let session: Session
-
-    private init() {
-        let logger = NetworkLogger()
-        let configuration = URLSessionConfiguration.default
-        session = Session(configuration: configuration, eventMonitors: [logger])
-    }
-
-    func initialize(baseURL: String) {
-        self.baseURL = baseURL
-    }
-
-    private var defaultHeaders: HTTPHeaders {
-        ["Content-Type": "application/json"]
-    }
-
-    func request<T: Decodable>(
-        endpoint: String,
-        method: HTTPMethod = .get,
-        parameters: [String: Any]? = nil,
-        headers: HTTPHeaders? = nil,
-        responseType _: T.Type
-    ) async throws -> T {
-        guard let baseURL = baseURL, !baseURL.isEmpty else {
-            throw APIError.missingBaseURL
-        }
-
-        let url = baseURL + endpoint
-
-        return try await withCheckedThrowingContinuation { continuation in
-            session.request(
-                url, method: method, parameters: parameters,
-                encoding: JSONEncoding.default, headers: headers ?? defaultHeaders
-            )
-            .validate()
-            .responseDecodable(of: T.self) { response in
-                switch response.result {
-                case let .success(data):
-                    continuation.resume(returning: data)
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - ApiService Protocol
-
-protocol ApiService {
-  func getManifest(appId: String, forkName: String) async throws -> ManifestResponse
-    func downloadFile(from url: String) async throws -> URL
-}
-
-// MARK: - ApptileApiClient Singleton
-
-class ApptileApiClient: ApiService {
-    static let shared = ApptileApiClient()
-    private let apiClient: APIClient
-
-    private init(apiClient: APIClient = .shared) {
-        self.apiClient = apiClient
-    }
-
-  func getManifest(appId: String, forkName: String) async throws -> ManifestResponse {
-        return try await apiClient.request(
-            endpoint: "/app/\(appId)/\(forkName)/manifest?frameworkVersion=0.17.0",
-            responseType: ManifestResponse.self
-        )
-    }
-
-    func downloadFile(from url: String) async throws -> URL {
-        return try await withCheckedThrowingContinuation { continuation in
-            let destination: DownloadRequest.Destination = { _, _ in
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-                return (tempURL, [.removePreviousFile, .createIntermediateDirectories])
-            }
-
-            AF.download(url, to: destination)
-                .validate()
-                .response { response in
-                    if let fileURL = response.fileURL {
-                        continuation.resume(returning: fileURL)
-                    } else if let error = response.error {
-                        continuation.resume(throwing: error)
-                    }
-                }
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL"
+        case .networkError(let error):
+            return "Network error: \(error.localizedDescription)"
+        case .invalidResponse:
+            return "Invalid response from server"
+        case .decodingError(let error):
+            return "Failed to decode response: \(error.localizedDescription)"
+        case .downloadFailed:
+            return "File download failed"
+        case .emptyResponse:
+            return "Empty response received"
+        case .missingConfig(let key):
+            return "Missing config: \(key)"
         }
     }
 }
@@ -151,4 +61,118 @@ struct ManifestResponse: Codable {
     let artefacts: [CodeArtefact]
     let latestBuildNumberIos: Int?
     let appStorePermanentLink: String?
+}
+
+// MARK: - OTA API Client
+
+final class OTAApiClient {
+    static let shared = OTAApiClient()
+
+    private let session: URLSession
+    private let frameworkVersion = "0.17.0"
+
+    private init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        self.session = URLSession(configuration: config)
+    }
+
+    // MARK: - Fetch Manifest
+
+    func fetchManifest(baseURL: String, appId: String, forkName: String) async -> Result<ManifestResponse, APIError> {
+        let endpoint = "\(baseURL)/app/\(appId)/\(forkName)/manifest?frameworkVersion=\(frameworkVersion)"
+
+        guard let url = URL(string: endpoint) else {
+            Logger.error("Invalid manifest URL: \(endpoint)")
+            return .failure(.invalidURL)
+        }
+
+        Logger.info("Fetching manifest from: \(endpoint)")
+
+        do {
+            let (data, response) = try await session.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                Logger.error("Invalid response type")
+                return .failure(.invalidResponse)
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                Logger.error("Manifest fetch failed with status: \(httpResponse.statusCode)")
+                return .failure(.invalidResponse)
+            }
+
+            guard !data.isEmpty else {
+                Logger.error("Empty manifest response")
+                return .failure(.emptyResponse)
+            }
+
+            let decoder = JSONDecoder()
+            let manifest = try decoder.decode(ManifestResponse.self, from: data)
+            Logger.info("Manifest fetched successfully. CommitId: \(manifest.publishedCommitId)")
+            return .success(manifest)
+
+        } catch let error as DecodingError {
+            Logger.error("Failed to decode manifest: \(error)")
+            return .failure(.decodingError(error))
+        } catch {
+            Logger.error("Network error fetching manifest: \(error.localizedDescription)")
+            return .failure(.networkError(error))
+        }
+    }
+
+    // MARK: - Download File
+
+    func downloadFile(from urlString: String, to destinationPath: String) async -> Result<String, APIError> {
+        guard let url = URL(string: urlString) else {
+            Logger.error("Invalid download URL: \(urlString)")
+            return .failure(.invalidURL)
+        }
+
+        Logger.info("Downloading file from: \(urlString)")
+
+        do {
+            let (tempURL, response) = try await session.download(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                Logger.error("Download failed with invalid response")
+                return .failure(.invalidResponse)
+            }
+
+            // Move to destination
+            let destinationURL = URL(fileURLWithPath: destinationPath)
+
+            // Remove existing file if present
+            if FileManager.default.fileExists(atPath: destinationPath) {
+                try FileManager.default.removeItem(atPath: destinationPath)
+            }
+
+            // Create parent directory if needed
+            let parentDir = destinationURL.deletingLastPathComponent()
+            if !FileManager.default.fileExists(atPath: parentDir.path) {
+                try FileManager.default.createDirectory(at: parentDir, withIntermediateDirectories: true)
+            }
+
+            try FileManager.default.moveItem(at: tempURL, to: destinationURL)
+
+            // Verify file is not empty
+            let attributes = try FileManager.default.attributesOfItem(atPath: destinationPath)
+            let fileSize = attributes[.size] as? Int64 ?? 0
+
+            if fileSize == 0 {
+                Logger.error("Downloaded file is empty")
+                try? FileManager.default.removeItem(atPath: destinationPath)
+                return .failure(.emptyResponse)
+            }
+
+            Logger.info("File downloaded successfully: \(destinationPath) (\(fileSize) bytes)")
+            return .success(destinationPath)
+
+        } catch {
+            Logger.error("Download error: \(error.localizedDescription)")
+            return .failure(.networkError(error))
+        }
+    }
 }

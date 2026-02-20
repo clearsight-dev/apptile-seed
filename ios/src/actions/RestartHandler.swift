@@ -9,6 +9,18 @@ import Foundation
 import React
 
 class RestartHandler {
+
+    /// Triggers a React Native reload using the built-in reload command.
+    /// This causes React Native to call AppDelegate.bundleURL() again to get the
+    /// current bundle path (which may have been updated by OTA download).
+    /// This is the recommended approach used by react-native-ota-hot-update.
+    static func triggerReload() {
+        Logger.info("Triggering React Native reload...")
+        RCTTriggerReloadCommandListeners("OTA Update: Restarting app")
+    }
+
+    /// Legacy method that creates a new RCTRootView.
+    /// Prefer using triggerReload() instead.
     static func loadDownloadedBundleAndRestart() {
         guard let window = getAppWindow() else {
             Logger.error("Failed to find the app window")
