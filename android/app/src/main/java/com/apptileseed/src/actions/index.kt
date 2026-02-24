@@ -141,6 +141,21 @@ object Actions {
         }
     }
 
+    private fun getLocalBundleId(context: Context): Long? {
+        return try {
+            val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
+            if (!trackerFile.exists()) return null
+
+            val content = trackerFile.readText()
+            val mapType = object : TypeToken<Map<String, Any>>() {}.type
+            val tracker: Map<String, Any> = Gson().fromJson(content, mapType)
+            (tracker["androidBundleId"] as? Number)?.toLong()
+        } catch (e: Exception) {
+            Log.e(APPTILE_LOG_TAG, "Failed to read local bundleId: ${e.message}")
+            null
+        }
+    }
+
     fun updateTracker(context: Context, commitId: Long, bundleId: Long?) {
         try {
             val trackerFile = File(context.filesDir, BUNDLE_TRACKER_FILE_NAME)
@@ -347,10 +362,16 @@ object Actions {
             var bundleId: Long? = null
 
             if (androidBundle != null) {
-                val bundleDownloaded = downloadBundle(context, androidBundle.cdnlink)
-                if (!bundleDownloaded) {
-                    // Bundle download failed, don't update tracker
-                    return false
+                val localBundleId = getLocalBundleId(context)
+                if (localBundleId != androidBundle.id) {
+                    Log.d(APPTILE_LOG_TAG, "Bundle update needed: local=$localBundleId, remote=${androidBundle.id}")
+                    val bundleDownloaded = downloadBundle(context, androidBundle.cdnlink)
+                    if (!bundleDownloaded) {
+                        // Bundle download failed, don't update tracker
+                        return false
+                    }
+                } else {
+                    Log.d(APPTILE_LOG_TAG, "Bundle is up to date (id=${androidBundle.id}), skipping download")
                 }
                 bundleId = androidBundle.id
             }
