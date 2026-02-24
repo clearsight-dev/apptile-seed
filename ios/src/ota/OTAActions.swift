@@ -425,13 +425,19 @@ final class OTAActions {
             return false
         }
 
-        // Download bundle if available
+        // Download bundle if available and ID has changed
         var bundleId: Int64? = nil
         if let iosBundle = manifest.artefacts.first(where: { $0.type == "ios-jsbundle" }) {
-            let bundleDownloaded = await downloadBundle(bundleUrl: iosBundle.cdnlink)
-            if !bundleDownloaded {
-                // Bundle download failed, don't update tracker
-                return false
+            let localBundleId = getLocalBundleId()
+            if localBundleId != iosBundle.id {
+                Logger.info("Bundle update needed: local=\(String(describing: localBundleId)), remote=\(iosBundle.id)")
+                let bundleDownloaded = await downloadBundle(bundleUrl: iosBundle.cdnlink)
+                if !bundleDownloaded {
+                    // Bundle download failed, don't update tracker
+                    return false
+                }
+            } else {
+                Logger.info("Bundle is up to date (id=\(iosBundle.id)), skipping download")
             }
             bundleId = iosBundle.id
         }
