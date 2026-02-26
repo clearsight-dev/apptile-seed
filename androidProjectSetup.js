@@ -1438,18 +1438,16 @@ async function main() {
 
   // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
   try {
-    const manifestUrl = `${apptileConfig.APPTILE_BACKEND_URL}/api/v2/app/${apptileConfig.APP_ID}/manifest`;
+    const manifestUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/app/${apptileConfig.APP_ID}/${apptileConfig.fork_name || 'main'}/manifest?frameworkVersion=0.17.0`;
     console.log('Downloading manifest from ' + manifestUrl);
     const {data: manifest} = await axios.get(manifestUrl);
-    const publishedCommit = manifest.forks.filter(
-      it => it.forkName === (apptileConfig.fork_name || 'main'),
-    )[0].publishedCommitId;
-    const androidBundle = manifest.codeArtefacts.find(
+    const publishedCommit = manifest.publishedCommitId;
+    const androidBundle = manifest.artefacts.find(
       it => it.type === 'android-jsbundle',
     );
 
     if (publishedCommit) {
-      const appConfigUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/${
+      const appConfigUrl = manifest.url || `${apptileConfig.APPCONFIG_SERVER_URL}/${
         apptileConfig.APP_ID
       }/${apptileConfig.fork_name || 'main'}/main/${publishedCommit}.json`;
       console.log('Downloading appConfig from: ' + appConfigUrl);
