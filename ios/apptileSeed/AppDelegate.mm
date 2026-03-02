@@ -1,3 +1,4 @@
+
 #import "AppDelegate.h"
 
 #import "CrashHandler.h"
@@ -34,7 +35,6 @@
 #if ENABLE_CLEVERTAP
 #import <CleverTap.h>
 #import <CleverTapReactManager.h>
-#import <UserNotifications/UserNotifications.h>
 #endif
 
 #if ENABLE_KLAVIYO
@@ -49,17 +49,9 @@
   [CrashHandler setupSignalHandlers];
 
 #if ENABLE_CLEVERTAP
-  // Enable CleverTap debug logging
-  [CleverTap setDebugLevel:CleverTapLogDebug];
-
   [CleverTap autoIntegrate];
   [[CleverTapReactManager sharedInstance]
       applicationDidLaunchWithOptions:launchOptions];
-
-  // Log CleverTap initialization info
-  NSLog(@"CleverTap: SDK initialized");
-  NSString *cleverTapID = [[CleverTap sharedInstance] profileGetCleverTapID];
-  NSLog(@"CleverTap: Initial Profile ID: %@", cleverTapID);
 #endif
   self.jsLoaded = NO;
   self.minDurationPassed = NO;
@@ -87,22 +79,15 @@
 #endif
 
 #if ENABLE_MOENGAGE
-  NSString *moEngageAppId =
-      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MOENGAGE_APPID"];
-  NSString *moEngageDataCenterString =
-      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MOENGAGE_DATACENTER"];
-  MoEngageDataCenter moEngageDataCenter;
+  // Get activeForkName from bundleTracker and map to MoEngage appId
+  NSString *activeForkName = [self getActiveForkNameForMoEngage];
+  NSString *moEngageAppId = [self getMoEngageAppIdForFork:activeForkName];
 
-  // TODO(gaurav) add the rest of the cases
-  if ([moEngageDataCenterString isEqualToString:@"data_center_1"]) {
-    moEngageDataCenter = MoEngageDataCenterData_center_01;
-  } else if ([moEngageDataCenterString isEqualToString:@"data_center_2"]) {
-    moEngageDataCenter = MoEngageDataCenterData_center_02;
-  } else if ([moEngageDataCenterString isEqualToString:@"data_center_3"]) {
-    moEngageDataCenter = MoEngageDataCenterData_center_03;
-  } else {
-    moEngageDataCenter = MoEngageDataCenterData_center_default;
-  }
+  // All forks use data_center_2
+  MoEngageDataCenter moEngageDataCenter = MoEngageDataCenterData_center_02;
+
+  NSLog(@"🟣 [MoEngage] Initializing with activeForkName: %@, appId: %@, dataCenter: data_center_2",
+        activeForkName, moEngageAppId);
 
   MoEngageSDKConfig *sdkConfig =
       [[MoEngageSDKConfig alloc] initWithAppId:moEngageAppId
@@ -324,74 +309,6 @@
                      restorationHandler:restorationHandler];
 }
 
-#if ENABLE_CLEVERTAP
-// Remote notification Registration callback methods for CleverTap
-- (void)application:(UIApplication *)application
-    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-  // Convert device token to string for logging
-  const unsigned char *tokenBytes = (const unsigned char *)[deviceToken bytes];
-  NSMutableString *tokenString = [NSMutableString stringWithCapacity:deviceToken.length * 2];
-  for (NSUInteger i = 0; i < deviceToken.length; i++) {
-    [tokenString appendFormat:@"%02x", tokenBytes[i]];
-  }
-  NSLog(@"CleverTap: APNs Device Token: %@", tokenString);
-
-  // Set push token with CleverTap
-  [[CleverTap sharedInstance] setPushToken:deviceToken];
-
-  // Log CleverTap Profile ID
-  NSString *cleverTapID = [[CleverTap sharedInstance] profileGetCleverTapID];
-  NSLog(@"CleverTap: Profile CleverTap ID: %@", cleverTapID);
-}
-
-- (void)application:(UIApplication *)application
-    didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
-  NSLog(@"CleverTap: Failed to register for remote notifications: %@", error.localizedDescription);
-}
-
-// UserNotifications Framework Callback - Handle foreground notifications
-- (void)userNotificationCenter:(UNUserNotificationCenter *)center
-       willPresentNotification:(UNNotification *)notification
-         withCompletionHandler:
-             (void (^)(UNNotificationPresentationOptions options))
-                 completionHandler {
-  // Display notification with sound, banner, and badge
-  if (@available(iOS 14.0, *)) {
-    completionHandler(UNNotificationPresentationOptionSound |
-                      UNNotificationPresentationOptionList |
-                      UNNotificationPresentationOptionBanner |
-                      UNNotificationPresentationOptionBadge);
-  } else {
-    completionHandler(UNNotificationPresentationOptionSound |
-                      UNNotificationPresentationOptionAlert |
-                      UNNotificationPresentationOptionBadge);
-  }
-}
-
-// Handle notification tap/response
-- (void)userNotificationCenter:(UNUserNotificationCenter *)center
-    didReceiveNotificationResponse:(UNNotificationResponse *)response
-             withCompletionHandler:(void (^)())completionHandler {
-  NSDictionary *userInfo = response.notification.request.content.userInfo;
-
-  // Handle the notification with CleverTap and open deep links
-  [CleverTap handlePushNotification:userInfo openDeepLinksInForeground:YES];
-
-  completionHandler();
-}
-
-// Handle background/silent notifications
-- (void)application:(UIApplication *)application
-    didReceiveRemoteNotification:(NSDictionary *)userInfo
-          fetchCompletionHandler:
-              (void (^)(UIBackgroundFetchResult))completionHandler {
-  // Handle push notification with CleverTap
-  [[CleverTap sharedInstance] handleNotificationWithData:userInfo];
-
-  completionHandler(UIBackgroundFetchResultNewData);
-}
-#endif
-
 #if ENABLE_MOENGAGE
 // Remote notification Registration callback methods only if
 // MoEngageAppDelegateProxyEnabled is NO
@@ -497,4 +414,64 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   }
 }
 #endif
+
+#if ENABLE_MOENGAGE
+// MARK: - MoEngage Fork-based Initialization Helpers
+
+- (NSString *)getActiveForkNameForMoEngage {
+    NSString *defaultFork = @"main";
+
+    // Try documents directory first (for returning users / after OTA updates)
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDir = [paths firstObject];
+    NSString *trackerPath = [documentsDir stringByAppendingPathComponent:@"localBundleTracker.json"];
+
+    NSData *data = [NSData dataWithContentsOfFile:trackerPath];
+
+    // If not in documents, try app bundle (for fresh installs)
+    if (!data) {
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"localBundleTracker" ofType:@"json"];
+        data = [NSData dataWithContentsOfFile:bundlePath];
+        NSLog(@"🟣 [MoEngage] Reading bundleTracker from app bundle: %@", bundlePath);
+    } else {
+        NSLog(@"🟣 [MoEngage] Reading bundleTracker from documents: %@", trackerPath);
+    }
+
+    if (data) {
+        NSError *error = nil;
+        NSDictionary *tracker = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        if (!error && tracker) {
+            NSString *forkName = tracker[@"activeForkName"];
+            if (forkName && forkName.length > 0) {
+                NSLog(@"🟣 [MoEngage] Found activeForkName: %@", forkName);
+                return forkName;
+            }
+        }
+    }
+
+    NSLog(@"🟣 [MoEngage] No activeForkName found, using default: %@", defaultFork);
+    return defaultFork;
+}
+
+- (NSString *)getMoEngageAppIdForFork:(NSString *)forkName {
+    // Hardcoded mapping of fork names to MoEngage App IDs
+    NSDictionary *forkToAppId = @{
+        @"uae-ar": @"4UEOHG1LNXTSOVLGLON9V1F6",
+        @"uae-en": @"4UEOHG1LNXTSOVLGLON9V1F6",
+        @"saudi-en": @"GUTDCLUF9DDMMDXH9Q9C8MYC",
+        @"saudi-ar": @"GUTDCLUF9DDMMDXH9Q9C8MYC",
+        @"main": @"XUO5YVKB3VBC5XIAHBJDK3ZA",
+        @"kuwait-ar": @"XUO5YVKB3VBC5XIAHBJDK3ZA"
+    };
+
+    NSString *appId = forkToAppId[forkName];
+    if (!appId) {
+        NSLog(@"🟣 [MoEngage] Unknown fork '%@', falling back to 'main' appId", forkName);
+        appId = forkToAppId[@"main"];
+    }
+
+    return appId;
+}
+#endif
+
 @end
