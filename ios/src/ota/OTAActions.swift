@@ -476,10 +476,12 @@ final class OTAActions {
                 try FileManager.default.removeItem(at: bundlesDir)
                 Logger.info("Deleted OTA bundles directory")
             } catch {
-                Logger.error("Failed to delete OTA bundles directory: \(error)")
+                Logger.error("Failed to delete OTA bundles directory: \(error). Will retry on next launch.")
+                return
             }
         }
 
+        // Only persist the new build number after successful cleanup
         BundleTrackerPrefs.setLastKnownBuildNumber(currentBuildNumber)
         Logger.info("✅ App upgrade cleanup complete")
     }

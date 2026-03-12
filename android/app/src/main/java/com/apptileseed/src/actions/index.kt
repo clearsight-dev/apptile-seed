@@ -406,9 +406,14 @@ object Actions {
         val bundlesDir = File(context.filesDir, "bundles")
         if (bundlesDir.exists()) {
             val deleted = bundlesDir.deleteRecursively()
-            Log.d(APPTILE_LOG_TAG, "Deleted OTA bundles directory: $deleted")
+            if (!deleted) {
+                Log.e(APPTILE_LOG_TAG, "Failed to delete OTA bundles directory, will retry on next launch")
+                return
+            }
+            Log.d(APPTILE_LOG_TAG, "Deleted OTA bundles directory")
         }
 
+        // Only persist the new version code after successful cleanup
         BundleTrackerPrefs.setLastKnownVersionCode(currentVersionCode)
         Log.d(APPTILE_LOG_TAG, "✅ APK upgrade cleanup complete")
     }
