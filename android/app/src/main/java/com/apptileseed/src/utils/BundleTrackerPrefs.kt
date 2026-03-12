@@ -7,6 +7,7 @@ import android.util.Log
 object BundleTrackerPrefs {
     private const val PREFS_NAME = "apptile"
     private const val KEY_BUNDLE_LOAD_STATUS = "is_bundle_broken"
+    private const val KEY_LAST_KNOWN_VERSION_CODE = "last_known_version_code"
 
     private lateinit var preferences: SharedPreferences
 
@@ -26,5 +27,14 @@ object BundleTrackerPrefs {
     fun markCurrentBundleBroken(): Boolean {
         Log.e(APPTILE_LOG_TAG, "Marking bundle as broken")
         return preferences.edit().putBoolean(KEY_BUNDLE_LOAD_STATUS, true).commit()
+    }
+
+    fun getLastKnownVersionCode(): Int {
+        return preferences.getInt(KEY_LAST_KNOWN_VERSION_CODE, -1)
+    }
+
+    fun setLastKnownVersionCode(versionCode: Int): Boolean {
+        Log.d(APPTILE_LOG_TAG, "Storing version code: $versionCode")
+        return preferences.edit().putInt(KEY_LAST_KNOWN_VERSION_CODE, versionCode).commit()
     }
 }

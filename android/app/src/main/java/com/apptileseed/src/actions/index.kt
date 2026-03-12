@@ -9,6 +9,7 @@ import com.apptileseed.src.models.ManifestResponse
 import com.apptileseed.src.ota.OTAErrorCode
 import com.apptileseed.src.ota.OTAToast
 import com.apptileseed.src.utils.APPTILE_LOG_TAG
+import com.apptileseed.src.utils.BundleTrackerPrefs
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -385,6 +386,38 @@ object Actions {
         }
     }
 
+    /**
+     * Detects if the APK has been upgraded (VERSION_CODE changed).
+     * If so, clears the OTA bundle directory so that getJSBundleFile()
+     * falls back to the newer embedded bundle shipped with the APK.
+     */
+    fun handleAppUpgrade(context: Context) {
+        val currentVersionCode = BuildConfig.VERSION_CODE
+        val lastKnownVersionCode = BundleTrackerPrefs.getLastKnownVersionCode()
+
+        if (lastKnownVersionCode == currentVersionCode) {
+            Log.d(APPTILE_LOG_TAG, "No APK upgrade detected (versionCode=$currentVersionCode)")
+            return
+        }
+
+        Log.w(APPTILE_LOG_TAG, "🔄 APK upgrade detected: $lastKnownVersionCode -> $currentVersionCode")
+
+        // Delete old OTA bundle so the app falls back to the embedded bundle
+        val bundlesDir = File(context.filesDir, "bundles")
+        if (bundlesDir.exists()) {
+            val deleted = bundlesDir.deleteRecursively()
+            if (!deleted) {
+                Log.e(APPTILE_LOG_TAG, "Failed to delete OTA bundles directory, will retry on next launch")
+                return
+            }
+            Log.d(APPTILE_LOG_TAG, "Deleted OTA bundles directory")
+        }
+
+        // Only persist the new version code after successful cleanup
+        BundleTrackerPrefs.setLastKnownVersionCode(currentVersionCode)
+        Log.d(APPTILE_LOG_TAG, "✅ APK upgrade cleanup complete")
+    }
+
     suspend fun startApptileAppProcess(
         context: Context,
         onForceUpdate: (storeUrl: String?) -> Unit,
@@ -392,6 +425,7 @@ object Actions {
     ) {
         Log.d(APPTILE_LOG_TAG, "========== APPTILE STARTUP PROCESS ==========")
 
+        handleAppUpgrade(context)
         copyBundledAssetsToDocuments(context)
 
         val forceUpdateResult = checkForNavtiveForceUpdate(context)

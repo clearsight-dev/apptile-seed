@@ -448,6 +448,44 @@ final class OTAActions {
         return true
     }
 
+    // MARK: - Handle App Upgrade
+
+    /// Detects if the app has been upgraded (CFBundleVersion changed).
+    /// If so, clears the OTA bundle directory so that getBundleURL()
+    /// falls back to the newer embedded bundle shipped with the app.
+    static func handleAppUpgrade() {
+        guard let buildString = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String,
+              let currentBuildNumber = Int(buildString) else {
+            Logger.warn("Could not read CFBundleVersion, skipping upgrade check")
+            return
+        }
+
+        let lastKnownBuildNumber = BundleTrackerPrefs.getLastKnownBuildNumber()
+
+        if lastKnownBuildNumber == currentBuildNumber {
+            Logger.info("No app upgrade detected (buildNumber=\(currentBuildNumber))")
+            return
+        }
+
+        Logger.warn("🔄 App upgrade detected: \(lastKnownBuildNumber) -> \(currentBuildNumber)")
+
+        // Delete old OTA bundle so the app falls back to the embedded bundle
+        let bundlesDir = FileUtils.documentsDirectory.appendingPathComponent("bundles")
+        if FileManager.default.fileExists(atPath: bundlesDir.path) {
+            do {
+                try FileManager.default.removeItem(at: bundlesDir)
+                Logger.info("Deleted OTA bundles directory")
+            } catch {
+                Logger.error("Failed to delete OTA bundles directory: \(error). Will retry on next launch.")
+                return
+            }
+        }
+
+        // Only persist the new build number after successful cleanup
+        BundleTrackerPrefs.setLastKnownBuildNumber(currentBuildNumber)
+        Logger.info("✅ App upgrade cleanup complete")
+    }
+
     // MARK: - Start Apptile App Process
 
     static func startApptileAppProcess(
@@ -456,6 +494,9 @@ final class OTAActions {
     ) {
         Task {
             Logger.info("========== APPTILE STARTUP PROCESS ==========")
+
+            // Check if the app binary was upgraded
+            handleAppUpgrade()
 
             // Check if previous bundle was broken and rollback if needed
             if BundleTrackerPrefs.isBrokenBundle() {
