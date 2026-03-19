@@ -98,7 +98,7 @@ function App(): React.JSX.Element {
   }, [splashDuration, isGifSplash]);
 
   useEffect(() => {
-    Alert.alert('New Code push through build');
+    Alert.alert('New Code push ios with build');
   }, []);
 
   let body = (
