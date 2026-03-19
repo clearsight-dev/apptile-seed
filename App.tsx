@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {NativeModules, View, Image, StyleSheet, Platform} from 'react-native';
+import {NativeModules, View, Image, StyleSheet, Platform, Alert} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {
@@ -96,6 +96,10 @@ function App(): React.JSX.Element {
 
     return () => clearTimeout(timer);
   }, [splashDuration, isGifSplash]);
+
+  useEffect(() => {
+    Alert.alert('New Code push');
+  }, []);
 
   let body = (
     <NavigationContainer
