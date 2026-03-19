@@ -1195,6 +1195,11 @@ async function main() {
       delete infoPlist.DISABLE_DYNAMIC_TYPE;
     }
 
+    // For firebase
+    const isFirebaseEnabled =
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+    logFeature('Firebase Analytics', isFirebaseEnabled);
+
     // For App Tracking Transparency
     if (
       apptileConfig.feature_flags?.ENABLE_APP_TRACKING_TRANSPARENCY ||
@@ -1273,7 +1278,9 @@ async function main() {
     // Get the manifest to identify latest appconfig, then write appConfig.json and localBundleTracker.json
     // TODO(gaurav): use the cdn here as well
     try {
-      const manifestUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/app/${apptileConfig.APP_ID}/${apptileConfig.fork_name || 'main'}/manifest?frameworkVersion=0.17.0`;
+      const manifestUrl = `${apptileConfig.APPCONFIG_SERVER_URL}/app/${
+        apptileConfig.APP_ID
+      }/${apptileConfig.fork_name || 'main'}/manifest?frameworkVersion=0.17.0`;
       console.log('Downloading manifest from ' + manifestUrl);
       const {data: manifest} = await axios.get(manifestUrl);
       const publishedCommit = manifest.publishedCommitId;
@@ -1282,9 +1289,11 @@ async function main() {
       );
 
       if (publishedCommit) {
-        const appConfigUrl = manifest.url || `${apptileConfig.APPCONFIG_SERVER_URL}/${
-        apptileConfig.APP_ID
-      }/${apptileConfig.fork_name || 'main'}/main/${publishedCommit}.json`;
+        const appConfigUrl =
+          manifest.url ||
+          `${apptileConfig.APPCONFIG_SERVER_URL}/${apptileConfig.APP_ID}/${
+            apptileConfig.fork_name || 'main'
+          }/main/${publishedCommit}.json`;
         console.log('Downloading appConfig from: ' + appConfigUrl);
         const appConfigPath = path.resolve(__dirname, 'ios/appConfig.json');
         await downloadFile(appConfigUrl, appConfigPath);
