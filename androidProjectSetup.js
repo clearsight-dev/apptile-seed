@@ -260,7 +260,7 @@ function deleteAndroidScheme(androidManifest) {
   }
 }
 
-function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false) {
+function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false, disablePaths = []) {
   const mainActivity = getMainActivity(androidManifest);
   if (useIntentFilters) {
     console.log('Applying intent filters for http deep links');
@@ -332,37 +332,28 @@ function addHttpDeepLinks(androidManifest, hosts, useIntentFilters = false) {
   });
 
   if (useIntentFilters) {
-    // New logic: Separate intent-filters for /, /products/, /collections/
+    // Path-specific intent-filters for /, /products/, /collections/
+    // Paths present in disablePaths are skipped so the OS routes them to the browser.
+    const defaultPaths = [
+      {type: 'path', value: '/'},
+      {type: 'pathPrefix', value: '/products/'},
+      {type: 'pathPrefix', value: '/collections/'},
+    ];
 
-    // 1. Intent-filter for homepage "/" - needed for Google Login redirect
-    mainActivity['intent-filter'].push(
-      createIntentFilter([
-        {$: {'android:scheme': 'https'}},
-        {$: {'android:scheme': 'http'}},
-        {$: {'android:path': '/'}},
-        ...hostDataNodes,
-      ]),
-    );
-
-    // 2. Intent-filter for /products/ prefix
-    mainActivity['intent-filter'].push(
-      createIntentFilter([
-        {$: {'android:scheme': 'https'}},
-        {$: {'android:scheme': 'http'}},
-        {$: {'android:pathPrefix': '/products/'}},
-        ...hostDataNodes,
-      ]),
-    );
-
-    // 3. Intent-filter for /collections/ prefix
-    mainActivity['intent-filter'].push(
-      createIntentFilter([
-        {$: {'android:scheme': 'https'}},
-        {$: {'android:scheme': 'http'}},
-        {$: {'android:pathPrefix': '/collections/'}},
-        ...hostDataNodes,
-      ]),
-    );
+    for (const p of defaultPaths) {
+      if (disablePaths.some(dp => p.value === dp || p.value.startsWith(dp) || (p.type === 'pathPrefix' && dp.startsWith(p.value)))) {
+        console.log(`Skipping disabled deep link path: ${p.value}`);
+        continue;
+      }
+      mainActivity['intent-filter'].push(
+        createIntentFilter([
+          {$: {'android:scheme': 'https'}},
+          {$: {'android:scheme': 'http'}},
+          {$: {[`android:${p.type}`]: p.value}},
+          ...hostDataNodes,
+        ]),
+      );
+    }
   } else {
     // Old logic: Single intent-filter with all hosts (opens all URLs in app)
     // But excludes account.* subdomain for Google login to work
@@ -1220,11 +1211,13 @@ async function main() {
       hosts.push(apptileConfig.app_host_2);
     }
     // Add HTTP/HTTPS deep links for the hosts
-    // If INTENT_FILTERS is true, use separate intent-filters for /, /products/, /collections/
-    // Otherwise, use single intent-filter for all URLs
-    const useIntentFilters =
-      apptileConfig.feature_flags?.INTENT_FILTERS === true;
-    addHttpDeepLinks(androidManifest, hosts, useIntentFilters);
+    // If INTENT_FILTERS is true or DISABLE_INTENT_FILTER has paths, use path-specific intent-filters.
+    // DISABLE_INTENT_FILTER paths are excluded from the registered paths.
+    const useIntentFilters = apptileConfig.feature_flags?.INTENT_FILTERS === true;
+    const disablePaths = Array.isArray(apptileConfig.feature_flags?.DISABLE_INTENT_FILTER)
+      ? apptileConfig.feature_flags.DISABLE_INTENT_FILTER
+      : [];
+    addHttpDeepLinks(androidManifest, hosts, useIntentFilters || disablePaths.length > 0, disablePaths);
   } else {
     // Remove HTTP deep links if no hosts are configured
     deleteHttpDeepLinks(androidManifest);

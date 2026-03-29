@@ -304,6 +304,19 @@
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
         return YES;
       }
+      {
+        NSArray<NSString *> *disabledPaths = [[NSBundle mainBundle]
+            objectForInfoDictionaryKey:@"DisabledDeepLinkPaths"];
+        if (disabledPaths) {
+          NSString *path = url.path;
+          for (NSString *disabledPath in disabledPaths) {
+            if ([path hasPrefix:disabledPath] || [path containsString:disabledPath]) {
+              [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+              return YES;
+            }
+          }
+        }
+      }
 #if INTENT_FILTERS
       NSString *path = url.path;
       // Only handle /, /products/, /collections/ in app
