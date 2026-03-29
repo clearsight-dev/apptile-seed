@@ -1231,6 +1231,18 @@ async function main() {
       logFeature('Intent Filters', false);
     }
 
+    // DISABLE_INTENT_FILTER: array of paths to open in browser instead of the app.
+    // The path array is written to Info.plist so AppDelegate can read it at runtime.
+    const disablePaths = apptileConfig.feature_flags?.DISABLE_INTENT_FILTER;
+    if (Array.isArray(disablePaths) && disablePaths.length > 0) {
+      infoPlist['DisabledDeepLinkPaths'] = disablePaths;
+      logFeature('Disable Intent Filter', true);
+      console.log('Disabled deep link paths:', disablePaths);
+    } else {
+      delete infoPlist['DisabledDeepLinkPaths'];
+      logFeature('Disable Intent Filter', false);
+    }
+
     const updatedPlist = plist.build(infoPlist);
     await writeFile(infoPlistLocation, updatedPlist);
 
