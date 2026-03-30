@@ -1,12 +1,12 @@
 <resources>
-  <string name="app_name">rn-shoplazza-app</string>
+  <string name="app_name">Amore</string>
   <string name="pip_name">Apptile Pip activity</string>
   <string name="APPTILE_API_ENDPOINT">https://api.apptile.io</string>
   <string name="APPTILE_UPDATE_ENDPOINT">https://appconfigs.apptile.io</string>
-  <string name="APP_ID">YOUR_APPTILE_APP_ID</string>
-  <string name="APPTILE_URL_SCHEME">apptile://</string>
-  <string name="APPTILE_APP_HOST">https://apptile.io</string>
-  <string name="APPTILE_APP_HOST_2">https://apptile.io</string>
+  <string name="APP_ID">c6a46a39-83b1-4306-871a-fd2050d9c641</string>
+  <string name="APPTILE_URL_SCHEME">shop.68978180411.app://</string>
+  <string name="APPTILE_APP_HOST">https://skandi-apparel.myshopify.com</string>
+  <string name="APPTILE_APP_HOST_2">https://*.skandi-apparel.myshopify.com</string>
   <string name="APPTILE_APP_FORK">main</string>
   <string name="IS_PREVIEW_APP">NO</string>
   <string name="APPTILE_IS_DISTRIBUTED_APP">1</string>
@@ -14,5 +14,7 @@
   <string name="MOENGAGE_DATACENTER">data_center_3</string>
   <string name="APPSFLYER_DEVKEY">xxx</string>
   <string name="APPSFLYER_APPID">xxx</string>
-  <string name="APPTILE_ANALYTICS_SEGMENT_KEY"></string>
+  <string name="GIF_SPLASH_DURATION">4</string>
+  <string name="ONESIGNAL_APPID">c98bb090-dc1e-401b-a91e-d7896aa2c674</string>
+  <string name="ENABLE_LIVELY_PIP">true</string>
 </resources>

@@ -175,7 +175,7 @@ target 'apptileSeed' do
     # :flipper_configuration => FlipperConfiguration.disabled,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :hermes_enabled => false
+    :hermes_enabled => true
   )
 
   # target 'apptileSeedTests' do

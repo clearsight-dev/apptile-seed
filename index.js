@@ -10,8 +10,9 @@ import {
   NativeModules,
 } from 'react-native';
 import App from './App';
-import {name as appName, pipactivityname} from './app.json';
+import {name as appName, pipactivityname, videopipactivityname} from './app.json';
 import PIPActivity from 'PIPActivityRoot';
+import VideoPIPActivity from './VideoPIPActivityRoot';
 
 // Disable dynamic type / font scaling if flag is set
 const {RNGetValues} = NativeModules;
@@ -45,4 +46,5 @@ AppRegistry.registerComponent(appName, () => App);
 
 if (Platform.OS === 'android') {
   AppRegistry.registerComponent(pipactivityname, () => PIPActivity);
+  AppRegistry.registerComponent(videopipactivityname, () => VideoPIPActivity);
 }

@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAa0wUiJcwG_C-cC1NXkuv3_zSmxifzT4w</string>
+	<string>AIzaSyA8-DU39f9oVSeTnKK9BVvZZ-xFRgenF_Q</string>
 	<key>GCM_SENDER_ID</key>
-	<string>593393856836</string>
+	<string>1036999567420</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.discoverpilgrimstaging</string>
+	<string>com.amorefashion.app</string>
 	<key>PROJECT_ID</key>
-	<string>pilgrim-staging</string>
+	<string>amore-7609</string>
 	<key>STORAGE_BUCKET</key>
-	<string>pilgrim-staging.appspot.com</string>
+	<string>amore-7609.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:593393856836:ios:64f16185cffcbeea866711</string>
+	<string>1:1036999567420:ios:4cf5bb08f4517302333b39</string>
 </dict>
 </plist>

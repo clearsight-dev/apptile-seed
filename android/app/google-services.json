@@ -1,21 +1,40 @@
 {
   "project_info": {
-    "project_number": "1097578695917",
-    "project_id": "novhara-8032",
-    "storage_bucket": "novhara-8032.appspot.com"
+    "project_number": "1036999567420",
+    "project_id": "amore-7609",
+    "storage_bucket": "amore-7609.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1097578695917:android:f06e7f9e17ec75b04690e4",
+        "mobilesdk_app_id": "1:1036999567420:android:07d04e60eba99796333b39",
         "android_client_info": {
-          "package_name": "com.moderna.app"
+          "package_name": "com.amorefashion.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDEilIEE_soACcCnlSj9Q7JZqplkpQfoys"
+          "current_key": "AIzaSyAdsxY96VxRo_ztLVhESVS_YlmwCQ5QHxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036999567420:android:0cfbaee9ec2d4313333b39",
+        "android_client_info": {
+          "package_name": "com.apptile.shopify.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdsxY96VxRo_ztLVhESVS_YlmwCQ5QHxw"
         }
       ],
       "services": {

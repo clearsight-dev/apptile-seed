@@ -47,25 +47,29 @@ export default function PIPActivity() {
 
   useEffect(() => {
     if (streamId && zgViewRef.current && global.activitySharedMem.isInPip) {
+      const zegoInstance = ZegoExpressEngine.instance();
+      console.log(
+        'Receive call from main activity',
+        streamId,
+        zegoInstance,
+        ScreenDims,
+      );
+      const zegoViewInstance = new ZegoView(
+        findNodeHandle(zgViewRef.current),
+        1,
+        0xffffff,
+      );
+
+      // Start playing stream FIRST
+      console.log('[PIPActivity] Starting stream playback');
+      zegoInstance.startPlayingStream(streamId, zegoViewInstance, undefined);
+
+      // Wait for stream to start rendering, then enter PiP mode
       setTimeout(() => {
-        const zegoInstance = ZegoExpressEngine.instance();
-        console.log(
-          'Receive call from main activity',
-          streamId,
-          zegoInstance,
-          ScreenDims,
-        );
-        const zegoViewInstance = new ZegoView(
-          findNodeHandle(zgViewRef.current),
-          1,
-          0xffffff,
-        );
-        console.log('Entering PIP mode IN JS');
-  
+        console.log('[PIPActivity] Entering PIP mode');
         const safeDims = clampAspectRatio(ScreenDims.width, ScreenDims.height);
         PIPModule.enterPictureInPictureMode(safeDims.width, safeDims.height);
-        zegoInstance.startPlayingStream(streamId, zegoViewInstance, undefined);
-      }, 800)
+      }, 1000);
     }
     return () => {
       if (streamId && zgViewRef.current) {

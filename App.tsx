@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {NativeModules, View, Image, StyleSheet, Platform} from 'react-native';
+import {NativeModules, View, Image, StyleSheet, Platform, TouchableOpacity, Text} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {
@@ -14,7 +14,7 @@ import LogRocket from '@logrocket/react-native';
 import UpdateModal from './components/UpdateModal';
 import AdminPage from './components/AdminPage';
 import BuildInfo from './components/BuildInfo';
-const {RNApptile} = NativeModules;
+const {RNApptile, VideoPIPModule} = NativeModules;
 
 const apptileConfig = require('./apptile.config.json');
 export type ScreenParams = {
@@ -138,6 +138,21 @@ function App(): React.JSX.Element {
     </NavigationContainer>
   );
 
+  const handleTestPIP = () => {
+    console.log('[App] Test PIP button pressed');
+    if (VideoPIPModule) {
+      VideoPIPModule.startVideoPIPActivity('https://live.apptile.io/06ff4192-8d22-43a6-8663-36864deaa42d/playlist.m3u8', 0)
+        .then(() => {
+          console.log('[App] VideoPIP activity started successfully');
+        })
+        .catch((error: any) => {
+          console.error('[App] Failed to start VideoPIP activity:', error);
+        });
+    } else {
+      console.error('[App] VideoPIPModule not available');
+    }
+  };
+
   return (
     <ApptileWrapper
       noNavigatePaths={['NativeUtils', 'AdminPage', 'BuildInfo']}
@@ -157,6 +172,14 @@ function App(): React.JSX.Element {
           />
         </View>
       )}
+      {Platform.OS === 'android' && (
+        <TouchableOpacity
+          style={styles.testPIPButton}
+          onPress={handleTestPIP}
+          activeOpacity={0.7}>
+          <Text style={styles.testPIPButtonText}>Test PIP</Text>
+        </TouchableOpacity>
+      )}
     </ApptileWrapper>
   );
 }
@@ -174,6 +197,26 @@ const styles = StyleSheet.create({
   splashImage: {
     width: '100%',
     height: '100%',
+  },
+  testPIPButton: {
+    position: 'absolute',
+    bottom: 50,
+    right: 20,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 10000,
+  },
+  testPIPButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
