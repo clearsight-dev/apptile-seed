@@ -70,8 +70,9 @@ export function ReactComponent({ model }) {
   const navigation = useNavigation();
 
   // Merchant config
-   const appId = model.get('appId') || '';
-  const detailPageName = model.get('detailPageName') || 'manageSealSubscriptionDetail';
+  //  const appId = model.get('appId') || '';
+  const detailPageName =
+    model.get('detailPageName') || 'manageSealSubscriptionDetail';
   const primaryColor = model.get('primaryColor') || '#6366F1';
   const backgroundColor = model.get('backgroundColor') || '#F3F4F6';
   const cardBackgroundColor = model.get('cardBackgroundColor') || '#FFFFFF';
@@ -81,18 +82,19 @@ export function ReactComponent({ model }) {
   const errorColor = model.get('errorColor') || '#EF4444';
   const cardBorderRadius = parseInt(model.get('cardBorderRadius') || '12', 10);
   const editButtonLabel = model.get('editButtonLabel') || 'Edit subscription';
-  const emptyStateMessage = model.get('emptyStateMessage') || 'No subscriptions found';
+  const emptyStateMessage =
+    model.get('emptyStateMessage') || 'No subscriptions found';
   const showStatus = makeBoolean(model.get('showStatus') ?? true);
   const showTotalValue = makeBoolean(model.get('showTotalValue') ?? true);
-  const showRepeatFrequency = makeBoolean(model.get('showRepeatFrequency') ?? true);
+  const showRepeatFrequency = makeBoolean(
+    model.get('showRepeatFrequency') ?? true,
+  );
   const showCreatedDate = makeBoolean(model.get('showCreatedDate') ?? true);
   const showItems = makeBoolean(model.get('showItems') ?? true);
 
   // Dynamic customer data from Redux (AP-2, AP-8, AP-9)
-  const customerEmail = useSelector(
-    state =>
-      state.appModel.values.getIn(['shopify', 'loggedInUser', 'email']) ||
-      'mansi.nagaria@apptile.io',
+  const appId = useSelector(
+    state => state.appModel.values.getIn(['Apptile', 'appUUID']),
     shallowEqual,
   );
 
@@ -102,7 +104,8 @@ export function ReactComponent({ model }) {
         'shopify',
         'loggedInUserAccessToken',
         'accessToken',
-      ]) || null,
+      ]) ||
+      'shcat_eyJraWQiOiIwIiwiYWxnIjoiRUQyNTUxOSJ9.eyJzaG9wSWQiOjE3Nzk1MzI5LCJjaWQiOiJhMjU0MTU4Zi1hNmY1LTQ0NzktODQwZC01YmIzNzQ4NjRiYzYiLCJpYXQiOjE3NzUxMzU0NjIsImV4cCI6MTc3NTEzOTA2MiwiaXNzIjoiaHR0cHM6XC9cL3Nob3BpZnkuY29tXC9hdXRoZW50aWNhdGlvblwvMTc3OTUzMjkiLCJzdWIiOjgwMjE4ODE3ODIzNTEsInNjb3BlIjoib3BlbmlkIGVtYWlsIGN1c3RvbWVyLWFjY291bnQtYXBpOmZ1bGwiLCJydGlkIjoiMDE5ZDRlMmEtM2ViZi01NzRjLTNjNjAtYjQ2NzI2ZDM1OTZiIiwic2lkIjoiMDFLTjcyTURQSFhBWjdaSllEVlROMTVSU1kifQ.t41EUJUM5WSDTvrmrNfF9ZZYY8Wem6ZWg_JYCrTTAiHtKkKByZBLLHvwuzADdg9fdxDYwck2qJB8zAXgN_EEAg',
     shallowEqual,
   );
 
@@ -110,14 +113,13 @@ export function ReactComponent({ model }) {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-console.log("APPid", appId)
   useFocusEffect(
     useCallback(() => {
       if (!appId || !customerAccessToken) {
         setLoading(false);
         return;
       }
-      console.log("customeraccesstoken", customerAccessToken)
+      console.log('customeraccesstoken', customerAccessToken);
       console.log('appid', appId);
 
       let cancelled = false;
@@ -125,7 +127,10 @@ console.log("APPid", appId)
         setLoading(true);
         setError(null);
         try {
-          const data = await fetchCustomerSubscriptions(appId, customerAccessToken);
+          const data = await fetchCustomerSubscriptions(
+            appId,
+            customerAccessToken,
+          );
           if (!cancelled) setSubscriptions(data);
         } catch (e) {
           if (!cancelled) setError(e.message);
@@ -134,7 +139,9 @@ console.log("APPid", appId)
         }
       }
       load();
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }, [appId, customerAccessToken]),
   );
 
@@ -145,19 +152,27 @@ console.log("APPid", appId)
         editUrl: sub.edit_url,
       });
     },
-    [detailPageName, navigation]
+    [detailPageName, navigation],
   );
 
   // Render guards — all hooks already called above (AP-14)
-  // if (!appId || !customerAccessToken) {
-  //   return (
-  //     <View style={{ flex: 'unset', minHeight: 300, backgroundColor, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-  //       <Text style={{ color: errorColor, textAlign: 'center' }}>
-  //         Cant find appID and customer access token from the model.
-  //       </Text>
-  //     </View>
-  //   );
-  // }
+  if (!appId || !customerAccessToken) {
+    return (
+      <View
+        style={{
+          flex: 'unset',
+          minHeight: 300,
+          backgroundColor,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+        }}>
+        <Text style={{color: errorColor, textAlign: 'center'}}>
+          Cant find appID and customer access token from the model.
+        </Text>
+      </View>
+    );
+  }
 
   if (loading) {
     return (
@@ -212,9 +227,16 @@ console.log("APPid", appId)
   }
 
   return (
-    <View style={{ flex: 'unset', minHeight: 300, backgroundColor, width:'100%', height: '100%' }}>
+    <View
+      style={{
+        flex: 'unset',
+        minHeight: 300,
+        backgroundColor,
+        width: '100%',
+        height: '100%',
+      }}>
       <ScrollView>
-        <View style={{ padding: 16 }}>
+        <View style={{padding: 16}}>
           {subscriptions.map(sub => (
             <View
               key={sub.id}
@@ -225,42 +247,105 @@ console.log("APPid", appId)
                 borderColor,
                 padding: 16,
                 marginBottom: 16,
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: '700', color: textColor, marginBottom: 12 }}>
+              }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: textColor,
+                  marginBottom: 12,
+                }}>
                 {`#${sub.id}`}
               </Text>
 
               {showTotalValue && (
-                <Text style={{ fontSize: 14, fontWeight: '500', color: textColor, marginBottom: 8 }}>
-                  <Text style={{ fontWeight: '800' }}>{'Total value: '}</Text>
-                  {`${sub.currency} $${parseFloat(sub.total_value || 0).toFixed(2)}`}
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    color: textColor,
+                    marginBottom: 8,
+                  }}>
+                  <Text style={{fontWeight: '800'}}>{'Total value: '}</Text>
+                  {`${sub.currency} $${parseFloat(sub.total_value || 0).toFixed(
+                    2,
+                  )}`}
                 </Text>
               )}
 
               {showRepeatFrequency && sub.billing_interval && (
-                <Text style={{ fontSize: 14, fontWeight: '500', color: textColor, marginBottom: 8 }}>
-                  <Text style={{ fontWeight: '800' }}>{'Repeats every '}</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    color: textColor,
+                    marginBottom: 8,
+                  }}>
+                  <Text style={{fontWeight: '800'}}>{'Repeats every '}</Text>
                   {sub.billing_interval}
                 </Text>
               )}
 
               {showCreatedDate && sub.order_placed && (
-                <Text style={{ fontSize: 14, fontWeight: '500', color: textColor, marginBottom: 8 }}>
-                  <Text style={{ fontWeight: '800' }}>{'Created on: '}</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    color: textColor,
+                    marginBottom: 8,
+                  }}>
+                  <Text style={{fontWeight: '800'}}>{'Created on: '}</Text>
                   {formatDisplayDate(sub.order_placed)}
                 </Text>
               )}
 
               {showStatus && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: textColor }}>Status: </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 8,
+                  }}>
+                  <Text
+                    style={{fontSize: 14, fontWeight: '800', color: textColor}}>
+                    Status:{' '}
+                  </Text>
                   {(() => {
-                    const s = STATUS_CONFIG[sub.status] || { label: sub.status, bg: '#F3F4F6', color: '#6B7280', iconType: 'Feather', icon: null };
+                    const s = STATUS_CONFIG[sub.status] || {
+                      label: sub.status,
+                      bg: '#F3F4F6',
+                      color: '#6B7280',
+                      iconType: 'Feather',
+                      icon: null,
+                    };
                     return (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: s.bg, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3, marginLeft: 4 }}>
-                        <Text style={{ fontSize: 13, fontWeight: '700', color: s.color }}>{s.label}</Text>
-                        {s.icon ? <Icon iconType={s.iconType} name={s.icon} size={13} color={s.color} style={{ marginLeft: 4 }} /> : null}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: s.bg,
+                          borderRadius: 12,
+                          paddingHorizontal: 10,
+                          paddingVertical: 3,
+                          marginLeft: 4,
+                        }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '700',
+                            color: s.color,
+                          }}>
+                          {s.label}
+                        </Text>
+                        {s.icon ? (
+                          <Icon
+                            iconType={s.iconType}
+                            name={s.icon}
+                            size={13}
+                            color={s.color}
+                            style={{marginLeft: 4}}
+                          />
+                        ) : null}
                       </View>
                     );
                   })()}
@@ -276,26 +361,53 @@ console.log("APPid", appId)
                   paddingVertical: 10,
                   alignItems: 'center',
                   marginTop: 8,
-                  marginBottom: showItems && Array.isArray(sub.items) && sub.items.length > 0 ? 16 : 0,
+                  marginBottom:
+                    showItems &&
+                    Array.isArray(sub.items) &&
+                    sub.items.length > 0
+                      ? 16
+                      : 0,
                 }}
-                onPress={() => handleEditSubscription(sub)}
-              >
-                <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '500' }}>{editButtonLabel}</Text>
+                onPress={() => handleEditSubscription(sub)}>
+                <Text
+                  style={{
+                    color: primaryColor,
+                    fontSize: 14,
+                    fontWeight: '500',
+                  }}>
+                  {editButtonLabel}
+                </Text>
               </TouchableOpacity>
 
-              {showItems && Array.isArray(sub.items) && sub.items.length > 0 && (
-                <View>
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: textColor, marginBottom: 8 }}>Items</Text>
-                  {sub.items.map((item, i) => (
-                    <Text key={i} style={{ fontSize: 14, color: '#6B7280', marginBottom: 2 }}>
-                      {item.title && item.title.length > 35
-                        ? item.title.substring(0, 35) + '...'
-                        : item.title}{' '}
-                      x {item.quantity}
+              {showItems &&
+                Array.isArray(sub.items) &&
+                sub.items.length > 0 && (
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: textColor,
+                        marginBottom: 8,
+                      }}>
+                      Items
                     </Text>
-                  ))}
-                </View>
-              )}
+                    {sub.items.map((item, i) => (
+                      <Text
+                        key={i}
+                        style={{
+                          fontSize: 14,
+                          color: '#6B7280',
+                          marginBottom: 2,
+                        }}>
+                        {item.title && item.title.length > 35
+                          ? item.title.substring(0, 35) + '...'
+                          : item.title}{' '}
+                        x {item.quantity}
+                      </Text>
+                    ))}
+                  </View>
+                )}
             </View>
           ))}
         </View>
@@ -305,7 +417,7 @@ console.log("APPid", appId)
 }
 
 export const WidgetConfig = {
-  appId: '',
+  // appId: '',
   detailPageName: 'manageSealSubscriptionDetail',
   primaryColor: '#6366F1',
   backgroundColor: '#F3F4F6',
@@ -326,7 +438,7 @@ export const WidgetConfig = {
 
 export const WidgetEditors = {
   basic: [
-    {type: 'codeInput', name: 'appId', props: {label: 'App id'}},
+    // {type: 'codeInput', name: 'appId', props: {label: 'App id'}},
     {
       type: 'codeInput',
       name: 'detailPageName',

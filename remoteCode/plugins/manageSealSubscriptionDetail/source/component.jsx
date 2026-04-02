@@ -9,7 +9,9 @@ import {
   Modal,
 } from 'react-native';
 import { makeBoolean, Icon } from 'apptile-core';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
+import {useSelector, shallowEqual} from 'react-redux';
+
 
 const SEAL_BASE_URL = 'https://api.apptile.local/seal-subscription';
 
@@ -23,7 +25,7 @@ const STATUS_CONFIG = {
 
 async function fetchSubscriptionById(subscriptionId, appId, customerAccessToken) {
   console.log('[Seal] fetchSubscriptionById', subscriptionId);
-  const url = `${SEAL_BASE_URL}/subscriptions/get?id=${subscriptionId}`;
+  const url = `${SEAL_BASE_URL}/subscriptions/get/${subscriptionId}`;
   const res = await fetch(url, {
     headers: {
       'x-shopify-app-id': appId,
@@ -155,8 +157,7 @@ export function ReactComponent({ model }) {
 
   // Subscription ID and token: nav params first, model fallback (AP-2)
   const subscriptionId = route.params?.subscriptionId || model.get('subscriptionId') || '';
-  const appId = model.get('appId');
-  const customerAccessToken = model.get('customerAccessToken');
+
 
   // Merchant config
   const primaryColor = model.get('primaryColor') || '#6366F1';
@@ -197,6 +198,21 @@ export function ReactComponent({ model }) {
   const [resumeReactivateLoading, setResumeReactivateLoading] = useState(false);
   const [resumeReactivateMessage, setResumeReactivateMessage] = useState(null);
 
+    const appId = useSelector(
+      state => state.appModel.values.getIn(['Apptile', 'appUUID']),
+      shallowEqual,
+    );
+
+    const customerAccessToken = useSelector(
+      state =>
+        state.appModel.values.getIn([
+          'shopify',
+          'loggedInUserAccessToken',
+          'accessToken',
+        ]) ||
+        'shcat_eyJraWQiOiIwIiwiYWxnIjoiRUQyNTUxOSJ9.eyJzaG9wSWQiOjE3Nzk1MzI5LCJjaWQiOiJhMjU0MTU4Zi1hNmY1LTQ0NzktODQwZC01YmIzNzQ4NjRiYzYiLCJpYXQiOjE3NzUxMzU0NjIsImV4cCI6MTc3NTEzOTA2MiwiaXNzIjoiaHR0cHM6XC9cL3Nob3BpZnkuY29tXC9hdXRoZW50aWNhdGlvblwvMTc3OTUzMjkiLCJzdWIiOjgwMjE4ODE3ODIzNTEsInNjb3BlIjoib3BlbmlkIGVtYWlsIGN1c3RvbWVyLWFjY291bnQtYXBpOmZ1bGwiLCJydGlkIjoiMDE5ZDRlMmEtM2ViZi01NzRjLTNjNjAtYjQ2NzI2ZDM1OTZiIiwic2lkIjoiMDFLTjcyTURQSFhBWjdaSllEVlROMTVSU1kifQ.t41EUJUM5WSDTvrmrNfF9ZZYY8Wem6ZWg_JYCrTTAiHtKkKByZBLLHvwuzADdg9fdxDYwck2qJB8zAXgN_EEAg',
+      shallowEqual,
+    );
   // useMemo hooks all at top level (AP-14)
   const billingAttempts = useMemo(
     () => (Array.isArray(subscription?.billing_attempts) ? subscription.billing_attempts : []),
@@ -239,7 +255,11 @@ export function ReactComponent({ model }) {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchSubscriptionById(appId, customerAccessToken, subscriptionId);
+        const data = await fetchSubscriptionById(
+          subscriptionId,
+          appId,
+          customerAccessToken,
+        );
         if (!cancelled) {
           setSubscription(data);
           setShippingForm(buildShippingFormFromSub(data));
@@ -277,9 +297,9 @@ export function ReactComponent({ model }) {
         shippingForm,
       );
       const updated = await fetchSubscriptionById(
+        subscriptionId,
         appId,
         customerAccessToken,
-        subscriptionId,
       );
       setSubscription(updated);
       setShippingForm(buildShippingFormFromSub(updated));
@@ -394,39 +414,50 @@ export function ReactComponent({ model }) {
   const subscriptionButtons = (
     <>
       {subscription.status === 'ACTIVE' && minCyclesReached ? (
-        <View style={{gap: 8}}>
-          <TouchableOpacity
-            style={{
-              borderWidth: 1.5,
-              borderColor: '#F59E0B',
-              borderRadius: cardBorderRadius,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-            onPress={() => {
-              setCancelPauseMessage(null);
-              setShowPauseModal(true);
-            }}>
-            <Text style={{color: '#F59E0B', fontWeight: '600', fontSize: 14}}>
-              Pause subscription
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              borderWidth: 1.5,
-              borderColor: errorColor,
-              borderRadius: cardBorderRadius,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-            onPress={() => {
-              setCancelPauseMessage(null);
-              setShowCancelModal(true);
-            }}>
-            <Text style={{color: errorColor, fontWeight: '600', fontSize: 14}}>
-              Cancel subscription
-            </Text>
-          </TouchableOpacity>
+        <View
+          style={{
+            backgroundColor: cardBackgroundColor,
+            borderRadius: cardBorderRadius,
+            borderWidth: 1,
+            borderColor,
+            padding: 16,
+            marginBottom: 12,
+          }}>
+          <View style={{gap: 8}}>
+            <TouchableOpacity
+              style={{
+                borderWidth: 1.5,
+                borderColor: '#F59E0B',
+                borderRadius: cardBorderRadius,
+                paddingVertical: 12,
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                setCancelPauseMessage(null);
+                setShowPauseModal(true);
+              }}>
+              <Text style={{color: '#F59E0B', fontWeight: '600', fontSize: 14}}>
+                Pause subscription
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                borderWidth: 1.5,
+                borderColor: errorColor,
+                borderRadius: cardBorderRadius,
+                paddingVertical: 12,
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                setCancelPauseMessage(null);
+                setShowCancelModal(true);
+              }}>
+              <Text
+                style={{color: errorColor, fontWeight: '600', fontSize: 14}}>
+                Cancel subscription
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : null}
 
@@ -437,7 +468,7 @@ export function ReactComponent({ model }) {
             borderColor: '#10B981',
             borderRadius: cardBorderRadius,
             paddingVertical: 12,
-            alignItems: 'center'
+            alignItems: 'center',
           }}
           onPress={async () => {
             if (resumeReactivateLoading) return;
@@ -447,12 +478,12 @@ export function ReactComponent({ model }) {
                 appId,
                 customerAccessToken,
                 subscriptionId,
-                'resume'
+                'resume',
               );
               const updated = await fetchSubscriptionById(
+                subscriptionId,
                 appId,
                 customerAccessToken,
-                subscriptionId,
               );
               setSubscription(updated);
             } catch (e) {
@@ -479,18 +510,22 @@ export function ReactComponent({ model }) {
             borderColor: primaryColor,
             borderRadius: cardBorderRadius,
             paddingVertical: 12,
-            alignItems: 'center'
+            alignItems: 'center',
           }}
           onPress={async () => {
             if (resumeReactivateLoading) return;
             setResumeReactivateLoading(true);
             try {
-              await updateSubscriptionAction(appId,
-                customerAccessToken, subscriptionId, 'reactivate');
-              const updated = await fetchSubscriptionById(
+              await updateSubscriptionAction(
                 appId,
                 customerAccessToken,
                 subscriptionId,
+                'reactivate',
+              );
+              const updated = await fetchSubscriptionById(
+                subscriptionId,
+                appId,
+                customerAccessToken,
               );
               setSubscription(updated);
             } catch (e) {
@@ -1288,17 +1323,7 @@ export function ReactComponent({ model }) {
       <ScrollView>
         <View style={{padding: 16}}>
           {/* 0. Action buttons */}
-          <View
-            style={{
-              backgroundColor: cardBackgroundColor,
-              borderRadius: cardBorderRadius,
-              borderWidth: 1,
-              borderColor,
-              padding: 16,
-              marginBottom: 12,
-            }}>
-            {subscriptionButtons}
-          </View>
+          {subscriptionButtons}
 
           {/* 1. Subscription info */}
           {subscriptionInfoCard}
@@ -1340,7 +1365,11 @@ export function ReactComponent({ model }) {
 
           {/* 6. Billing address */}
           {showBillingAddressSection &&
-            renderSection('Billing Address', billingAddressContent, 'billingAddress')}
+            renderSection(
+              'Billing Address',
+              billingAddressContent,
+              'billingAddress',
+            )}
 
           {/* 7. Payment method */}
           {showPaymentSection &&
@@ -1530,7 +1559,7 @@ export function ReactComponent({ model }) {
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight:500,
+                  fontWeight: 500,
                   color:
                     cancelPauseMessage.type === 'error'
                       ? errorColor
@@ -1585,10 +1614,16 @@ export function ReactComponent({ model }) {
                 }
                 setCancelPauseLoading(true);
                 try {
-                  await cancelSubscription(apiToken, subscriptionId);
-                  const updated = await fetchSubscriptionById(
-                    apiToken,
+                  await updateSubscriptionAction(
+                    appId,
+                    customerAccessToken,
                     subscriptionId,
+                    'cancel',
+                  );
+                  const updated = await fetchSubscriptionById(
+                    subscriptionId,
+                    appId,
+                    customerAccessToken,
                   );
                   setSubscription(updated);
                   setCancelPauseMessage({
@@ -1728,11 +1763,15 @@ export function ReactComponent({ model }) {
                 }
                 setCancelPauseLoading(true);
                 try {
-                  await updateSubscriptionAction(appId,
-                customerAccessToken, subscriptionId, 'pause');
+                  await updateSubscriptionAction(
+                    appId,
+                    customerAccessToken,
+                    subscriptionId,
+                    'pause',
+                  );
                   const updated = await fetchSubscriptionById(
                     appId,
-                customerAccessToken,
+                    customerAccessToken,
                     subscriptionId,
                   );
                   setSubscription(updated);
@@ -1789,10 +1828,7 @@ export const WidgetConfig = {
 };
 
 export const WidgetEditors = {
-  basic: [
-    {type: 'codeInput', name: 'appId', props: {label: 'App id'}},
-    {type: 'codeInput', name: 'customerAccessToken', props: {label: 'Customer Access Token'}},
-  ],
+  basic: [],
   advanced: [
     {type: 'colorInput', name: 'primaryColor', props: {label: 'Primary Color'}},
     {
