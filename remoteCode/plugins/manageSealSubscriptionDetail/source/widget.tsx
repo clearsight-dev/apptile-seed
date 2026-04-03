@@ -6,13 +6,14 @@ const pluginListing = {
   labelPrefix: 'manageSealSubscriptionDetail',
   type: 'widget',
   name: 'manageSealSubscriptionDetail',
-  description: 'Shows full detail for a single Seal Subscription — items, billing schedule, shipping (editable), and payment method',
+  description:
+    'Shows full detail for a single Seal Subscription — items, billing schedule, shipping (editable), and payment method',
   layout: {
     width: 50,
     height: 30,
   },
   section: 'SDK',
-  icon: 'widget',
+  icon: 'container',
   manifest: {
     directoryName: 'manageSealSubscriptionDetail',
   },

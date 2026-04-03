@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -8,24 +8,188 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { makeBoolean, Icon } from 'apptile-core';
+import {makeBoolean, Icon} from 'apptile-core';
 import {useRoute} from '@react-navigation/native';
 import {useSelector, shallowEqual} from 'react-redux';
 
+// ─── SEAL Subscription Types ─────────────────────────────────────────────────
 
-const SEAL_BASE_URL = 'https://api.apptile.local/seal-subscription';
+export type SealSubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'EXPIRED';
+
+export interface SealDiscountCode {
+  id: string;
+  code: string;
+  amount: string;
+}
+
+export interface SealSubscriptionItem {
+  id: number;
+  product_id: string;
+  variant_id: string;
+  title: string;
+  variant_sku: string;
+  quantity: number;
+  price: string;
+  total_discount: string;
+  discount_per_item: string;
+  taxable: number;
+  requires_shipping: number;
+  original_price: string;
+  original_amount: number;
+  discount_value: number;
+  discount_amount: number;
+  final_price: number;
+  final_amount: number;
+  properties: any[];
+  is_one_time_item: number;
+  selling_plan_id: string;
+  selling_plan_name: string;
+  cycle_discounts: any[];
+  discount_codes: SealDiscountCode[];
+}
+
+export interface SealBillingAttempt {
+  id: number;
+  date: string;
+  completed_at: string;
+  status: string;
+  order_id: string;
+  error_code: string;
+  error_message: string;
+  triggered_manually: string;
+  customer_authentication_challenge_url: string;
+}
+
+export interface SealLogEntry {
+  content: string;
+  created: string;
+}
+
+export interface SealSubscription {
+  id: number;
+  order_placed: string;
+  internal_id: number;
+  delivery_interval: string;
+  billing_interval: string;
+  order_id: string;
+  email: string;
+  currency: string;
+  first_name: string;
+  last_name: string;
+  s_first_name: string;
+  s_last_name: string;
+  s_address1: string;
+  s_address2: string;
+  s_company: string;
+  s_phone: string;
+  s_city: string;
+  s_zip: string;
+  s_province: string;
+  s_country: string;
+  s_country_code: string;
+  s_province_code: string;
+  b_first_name: string;
+  b_last_name: string;
+  b_address1: string;
+  b_address2: string;
+  b_phone: string;
+  b_city: string;
+  b_zip: string;
+  b_province: string;
+  b_country: string;
+  b_company: string;
+  b_country_code: string;
+  b_province_code: string;
+  total_value: number;
+  admin_note: string;
+  subscription_type: number;
+  status: SealSubscriptionStatus;
+  customer_id: string;
+  billing_min_cycles: string;
+  billing_max_cycles: string;
+  note: string;
+  note_attributes: any[];
+  edit_url: string;
+  cancelled_on: string;
+  paused_on: string;
+  shopify_graphql_subscription_contract_id: string;
+  card_brand: string;
+  card_expiry_month: string;
+  card_expiry_year: string;
+  card_last_digits: string;
+  delivery_method_title: string;
+  delivery_method_presentment_title: string;
+  delivery_price: number;
+  delivery_method_code: string;
+  delivery_price_discounted: number;
+  delivery_discount_id: string;
+  delivery_discount_title: string;
+  items: SealSubscriptionItem[];
+  billing_attempts: SealBillingAttempt[];
+  invoices: any[];
+  fulfillment_orders: any[];
+  tags: string[];
+  log: SealLogEntry[];
+}
+
+export interface SealApiResponse<T> {
+  success: boolean;
+  payload: T;
+}
+
+export interface SealShippingForm {
+  s_first_name: string;
+  s_last_name: string;
+  s_address1: string;
+  s_address2: string;
+  s_city: string;
+  s_zip: string;
+  s_province: string;
+  s_province_code: string;
+  s_country: string;
+  s_country_code: string;
+  s_phone: string;
+  s_company: string;
+}
+
+interface ApiError extends Error {
+  apiMessage: string;
+}
 
 const STATUS_CONFIG = {
-  ACTIVE:    { label: 'Active',    bg: '#D1FAE5', color: '#065F46', iconType: 'Feather', icon: 'check-circle' },
-  PAUSED:    { label: 'Paused',    bg: '#FEF3C7', color: '#92400E', iconType: 'Feather', icon: 'pause-circle' },
-  CANCELLED: { label: 'Cancelled', bg: '#FEE2E2', color: '#991B1B', iconType: 'Feather', icon: 'x-circle' },
+  ACTIVE: {
+    label: 'Active',
+    bg: '#D1FAE5',
+    color: '#065F46',
+    iconType: 'Feather',
+    icon: 'check-circle',
+  },
+  PAUSED: {
+    label: 'Paused',
+    bg: '#FEF3C7',
+    color: '#92400E',
+    iconType: 'Feather',
+    icon: 'pause-circle',
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    bg: '#FEE2E2',
+    color: '#991B1B',
+    iconType: 'Feather',
+    icon: 'x-circle',
+  },
 };
 
 // --- API helpers ---
 
-async function fetchSubscriptionById(subscriptionId, appId, customerAccessToken) {
+async function fetchSubscriptionById(
+  subscriptionId: number,
+  appId: string,
+  customerAccessToken: string,
+  SEAL_PROXY_BASE_URL: string
+) {
   console.log('[Seal] fetchSubscriptionById', subscriptionId);
-  const url = `${SEAL_BASE_URL}/subscriptions/get/${subscriptionId}`;
+  const url = `${SEAL_PROXY_BASE_URL}/subscriptions/get/${subscriptionId}`;
   const res = await fetch(url, {
     headers: {
       'x-shopify-app-id': appId,
@@ -38,19 +202,24 @@ async function fetchSubscriptionById(subscriptionId, appId, customerAccessToken)
     throw new Error('Failed to load subscription details');
   }
   const json = await res.json();
-  console.log('[Seal] fetchSubscriptionById OK', JSON.stringify(json).substring(0, 500));
+  console.log(
+    '[Seal] fetchSubscriptionById OK',
+    JSON.stringify(json).substring(0, 500),
+  );
   return json.payload;
 }
 
 async function updateSubscriptionAction(
-  appId,
-  customerAccessToken,
-  subscriptionId,
-  action,
+  appId: string,
+  customerAccessToken: string,
+  subscriptionId: number,
+  action: string,
+  SEAL_PROXY_BASE_URL: string
 ) {
-  const res = await fetch(`${SEAL_BASE_URL}/subscriptions/put`, {
+  const res = await fetch(`${SEAL_PROXY_BASE_URL}/subscriptions/put`, {
     method: 'PUT',
     headers: {
+      'Content-Type': 'application/json',
       'x-shopify-app-id': appId,
       'x-shopify-customer-access-token': customerAccessToken,
     },
@@ -59,7 +228,7 @@ async function updateSubscriptionAction(
   if (!res.ok) {
     const errBody = await res.text().catch(() => '');
     console.log('[Seal] cancelSubscription FAILED', res.status, errBody);
-    throw new Error('Failed to update subscription action -', action);
+    throw new Error(`Failed to update subscription action - ${action}`);
   }
   const json = await res.json();
   console.log(
@@ -69,39 +238,60 @@ async function updateSubscriptionAction(
   return json;
 }
 
-async function updateSubscriptionShipping(appId,
-  customerAccessToken, subscriptionId, shippingData) {
-  console.log('[Seal] updateSubscriptionShipping', subscriptionId, JSON.stringify(shippingData));
-  const res = await fetch(`${SEAL_BASE_URL}/subscriptions/put/edit`, {
+async function updateSubscriptionShipping(
+  appId: string,
+  customerAccessToken: string,
+  subscriptionId: number,
+  shippingData: SealShippingForm,
+  SEAL_PROXY_BASE_URL: string
+) {
+  console.log(
+    '[Seal] updateSubscriptionShipping',
+    subscriptionId,
+    JSON.stringify(shippingData),
+  );
+
+  const res = await fetch(`${SEAL_PROXY_BASE_URL}/subscriptions/put/edit`, {
     method: 'PUT',
     headers: {
+      'Content-Type': 'application/json',
       'x-shopify-app-id': appId,
       'x-shopify-customer-access-token': customerAccessToken,
     },
     body: JSON.stringify({
       id: subscriptionId,
-      action: 'edit',
       edit: shippingData,
     }),
   });
   if (!res.ok) {
     const errBody = await res.text().catch(() => '');
-    console.log('[Seal] updateSubscriptionShipping FAILED', res.status, errBody);
-    let parsed = {};
-    try { parsed = JSON.parse(errBody); } catch {}
+    console.log(
+      '[Seal] updateSubscriptionShipping FAILED',
+      res.status,
+      errBody,
+    );
+    let parsed: {message?: string} = {};
+    try {
+      parsed = JSON.parse(errBody);
+    } catch {}
     // AP-23: attach apiMessage for upstream field parsing
-    const err = new Error(parsed?.message || 'Failed to update shipping address');
-    err.apiMessage = parsed?.message || '';
+    const err = new Error(
+      parsed?.message || 'Failed to update shipping address',
+    );
+    (err as ApiError).apiMessage = parsed?.message || '';
     throw err;
   }
   const json = await res.json();
-  console.log('[Seal] updateSubscriptionShipping OK', JSON.stringify(json).substring(0, 500));
+  console.log(
+    '[Seal] updateSubscriptionShipping OK',
+    JSON.stringify(json).substring(0, 500),
+  );
   return json.payload;
 }
 
 // --- Helpers ---
 
-function formatDisplayDate(isoStr) {
+function formatDisplayDate(isoStr: string) {
   if (!isoStr) return '';
   try {
     const d = new Date(isoStr);
@@ -118,21 +308,20 @@ function formatDisplayDate(isoStr) {
   }
 }
 
-function buildShippingFormFromSub(sub) {
-  if (!sub) return {};
+function buildShippingFormFromSub(sub: SealSubscription | null): SealShippingForm {
   return {
-    s_first_name: sub.s_first_name || '',
-    s_last_name: sub.s_last_name || '',
-    s_address1: sub.s_address1 || '',
-    s_address2: sub.s_address2 || '',
-    s_city: sub.s_city || '',
-    s_zip: sub.s_zip || '',
-    s_province: sub.s_province || '',
-    s_province_code: sub.s_province_code || '',
-    s_country: sub.s_country || '',
-    s_country_code: sub.s_country_code || '',
-    s_phone: sub.s_phone || '',
-    s_company: sub.s_company || '',
+    s_first_name: sub?.s_first_name || '',
+    s_last_name: sub?.s_last_name || '',
+    s_address1: sub?.s_address1 || '',
+    s_address2: sub?.s_address2 || '',
+    s_city: sub?.s_city || '',
+    s_zip: sub?.s_zip || '',
+    s_province: sub?.s_province || '',
+    s_province_code: sub?.s_province_code || '',
+    s_country: sub?.s_country || '',
+    s_country_code: sub?.s_country_code || '',
+    s_phone: sub?.s_phone || '',
+    s_company: sub?.s_company || '',
   };
 }
 
@@ -140,7 +329,10 @@ function buildShippingFormFromSub(sub) {
 function parseFieldErrors(apiMessage) {
   const result = {};
   if (!apiMessage) return result;
-  const lines = apiMessage.split('.').map(l => l.trim()).filter(Boolean);
+  const lines = apiMessage
+    .split('.')
+    .map(l => l.trim())
+    .filter(Boolean);
   lines.forEach(line => {
     const parts = line.split('|');
     if (parts.length === 2) {
@@ -152,13 +344,15 @@ function parseFieldErrors(apiMessage) {
 
 // --- Component ---
 
-export function ReactComponent({ model }) {
+export function ReactComponent({model}) {
   const route = useRoute();
 
   // Subscription ID and token: nav params first, model fallback (AP-2)
-  const subscriptionId = route.params?.subscriptionId || model.get('subscriptionId') || '';
+  const subscriptionId =
+    route.params?.subscriptionId || '';
 
-
+  const SEAL_PROXY_BASE_URL =
+    model.get('sealProxyBaseUrl') || 'https://api.apptile.io/seal-subscription';
   // Merchant config
   const primaryColor = model.get('primaryColor') || '#6366F1';
   const backgroundColor = model.get('backgroundColor') || '#F3F4F6';
@@ -170,23 +364,35 @@ export function ReactComponent({ model }) {
   const cardBorderRadius = parseInt(model.get('cardBorderRadius') || '12', 10);
   const saveButtonLabel = model.get('saveButtonLabel') || 'Save';
   const cancelButtonLabel = model.get('cancelButtonLabel') || 'Cancel';
-  const showBillingSchedule = makeBoolean(model.get('showBillingSchedule') ?? true);
-  const showCustomerSection = makeBoolean(model.get('showCustomerSection') ?? true);
-  const showShippingSection = makeBoolean(model.get('showShippingSection') ?? true);
-  const showBillingAddressSection = makeBoolean(model.get('showBillingAddressSection') ?? true);
-  const showPaymentSection = makeBoolean(model.get('showPaymentSection') ?? true);
+  const showBillingSchedule = makeBoolean(
+    model.get('showBillingSchedule') ?? true,
+  );
+  const showCustomerSection = makeBoolean(
+    model.get('showCustomerSection') ?? true,
+  );
+  const showShippingSection = makeBoolean(
+    model.get('showShippingSection') ?? true,
+  );
+  const showBillingAddressSection = makeBoolean(
+    model.get('showBillingAddressSection') ?? true,
+  );
+  const showPaymentSection = makeBoolean(
+    model.get('showPaymentSection') ?? true,
+  );
   const showItemsSection = makeBoolean(model.get('showItemsSection') ?? true);
-  const showModelCurrency = makeBoolean(model.get('showModelCurrency') ?? false);
+  const showModelCurrency = makeBoolean(
+    model.get('showModelCurrency') ?? false,
+  );
   const modelCurrency = model.get('modelCurrency') || '';
 
   // All hooks at top level — before any early returns (AP-14)
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editMode, setEditMode] = useState(null); // null | 'shipping'
-  const [shippingForm, setShippingForm] = useState({});
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [sectionMessages, setSectionMessages] = useState({}); // AP-22
+  const [editMode, setEditMode] = useState<string | null>(null); // null | 'shipping'
+  const [shippingForm, setShippingForm] = useState<SealShippingForm>({} as SealShippingForm);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [sectionMessages, setSectionMessages] = useState<Record<string, string>>({}); // AP-22
   const [savingShipping, setSavingShipping] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [sendingPaymentEmail, setSendingPaymentEmail] = useState(false);
@@ -198,24 +404,26 @@ export function ReactComponent({ model }) {
   const [resumeReactivateLoading, setResumeReactivateLoading] = useState(false);
   const [resumeReactivateMessage, setResumeReactivateMessage] = useState(null);
 
-    const appId = useSelector(
-      state => state.appModel.values.getIn(['Apptile', 'appUUID']),
-      shallowEqual,
-    );
+  const appId = useSelector(
+    state => state.appModel.values.getIn(['Apptile', 'appUUID']),
+    shallowEqual,
+  );
 
-    const customerAccessToken = useSelector(
-      state =>
-        state.appModel.values.getIn([
-          'shopify',
-          'loggedInUserAccessToken',
-          'accessToken',
-        ]) ||
-        'shcat_eyJraWQiOiIwIiwiYWxnIjoiRUQyNTUxOSJ9.eyJzaG9wSWQiOjE3Nzk1MzI5LCJjaWQiOiJhMjU0MTU4Zi1hNmY1LTQ0NzktODQwZC01YmIzNzQ4NjRiYzYiLCJpYXQiOjE3NzUxMzU0NjIsImV4cCI6MTc3NTEzOTA2MiwiaXNzIjoiaHR0cHM6XC9cL3Nob3BpZnkuY29tXC9hdXRoZW50aWNhdGlvblwvMTc3OTUzMjkiLCJzdWIiOjgwMjE4ODE3ODIzNTEsInNjb3BlIjoib3BlbmlkIGVtYWlsIGN1c3RvbWVyLWFjY291bnQtYXBpOmZ1bGwiLCJydGlkIjoiMDE5ZDRlMmEtM2ViZi01NzRjLTNjNjAtYjQ2NzI2ZDM1OTZiIiwic2lkIjoiMDFLTjcyTURQSFhBWjdaSllEVlROMTVSU1kifQ.t41EUJUM5WSDTvrmrNfF9ZZYY8Wem6ZWg_JYCrTTAiHtKkKByZBLLHvwuzADdg9fdxDYwck2qJB8zAXgN_EEAg',
-      shallowEqual,
-    );
+  const customerAccessToken = useSelector(
+    state =>
+      state.appModel.values.getIn([
+        'shopify',
+        'loggedInUserAccessToken',
+        'accessToken',
+      ]),
+    shallowEqual,
+  );
   // useMemo hooks all at top level (AP-14)
   const billingAttempts = useMemo(
-    () => (Array.isArray(subscription?.billing_attempts) ? subscription.billing_attempts : []),
+    () =>
+      Array.isArray(subscription?.billing_attempts)
+        ? subscription.billing_attempts
+        : [],
     [subscription?.billing_attempts],
   );
 
@@ -233,12 +441,12 @@ export function ReactComponent({ model }) {
 
   // AP-22: per-section message helpers
   const setSectionMsg = useCallback((section, msg) => {
-    setSectionMessages(prev => ({ ...prev, [section]: msg }));
+    setSectionMessages(prev => ({...prev, [section]: msg}));
   }, []);
 
   const clearSectionMsg = useCallback(section => {
     setSectionMessages(prev => {
-      const next = { ...prev };
+      const next = {...prev};
       delete next[section];
       return next;
     });
@@ -259,6 +467,7 @@ export function ReactComponent({ model }) {
           subscriptionId,
           appId,
           customerAccessToken,
+          SEAL_PROXY_BASE_URL,
         );
         if (!cancelled) {
           setSubscription(data);
@@ -271,15 +480,17 @@ export function ReactComponent({ model }) {
       }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [appId, customerAccessToken, subscriptionId]);
 
   // Shipping field updater with field error clearing (AP-12)
   const updateShippingField = useCallback((field, value) => {
-    setShippingForm(prev => ({ ...prev, [field]: value }));
+    setShippingForm(prev => ({...prev, [field]: value}));
     setFieldErrors(prev => {
       if (!prev[field]) return prev;
-      const next = { ...prev };
+      const next = {...prev};
       delete next[field];
       return next;
     });
@@ -295,11 +506,13 @@ export function ReactComponent({ model }) {
         customerAccessToken,
         subscriptionId,
         shippingForm,
+        SEAL_PROXY_BASE_URL,
       );
       const updated = await fetchSubscriptionById(
         subscriptionId,
         appId,
         customerAccessToken,
+        SEAL_PROXY_BASE_URL,
       );
       setSubscription(updated);
       setShippingForm(buildShippingFormFromSub(updated));
@@ -337,25 +550,58 @@ export function ReactComponent({ model }) {
           borderColor,
           padding: 16,
           marginBottom: 12,
-        }}
-      >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: textColor }}>{title}</Text>
+        }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 10,
+          }}>
+          <Text style={{fontSize: 16, fontWeight: '700', color: textColor}}>
+            {title}
+          </Text>
           {rightButton || null}
         </View>
-        <View style={{ height: 1, backgroundColor: borderColor, marginBottom: 12 }} />
+        <View
+          style={{height: 1, backgroundColor: borderColor, marginBottom: 12}}
+        />
         {children}
       </View>
     ),
     [cardBackgroundColor, cardBorderRadius, borderColor, textColor],
   );
-
-  // Render guards — all hooks already called above (AP-14)
-  if (!appId || !customerAccessToken || !subscriptionId) {
+  if (!SEAL_PROXY_BASE_URL) {
+      return (
+        <View
+          style={{
+            flex: 'unset',
+            minHeight: 300,
+            backgroundColor,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}>
+          <Text style={{color: errorColor, textAlign: 'center'}}>
+            Couldnt find seal proxy base url from model
+          </Text>
+        </View>
+      );
+    } else if (!appId || !customerAccessToken || !subscriptionId) {
     return (
-      <View style={{ flex: 'unset', width: '100%', height: '100%', backgroundColor, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <Text style={{ color: errorColor, textAlign: 'center' }}>
-          Subscription not found. Please navigate here from your subscriptions list.
+      <View
+        style={{
+          flex: 'unset',
+          width: '100%',
+          height: '100%',
+          backgroundColor,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+        }}>
+        <Text style={{color: errorColor, textAlign: 'center'}}>
+          Subscription not found. Please navigate here from your subscriptions
+          list.
         </Text>
       </View>
     );
@@ -412,52 +658,49 @@ export function ReactComponent({ model }) {
   });
 
   const subscriptionButtons = (
-    <>
+    <View
+      style={{
+        backgroundColor: cardBackgroundColor,
+        borderRadius: cardBorderRadius,
+        borderWidth: 1,
+        borderColor,
+        padding: 16,
+        marginBottom: 12,
+      }}>
       {subscription.status === 'ACTIVE' && minCyclesReached ? (
-        <View
-          style={{
-            backgroundColor: cardBackgroundColor,
-            borderRadius: cardBorderRadius,
-            borderWidth: 1,
-            borderColor,
-            padding: 16,
-            marginBottom: 12,
-          }}>
-          <View style={{gap: 8}}>
-            <TouchableOpacity
-              style={{
-                borderWidth: 1.5,
-                borderColor: '#F59E0B',
-                borderRadius: cardBorderRadius,
-                paddingVertical: 12,
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                setCancelPauseMessage(null);
-                setShowPauseModal(true);
-              }}>
-              <Text style={{color: '#F59E0B', fontWeight: '600', fontSize: 14}}>
-                Pause subscription
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                borderWidth: 1.5,
-                borderColor: errorColor,
-                borderRadius: cardBorderRadius,
-                paddingVertical: 12,
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                setCancelPauseMessage(null);
-                setShowCancelModal(true);
-              }}>
-              <Text
-                style={{color: errorColor, fontWeight: '600', fontSize: 14}}>
-                Cancel subscription
-              </Text>
-            </TouchableOpacity>
-          </View>
+        <View style={{gap: 8}}>
+          <TouchableOpacity
+            style={{
+              borderWidth: 1.5,
+              borderColor: '#F59E0B',
+              borderRadius: cardBorderRadius,
+              paddingVertical: 12,
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              setCancelPauseMessage(null);
+              setShowPauseModal(true);
+            }}>
+            <Text style={{color: '#F59E0B', fontWeight: '600', fontSize: 14}}>
+              Pause subscription
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              borderWidth: 1.5,
+              borderColor: errorColor,
+              borderRadius: cardBorderRadius,
+              paddingVertical: 12,
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              setCancelPauseMessage(null);
+              setShowCancelModal(true);
+            }}>
+            <Text style={{color: errorColor, fontWeight: '600', fontSize: 14}}>
+              Cancel subscription
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : null}
 
@@ -479,11 +722,13 @@ export function ReactComponent({ model }) {
                 customerAccessToken,
                 subscriptionId,
                 'resume',
+                SEAL_PROXY_BASE_URL,
               );
               const updated = await fetchSubscriptionById(
                 subscriptionId,
                 appId,
                 customerAccessToken,
+                SEAL_PROXY_BASE_URL,
               );
               setSubscription(updated);
             } catch (e) {
@@ -521,11 +766,13 @@ export function ReactComponent({ model }) {
                 customerAccessToken,
                 subscriptionId,
                 'reactivate',
+                SEAL_PROXY_BASE_URL,
               );
               const updated = await fetchSubscriptionById(
                 subscriptionId,
                 appId,
                 customerAccessToken,
+                SEAL_PROXY_BASE_URL,
               );
               setSubscription(updated);
             } catch (e) {
@@ -559,7 +806,7 @@ export function ReactComponent({ model }) {
           {resumeReactivateMessage.text}
         </Text>
       ) : null}
-    </>
+    </View>
   );
 
   // ── Section: Subscription info ──────────────────────────────────────────────
@@ -583,7 +830,8 @@ export function ReactComponent({ model }) {
         #{subscription.id}
       </Text>
 
-      <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
+      <View
+        style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
         <Text style={{fontSize: 14, color: textColor, fontWeight: 800}}>
           {'Created at: '}
         </Text>
@@ -656,7 +904,8 @@ export function ReactComponent({ model }) {
       ) : null}
 
       {subscription.billing_min_cycles ? (
-        <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
+        <View
+          style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
           <Text style={{fontSize: 14, color: textColor, fontWeight: 800}}>
             {'Required number of payments: '}
           </Text>
@@ -689,7 +938,7 @@ export function ReactComponent({ model }) {
     const items = subscription.items || [];
     const apiCur = subscription.currency || '';
     // Format: "API_CUR [MODEL_CUR] $price"
-    const fmtPrice = (amount) => {
+    const fmtPrice = amount => {
       const dollars = parseFloat(amount || 0).toFixed(2);
       if (showModelCurrency && modelCurrency) {
         return `${apiCur} ${modelCurrency}${dollars}`;
@@ -722,12 +971,10 @@ export function ReactComponent({ model }) {
                 <View style={{flex: 1, marginRight: 12}}>
                   <Text
                     style={{fontSize: 14, fontWeight: '500', color: textColor}}>
-                    {item.title}{' '}
-                    {`x ${item.quantity}`}
+                    {item.title} {`x ${item.quantity}`}
                   </Text>
                 </View>
                 <View style={{alignItems: 'flex-end'}}>
-                  
                   <Text
                     style={{fontSize: 14, fontWeight: '600', color: textColor}}>
                     {fmtPrice(item.final_price || item.original_price)}
@@ -749,7 +996,14 @@ export function ReactComponent({ model }) {
         })}
 
         {/* Totals block */}
-        <View style={{height: 1, backgroundColor: borderColor, marginTop: 8, marginBottom: 8}} />
+        <View
+          style={{
+            height: 1,
+            backgroundColor: borderColor,
+            marginTop: 8,
+            marginBottom: 8,
+          }}
+        />
 
         {/* {totalDiscount > 0 && (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4}}>
@@ -765,9 +1019,17 @@ export function ReactComponent({ model }) {
         )} */}
 
         {subscription.delivery_price !== undefined && (
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 4,
+            }}>
             <View>
-              <Text style={{fontSize: 14, fontWeight: '400', color: '#6B7280'}}>Delivery cost</Text>
+              <Text style={{fontSize: 14, fontWeight: '400', color: '#6B7280'}}>
+                Delivery cost
+              </Text>
             </View>
             <View>
               <Text style={{fontSize: 14, fontWeight: '600', color: textColor}}>
@@ -777,9 +1039,17 @@ export function ReactComponent({ model }) {
           </View>
         )}
 
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 4,
+          }}>
           <View>
-            <Text style={{fontSize: 15, fontWeight: '700', color: textColor}}>Total</Text>
+            <Text style={{fontSize: 15, fontWeight: '700', color: textColor}}>
+              Total
+            </Text>
           </View>
           <View>
             <Text style={{fontSize: 15, fontWeight: '700', color: textColor}}>
@@ -991,16 +1261,29 @@ export function ReactComponent({ model }) {
   );
 
   // ── Section: Shipping — edit modal ─────────────────────────────────────────
-  const fieldLabel = (label) => (
-    <Text style={{fontSize: 13, color: '#6B7280', marginBottom: 4, fontWeight: 500}}>
+  const fieldLabel = label => (
+    <Text
+      style={{
+        fontSize: 13,
+        color: '#6B7280',
+        marginBottom: 4,
+        fontWeight: 500,
+      }}>
       {label}
     </Text>
   );
-  const fieldError = (key) => fieldErrors[key] ? (
-    <Text style={{color: errorColor, fontSize: 12, marginBottom: 6, fontWeight: 500}}>
-      {fieldErrors[key]}
-    </Text>
-  ) : null;
+  const fieldError = key =>
+    fieldErrors[key] ? (
+      <Text
+        style={{
+          color: errorColor,
+          fontSize: 12,
+          marginBottom: 6,
+          fontWeight: 500,
+        }}>
+        {fieldErrors[key]}
+      </Text>
+    ) : null;
 
   const shippingEditModal = (
     <Modal
@@ -1013,11 +1296,32 @@ export function ReactComponent({ model }) {
         clearSectionMsg('shipping');
         setShippingForm(buildShippingFormFromSub(subscription));
       }}>
-      <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end'}}>
-        <View style={{backgroundColor: cardBackgroundColor, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '90%'}}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.4)',
+          justifyContent: 'flex-end',
+        }}>
+        <View
+          style={{
+            backgroundColor: cardBackgroundColor,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            maxHeight: '90%',
+          }}>
           {/* Modal header */}
-          <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: borderColor}}>
-            <Text style={{fontSize: 16, fontWeight: 700, color: textColor}}>Edit shipping address</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: borderColor,
+            }}>
+            <Text style={{fontSize: 16, fontWeight: 700, color: textColor}}>
+              Edit shipping address
+            </Text>
             <TouchableOpacity
               onPress={() => {
                 setEditMode(null);
@@ -1152,7 +1456,13 @@ export function ReactComponent({ model }) {
 
             {/* Section-level error message (AP-22) */}
             {sectionMessages['shipping'] ? (
-              <Text style={{color: errorColor, fontSize: 13, marginBottom: 8, fontWeight: 500}}>
+              <Text
+                style={{
+                  color: errorColor,
+                  fontSize: 13,
+                  marginBottom: 8,
+                  fontWeight: 500,
+                }}>
                 {sectionMessages['shipping']}
               </Text>
             ) : null}
@@ -1172,7 +1482,8 @@ export function ReactComponent({ model }) {
               {savingShipping ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={{color: '#FFFFFF', fontWeight: '600', fontSize: 14}}>
+                <Text
+                  style={{color: '#FFFFFF', fontWeight: '600', fontSize: 14}}>
                   {saveButtonLabel}
                 </Text>
               )}
@@ -1206,38 +1517,83 @@ export function ReactComponent({ model }) {
 
   // ── Section: Billing address ────────────────────────────────────────────────
   const hasBillingAddress = !!(
-    subscription.b_first_name || subscription.b_last_name ||
-    subscription.b_address1 || subscription.b_city || subscription.b_country
+    subscription.b_first_name ||
+    subscription.b_last_name ||
+    subscription.b_address1 ||
+    subscription.b_city ||
+    subscription.b_country
   );
   const billingAddressContent = hasBillingAddress ? (
     <View>
-      {(subscription.b_first_name || subscription.b_last_name) ? (
-        <Text style={{fontSize: 14, color: textColor, marginBottom: 2, fontWeight: 500}}>
-          {[subscription.b_first_name, subscription.b_last_name].filter(Boolean).join(' ')}
+      {subscription.b_first_name || subscription.b_last_name ? (
+        <Text
+          style={{
+            fontSize: 14,
+            color: textColor,
+            marginBottom: 2,
+            fontWeight: 500,
+          }}>
+          {[subscription.b_first_name, subscription.b_last_name]
+            .filter(Boolean)
+            .join(' ')}
         </Text>
       ) : null}
       {subscription.b_company ? (
-        <Text style={{fontSize: 14, color: textColor, marginBottom: 2, fontWeight: 500}}>
+        <Text
+          style={{
+            fontSize: 14,
+            color: textColor,
+            marginBottom: 2,
+            fontWeight: 500,
+          }}>
           {subscription.b_company}
         </Text>
       ) : null}
-      {(subscription.b_address1 || subscription.b_address2) ? (
-        <Text style={{fontSize: 14, color: textColor, marginBottom: 2, fontWeight: 500}}>
-          {[subscription.b_address1, subscription.b_address2].filter(Boolean).join(', ')}
+      {subscription.b_address1 || subscription.b_address2 ? (
+        <Text
+          style={{
+            fontSize: 14,
+            color: textColor,
+            marginBottom: 2,
+            fontWeight: 500,
+          }}>
+          {[subscription.b_address1, subscription.b_address2]
+            .filter(Boolean)
+            .join(', ')}
         </Text>
       ) : null}
-      {(subscription.b_city || subscription.b_province || subscription.b_zip) ? (
-        <Text style={{fontSize: 14, color: textColor, marginBottom: 2, fontWeight: 500}}>
-          {[subscription.b_city, subscription.b_province, subscription.b_zip].filter(Boolean).join(', ')}
+      {subscription.b_city || subscription.b_province || subscription.b_zip ? (
+        <Text
+          style={{
+            fontSize: 14,
+            color: textColor,
+            marginBottom: 2,
+            fontWeight: 500,
+          }}>
+          {[subscription.b_city, subscription.b_province, subscription.b_zip]
+            .filter(Boolean)
+            .join(', ')}
         </Text>
       ) : null}
       {subscription.b_country ? (
-        <Text style={{fontSize: 14, color: textColor, marginBottom: 2, fontWeight: 500}}>
+        <Text
+          style={{
+            fontSize: 14,
+            color: textColor,
+            marginBottom: 2,
+            fontWeight: 500,
+          }}>
           {subscription.b_country}
         </Text>
       ) : null}
       {subscription.b_phone ? (
-        <Text style={{fontSize: 14, color: '#6B7280', marginTop: 2, fontWeight: 500}}>
+        <Text
+          style={{
+            fontSize: 14,
+            color: '#6B7280',
+            marginTop: 2,
+            fontWeight: 500,
+          }}>
           {subscription.b_phone}
         </Text>
       ) : null}
@@ -1323,7 +1679,7 @@ export function ReactComponent({ model }) {
       <ScrollView>
         <View style={{padding: 16}}>
           {/* 0. Action buttons */}
-          {subscriptionButtons}
+          {minCyclesReached && subscriptionButtons}
 
           {/* 1. Subscription info */}
           {subscriptionInfoCard}
@@ -1449,9 +1805,12 @@ export function ReactComponent({ model }) {
                 onPress={async () => {
                   setSendingPaymentEmail(true);
                   try {
-                    await sendPaymentMethodUpdateEmail(
-                      apiToken,
+                    await updateSubscriptionAction(
+                      appId,
+                      customerAccessToken,
                       subscriptionId,
+                      'send_payment_method_update_email',
+                      SEAL_PROXY_BASE_URL,
                     );
                     setPaymentModalMessage({
                       type: 'success',
@@ -1619,11 +1978,13 @@ export function ReactComponent({ model }) {
                     customerAccessToken,
                     subscriptionId,
                     'cancel',
+                    SEAL_PROXY_BASE_URL,
                   );
                   const updated = await fetchSubscriptionById(
                     subscriptionId,
                     appId,
                     customerAccessToken,
+                    SEAL_PROXY_BASE_URL,
                   );
                   setSubscription(updated);
                   setCancelPauseMessage({
@@ -1768,11 +2129,13 @@ export function ReactComponent({ model }) {
                     customerAccessToken,
                     subscriptionId,
                     'pause',
+                    SEAL_PROXY_BASE_URL,
                   );
                   const updated = await fetchSubscriptionById(
+                    subscriptionId,
                     appId,
                     customerAccessToken,
-                    subscriptionId,
+                    SEAL_PROXY_BASE_URL,
                   );
                   setSubscription(updated);
                   setCancelPauseMessage({
@@ -1806,6 +2169,7 @@ export function ReactComponent({ model }) {
 }
 
 export const WidgetConfig = {
+  sealProxyBaseUrl: 'https://api.apptile.io/seal-subscription',
   subscriptionId: '',
   primaryColor: '#6366F1',
   backgroundColor: '#F3F4F6',
@@ -1828,7 +2192,13 @@ export const WidgetConfig = {
 };
 
 export const WidgetEditors = {
-  basic: [],
+  basic: [
+    {
+      type: 'codeInput',
+      name: 'sealProxyBaseUrl',
+      props: {label: 'Seal Proxy Base Url'},
+    },
+  ],
   advanced: [
     {type: 'colorInput', name: 'primaryColor', props: {label: 'Primary Color'}},
     {

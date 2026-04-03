@@ -6,13 +6,14 @@ const pluginListing = {
   labelPrefix: 'manageSealSubscription',
   type: 'widget',
   name: 'manageSealSubscription',
-  description: 'Displays all active Seal Subscriptions for the logged-in customer',
+  description:
+    'Displays all active Seal Subscriptions for the logged-in customer',
   layout: {
     width: 50,
     height: 30,
   },
   section: 'SDK',
-  icon: 'widget',
+  icon: 'container',
   manifest: {
     directoryName: 'manageSealSubscription',
   },

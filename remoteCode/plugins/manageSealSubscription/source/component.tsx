@@ -10,8 +10,6 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { makeBoolean, Icon } from 'apptile-core';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-const SEAL_BASE_URL = 'https://api.apptile.local/seal-subscription';
-
 
 const STATUS_CONFIG = {
   ACTIVE:    { label: 'Active',    bg: '#D1FAE5', color: '#065F46', iconType: 'Feather', icon: 'check-circle' },
@@ -19,12 +17,13 @@ const STATUS_CONFIG = {
   CANCELLED: { label: 'Cancelled', bg: '#FEE2E2', color: '#991B1B', iconType: 'Feather', icon: 'x-circle' },
 };
 
-// --- API ---
 
-async function fetchCustomerSubscriptions(appId,
-  customerAccessToken) {
-  const url = `${SEAL_BASE_URL}/subscriptions/get`;
-    console.log('url', url);
+async function fetchCustomerSubscriptions(
+  appId: string,
+  customerAccessToken: string,
+  SEAL_PROXY_BASE_URL: string,
+) {
+  const url = `${SEAL_PROXY_BASE_URL}/subscriptions/get`;
 
   const res = await fetch(url, {
     headers: {
@@ -32,16 +31,23 @@ async function fetchCustomerSubscriptions(appId,
       'x-shopify-customer-access-token': customerAccessToken,
     },
   });
-  console.log('res', res);
   if (!res.ok) {
     const errBody = await res.text().catch(() => '');
-    console.log('[Seal] fetchCustomerSubscriptions FAILED', res.status, errBody);
+    console.log(
+      '[Seal] fetchCustomerSubscriptions FAILED',
+      res.status,
+      errBody,
+    );
     throw new Error('Failed to load subscriptions');
   }
   const json = await res.json();
   // API returns { success, payload: { subscriptions: [...], page, total_pages } }
-  const data = json.payload?.subscriptions || json.subscriptions || json.payload || [];
-  console.log('[Seal] fetchCustomerSubscriptions OK count:', Array.isArray(data) ? data.length : 0);
+  const data =
+    json.payload?.subscriptions || json.subscriptions || json.payload || [];
+  console.log(
+    '[Seal] fetchCustomerSubscriptions OK count:',
+    Array.isArray(data) ? data.length : 0,
+  );
   return Array.isArray(data) ? data : [];
 }
 
@@ -73,6 +79,7 @@ export function ReactComponent({ model }) {
   //  const appId = model.get('appId') || '';
   const detailPageName =
     model.get('detailPageName') || 'manageSealSubscriptionDetail';
+  const SEAL_PROXY_BASE_URL = model.get("sealProxyBaseUrl") || 'https://api.apptile.io/seal-subscription';
   const primaryColor = model.get('primaryColor') || '#6366F1';
   const backgroundColor = model.get('backgroundColor') || '#F3F4F6';
   const cardBackgroundColor = model.get('cardBackgroundColor') || '#FFFFFF';
@@ -94,18 +101,17 @@ export function ReactComponent({ model }) {
 
   // Dynamic customer data from Redux (AP-2, AP-8, AP-9)
   const appId = useSelector(
-    state => state.appModel.values.getIn(['Apptile', 'appUUID']),
+    state => state?.appModel?.values.getIn(['Apptile', 'appUUID']),
     shallowEqual,
   );
 
   const customerAccessToken = useSelector(
     state =>
-      state.appModel.values.getIn([
+      state?.appModel?.values.getIn([
         'shopify',
         'loggedInUserAccessToken',
         'accessToken',
-      ]) ||
-      'shcat_eyJraWQiOiIwIiwiYWxnIjoiRUQyNTUxOSJ9.eyJzaG9wSWQiOjE3Nzk1MzI5LCJjaWQiOiJhMjU0MTU4Zi1hNmY1LTQ0NzktODQwZC01YmIzNzQ4NjRiYzYiLCJpYXQiOjE3NzUxMzU0NjIsImV4cCI6MTc3NTEzOTA2MiwiaXNzIjoiaHR0cHM6XC9cL3Nob3BpZnkuY29tXC9hdXRoZW50aWNhdGlvblwvMTc3OTUzMjkiLCJzdWIiOjgwMjE4ODE3ODIzNTEsInNjb3BlIjoib3BlbmlkIGVtYWlsIGN1c3RvbWVyLWFjY291bnQtYXBpOmZ1bGwiLCJydGlkIjoiMDE5ZDRlMmEtM2ViZi01NzRjLTNjNjAtYjQ2NzI2ZDM1OTZiIiwic2lkIjoiMDFLTjcyTURQSFhBWjdaSllEVlROMTVSU1kifQ.t41EUJUM5WSDTvrmrNfF9ZZYY8Wem6ZWg_JYCrTTAiHtKkKByZBLLHvwuzADdg9fdxDYwck2qJB8zAXgN_EEAg',
+      ]),
     shallowEqual,
   );
 
@@ -119,9 +125,6 @@ export function ReactComponent({ model }) {
         setLoading(false);
         return;
       }
-      console.log('customeraccesstoken', customerAccessToken);
-      console.log('appid', appId);
-
       let cancelled = false;
       async function load() {
         setLoading(true);
@@ -130,6 +133,7 @@ export function ReactComponent({ model }) {
           const data = await fetchCustomerSubscriptions(
             appId,
             customerAccessToken,
+            SEAL_PROXY_BASE_URL,
           );
           if (!cancelled) setSubscriptions(data);
         } catch (e) {
@@ -156,7 +160,23 @@ export function ReactComponent({ model }) {
   );
 
   // Render guards — all hooks already called above (AP-14)
-  if (!appId || !customerAccessToken) {
+    if (!SEAL_PROXY_BASE_URL) {
+      return (
+        <View
+          style={{
+            flex: 'unset',
+            minHeight: 300,
+            backgroundColor,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}>
+          <Text style={{color: errorColor, textAlign: 'center'}}>
+            Couldnt find seal proxy base url from model
+          </Text>
+        </View>
+      );
+    } else if (!appId || !customerAccessToken) {
     return (
       <View
         style={{
@@ -168,7 +188,7 @@ export function ReactComponent({ model }) {
           padding: 16,
         }}>
         <Text style={{color: errorColor, textAlign: 'center'}}>
-          Cant find appID and customer access token from the model.
+          Couldnt find appID or customer access token from the model.
         </Text>
       </View>
     );
@@ -417,7 +437,7 @@ export function ReactComponent({ model }) {
 }
 
 export const WidgetConfig = {
-  // appId: '',
+  sealProxyBaseUrl: 'https://api.apptile.io/seal-subscription',
   detailPageName: 'manageSealSubscriptionDetail',
   primaryColor: '#6366F1',
   backgroundColor: '#F3F4F6',
@@ -438,7 +458,11 @@ export const WidgetConfig = {
 
 export const WidgetEditors = {
   basic: [
-    // {type: 'codeInput', name: 'appId', props: {label: 'App id'}},
+    {
+      type: 'codeInput',
+      name: 'sealProxyBaseUrl',
+      props: {label: 'Seal Proxy Base Url'},
+    },
     {
       type: 'codeInput',
       name: 'detailPageName',
