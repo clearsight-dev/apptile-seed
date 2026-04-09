@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSelector, shallowEqual } from 'react-redux';
 import { makeBoolean, useApptileWindowDims, navigateToScreen, triggerAction } from 'apptile-core';
+import { useRoute } from '@react-navigation/native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PRODUCTS_PER_PAGE = 10;
@@ -130,9 +131,13 @@ export function ReactComponent({ model, dispatch }) {
     shallowEqual
   );
 
+  // ── Read page params ──
+  const route = useRoute();
+  const collectionHandle = route.params?.collectionHandle || '';
+
   // ── Merchant config ──
   const menuHandle = model.get('menuHandle') || 'main-menu';
-  const parentCategory = model.get('parentCategory') || 'Alimentation';
+  const parentCategory = model.get('parentCategory') || collectionHandle || 'Alimentation';
   const bannerTitle = model.get('bannerTitle') || '';
   const bannerSubtitle = model.get('bannerSubtitle') || 'Réductions sur les fruits de saison';
   const bannerNote = model.get('bannerNote') || '*Valable jusqu\'à ce vendredi';
@@ -171,7 +176,12 @@ export function ReactComponent({ model, dispatch }) {
       const variantIds = new Set(
         lines.map(l => l.variant?.id).filter(Boolean)
       );
-      return { totalItems, thumbs, variantIds };
+      const cartQuantities = {};
+      lines.forEach(l => {
+        const vid = l.variant?.id;
+        if (vid) cartQuantities[vid] = (cartQuantities[vid] || 0) + (l.quantity || 0);
+      });
+      return { totalItems, thumbs, variantIds, cartQuantities };
     } catch (e) {
       console.log('[categoryplp] cart parse error:', e.message);
       return null;
@@ -206,15 +216,44 @@ export function ReactComponent({ model, dispatch }) {
         if (cancelled) return;
 
         const menuItems = data?.menu?.items || [];
-        const parent = menuItems.find(item =>
-          item.url?.includes('/collections/alimentation') ||
-          item.title === 'Alimentation'
-        );
+        console.log('[categoryplp] collectionHandle:', collectionHandle);
+        console.log('[categoryplp] parentCategory:', parentCategory);
+
+        // Find the parent menu item:
+        // 1. If collectionHandle is provided, find the parent whose sub-items contain it
+        // 2. Otherwise match by parentCategory title or handle
+        let parent = null;
+        let preSelectHandle = null;
+
+        if (collectionHandle) {
+          for (const item of menuItems) {
+            const match = (item.items || []).find(sub =>
+              sub.url?.includes(`/collections/${collectionHandle}`)
+            );
+            if (match) {
+              parent = item;
+              preSelectHandle = collectionHandle;
+              console.log('[categoryplp] Found parent via sub-collection:', item.title);
+              break;
+            }
+          }
+        }
+
         if (!parent) {
-          setMenuError('Category "Alimentation" not found in menu');
+          const searchHandle = parentCategory.toLowerCase();
+          parent = menuItems.find(item =>
+            item.url?.includes(`/collections/${searchHandle}`) ||
+            item.title === parentCategory
+          );
+        }
+
+        if (!parent) {
+          console.log('[categoryplp] No parent found');
+          setMenuError(`Category "${parentCategory}" not found in menu`);
           setMenuLoading(false);
           return;
         }
+        console.log('[categoryplp] Using parent:', parent.title);
 
         // Build categories from sub-items
         const cats = (parent.items || []).map(sub => ({
@@ -230,8 +269,10 @@ export function ReactComponent({ model, dispatch }) {
 
         setCategories(cats);
 
-        // Select first category
-        if (cats.length > 0) {
+        // Select matching category from params, or first
+        if (preSelectHandle && cats.some(c => c.handle === preSelectHandle)) {
+          setSelectedCategoryHandle(preSelectHandle);
+        } else if (cats.length > 0) {
           setSelectedCategoryHandle(cats[0].handle);
         }
 
@@ -260,7 +301,7 @@ export function ReactComponent({ model, dispatch }) {
     }
     loadMenu();
     return () => { cancelled = true; };
-  }, [storefrontAccessToken, storefrontApiUrl, parentCategory]);
+  }, [storefrontAccessToken, storefrontApiUrl, parentCategory, collectionHandle]);
 
   // ── Fetch products when category changes ──
   useEffect(() => {
@@ -369,6 +410,24 @@ export function ReactComponent({ model, dispatch }) {
     }));
   }, [dispatch, shopifyConfig, shopifyData]);
 
+  // ── Decrease cart quantity ──
+  const handleDecreaseCart = useCallback((variantId) => {
+    if (!shopifyConfig || !shopifyData || !variantId) return;
+    dispatch(triggerAction({
+      pluginConfig: shopifyConfig,
+      pluginModel: shopifyData,
+      pluginSelector: ['shopify'],
+      eventModelJS: {
+        value: 'decreaseCartLineItemQuantity',
+        params: {
+          merchandiseId: variantId,
+          quantity: 1,
+          syncWithShopify: true,
+        },
+      },
+    }));
+  }, [dispatch, shopifyConfig, shopifyData]);
+
   // ── Derived ──
   const selectedCategory = useMemo(() => {
     return categories.find(c => c.handle === selectedCategoryHandle);
@@ -426,6 +485,7 @@ export function ReactComponent({ model, dispatch }) {
                 height: imgSize,
                 borderRadius: imgSize / 2,
               }}
+              resizeMode="cover"
             />
           ) : (
             <Text style={{ fontSize: 18 }}>
@@ -473,7 +533,7 @@ export function ReactComponent({ model, dispatch }) {
             <Image
               source={{ uri: item.image }}
               style={styles.productImage}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <View style={styles.productImagePlaceholder}>
@@ -495,33 +555,54 @@ export function ReactComponent({ model, dispatch }) {
           </Text>
         </View>
 
-        {/* Footer: price left, add button right — always at bottom */}
+        {/* Footer: price left, add/qty right — always at bottom */}
         <View style={styles.productFooter}>
-          <View>
-            <Text style={[styles.productPrice, { color: priceColor }]}>
-              {currency} {item.price.toFixed(2)}
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.productPrice, { color: priceColor }]} numberOfLines={1}>
+              {item.price.toFixed(2)}
             </Text>
             <Text style={[styles.productCurrency, { color: priceColor }]}>
               {currencySuffix}
             </Text>
           </View>
-          <View>
+          {isInCart ? (
+            <View style={[styles.qtyStepper, { backgroundColor: '#d4e4fc' }]}>
+              <TouchableOpacity
+                style={styles.qtyBtn}
+                activeOpacity={0.7}
+                onPress={(e) => { e.stopPropagation(); handleDecreaseCart(item.variantId); }}
+              >
+                <Text style={styles.qtyBtnText}>{'\u2212'}</Text>
+              </TouchableOpacity>
+              <View style={styles.qtyValueWrap}>
+                <Text style={styles.qtyValue}>
+                  {cartData?.cartQuantities?.[item.variantId] || 1}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.qtyBtn}
+                activeOpacity={0.7}
+                onPress={(e) => { e.stopPropagation(); handleAddToCart(item.variantId); }}
+              >
+                <Text style={styles.qtyBtnText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
             <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: primaryColor }]}
+              style={[styles.addButton, { backgroundColor: '#2b5a9e' }]}
               activeOpacity={0.7}
               onPress={(e) => { e.stopPropagation(); handleAddToCart(item.variantId); }}
             >
               <Text style={styles.addButtonPlus}>+</Text>
             </TouchableOpacity>
-            {isInCart && <View style={styles.cartDot} />}
-          </View>
+          )}
         </View>
       </TouchableOpacity>
     );
   }, [
     productCardWidth, cardBackgroundColor, cardBorderRadius,
-    textColor, subtitleColor, priceColor, primaryColor, currency, currencySuffix,
-    handleAddToCart, cartData, dispatch,
+    textColor, subtitleColor, priceColor, primaryColor, cartBarColor, currency, currencySuffix,
+    handleAddToCart, handleDecreaseCart, cartData, dispatch,
   ]);
 
   const renderFooter = useCallback(() => {
@@ -838,7 +919,7 @@ const styles = StyleSheet.create({
   productImageContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#FFFFFF',
     height: 120,
     overflow: 'hidden',
   },
@@ -880,23 +961,23 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   productPrice: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
   },
   productCurrency: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '400',
     opacity: 0.7,
   },
   addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addButtonPlus: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
     marginTop: -1,
@@ -911,6 +992,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#EE4444',
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
+  },
+  qtyStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 30,
+    overflow: 'hidden',
+  },
+  qtyBtn: {
+    width: 26,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qtyBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2b5a9e',
+  },
+  qtyValueWrap: {
+    minWidth: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qtyValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2b5a9e',
   },
   footerLoader: {
     paddingVertical: 16,
