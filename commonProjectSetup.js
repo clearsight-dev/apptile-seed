@@ -44,7 +44,7 @@ const analyticsTemplate = `// This file is generated at build time based on the 
 import {Platform} from 'react-native';
 import {checkATTPermission, ApptileAnalytics, addCustomEventListener} from 'apptile-core';
 import {
-  Firebase as FirebaseAnalytics, 
+  // Firebase as FirebaseAnalytics, 
   // __ENABLED_ANALYTICS_IMPORTS__
 } from 'apptile-core';
 
@@ -82,7 +82,7 @@ export async function init() {
 
   try {
     await ApptileAnalytics.initialize([
-      FirebaseAnalytics, 
+      // FirebaseAnalytics, 
       // __ENABLED_ANALYTICS__
     ]);
   } catch (err) {
