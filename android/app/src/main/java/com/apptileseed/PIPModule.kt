@@ -26,6 +26,16 @@ class PIPModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
             return instance;
         }
 
+        /** Active streaming ID set from JS. Read by MainActivity for native PIP binding. */
+        @Volatile
+        var activeStreamId: String? = null
+            private set
+
+        /** Video view bounds in window coordinates for PIP enter/exit animation. */
+        @Volatile
+        var sourceRectHint: android.graphics.Rect? = null
+            private set
+
         fun setPiPActivityInstance(activity: PIPActivity?) {
             this.pipActivity = activity;
         }
@@ -98,6 +108,41 @@ class PIPModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
         }
     }
 
+    /**
+     * Updates the video view's window-coordinate bounds for PIP animation.
+     * Ignored while in PIP to prevent overwriting with shrunk dimensions.
+     */
+    @ReactMethod
+    fun setSourceRect(x: Double, y: Double, width: Double, height: Double, promise: Promise) {
+        val main = MainActivity.getInstance() ?: (currentActivity as? MainActivity)
+        if (main != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && main.isInPictureInPictureMode) {
+            promise.resolve(false)
+            return
+        }
+        sourceRectHint = if (width <= 0 || height <= 0) null
+        else android.graphics.Rect(x.toInt(), y.toInt(), (x + width).toInt(), (y + height).toInt())
+
+        main?.runOnUiThread { main.refreshPipParams() }
+        promise.resolve(true)
+    }
+
+    /**
+     * Single PIP entry point from JS. Sets the active stream and refreshes
+     * PIP eligibility on MainActivity. Pass null to clear on stream end.
+     */
+    @ReactMethod
+    fun setStreamId(streamId: String?, promise: Promise) {
+        activeStreamId = if (streamId.isNullOrBlank()) null else streamId
+        val main = MainActivity.getInstance() ?: (currentActivity as? MainActivity)
+        if (main == null) {
+            promise.resolve(false)
+            return
+        }
+        main.runOnUiThread {
+            main.refreshPipParams()
+            promise.resolve(true)
+        }
+    }
 
     @ReactMethod
     fun enterPictureInPictureMode(width: Int, height: Int, promise: Promise) {
