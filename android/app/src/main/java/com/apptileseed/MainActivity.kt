@@ -87,9 +87,11 @@ class MainActivity : ReactActivity() {
 
             Log.d(TAG, "Inset Received! Bottom Px: ${navBars.bottom}, Bottom Dp: $navBarHeightDp")
 
+            val inPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode
+
             if (Build.VERSION.SDK_INT >= 35) {
                 window.navigationBarColor = Color.TRANSPARENT
-                if (navBarHeightDp > 35) {
+                if (navBarHeightDp > 35 && !inPip) {
                     v.setPadding(0, 0, 0, navBars.bottom)
                     val controller = WindowInsetsControllerCompat(window, v)
                     controller.isAppearanceLightNavigationBars = true
@@ -238,6 +240,11 @@ class MainActivity : ReactActivity() {
         val eligible = !PIPModule.activeStreamId.isNullOrBlank()
         val hint = PIPModule.sourceRectHint
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Stream cleared while in PIP → dismiss the ghost PIP window.
+            if (!eligible && isInPictureInPictureMode) {
+                dismissPipOnStreamEnd()
+                return
+            }
             try {
                 val builder = PictureInPictureParams.Builder()
                     .setAspectRatio(Rational(pipAspectWidth, pipAspectHeight))
@@ -281,6 +288,8 @@ class MainActivity : ReactActivity() {
         newConfig: Configuration
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        // Re-evaluate window insets so nav-bar padding is removed in PIP / restored on exit
+        ViewCompat.requestApplyInsets(window.decorView)
         if (isInPictureInPictureMode) {
             enterNativePipUi()
         } else {
@@ -375,5 +384,25 @@ class MainActivity : ReactActivity() {
         }
         pipBoundStreamId = null
         pipDismissedRebindPending = true
+    }
+
+    /** Stream ended while in PIP — stop playback, clean up, and dismiss the PIP window. */
+    private fun dismissPipOnStreamEnd() {
+        Log.d("PIP", "Stream ended while in PIP — dismissing ghost PIP")
+        // Stop the bound stream
+        val streamId = pipBoundStreamId
+        if (!streamId.isNullOrBlank()) {
+            try {
+                ZegoExpressEngine.getEngine()?.stopPlayingStream(streamId)
+            } catch (e: Throwable) {
+                Log.e("PIP", "Failed to stop stream on stream-end dismiss", e)
+            }
+        }
+        pipBoundStreamId = null
+        pipDismissedRebindPending = true
+        // Hide PIP video and restore React root so onResume has clean state
+        restoreReactRootVisibility()
+        // Move task to back — this causes the system to remove the PIP overlay
+        moveTaskToBack(true)
     }
 }
