@@ -13,6 +13,20 @@ import kotlinx.coroutines.launch
 class LauncherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // If MainActivity is already alive (e.g. in PIP), bring it forward instead
+        // of re-running splash + startup. OS exits PIP automatically on resume.
+        val existingMain = MainActivity.getInstance()
+        if (existingMain != null) {
+            val mainIntent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(mainIntent)
+            finish()
+            return
+        }
+
         SplashOverlayManager.showOverlay(this)
 
         lifecycleScope.launch {

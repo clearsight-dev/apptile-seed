@@ -333,6 +333,18 @@ dependencies {
       implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
     }
 
+    // Zego Express SDK — compile-time only so MainActivity can reference
+    // ZegoExpressEngine for native PIP binding. At runtime the actual classes
+    // come from the autolinked zego-express-engine-reactnative RN module
+    // (which uses `implementation`, so we can't see it at compile time).
+    // compileOnly avoids shipping a duplicate JAR or version conflicts.
+    // When Zego is force-unlinked (ENABLE_LIVELY=false), the classes won't
+    // exist at runtime — all Zego calls in MainActivity are wrapped in
+    // try-catch so they gracefully no-op in that case.
+    // Version must match the RN wrapper — check:
+    //   node_modules/zego-express-engine-reactnative/android/build.gradle
+    compileOnly 'im.zego:express-video:3.22.0'
+
 }
 
 // Note: androidProjectSetup.js is now run in settings.gradle BEFORE autolinking
