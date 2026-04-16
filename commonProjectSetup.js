@@ -477,6 +477,13 @@ function getExtraModules(apptileConfig) {
         returnType: 'assetFiles',
       },
       {
+        name: 'asset_thumb',
+        path: [path.resolve(__dirname, './assets/thumb.png')],
+        watchPath: path.resolve(__dirname),
+        returnKey: 'filePaths',
+        returnType: 'assetFiles',
+      },
+      {
         name: 'apptile-datasource',
         path: path.resolve(
           !useLocalApptileCore ? __dirname : apptileConfig.SDK_PATH,
