@@ -15,12 +15,17 @@ class LauncherActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // If MainActivity is already alive (e.g. in PIP), bring it forward instead
-        // of re-running splash + startup. OS exits PIP automatically on resume.
+        // of re-running splash + startup (which would render inside the PIP window).
+        // Forward any deep link data and push notification extras so they reach
+        // MainActivity.onNewIntent() and React Native's Linking module.
         val existingMain = MainActivity.getInstance()
         if (existingMain != null) {
             val mainIntent = Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
                         Intent.FLAG_ACTIVITY_SINGLE_TOP
+                data = intent.data
+                action = intent.action
+                intent.extras?.let { putExtras(it) }
             }
             startActivity(mainIntent)
             finish()
