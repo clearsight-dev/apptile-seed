@@ -46,6 +46,7 @@ class MainActivity : ReactActivity() {
     private var pipBoundStreamId: String? = null
     private var pipDismissedRebindPending = false
     private var pendingHidePipUiRunnable: Runnable? = null
+    private var lastNavBarBottomPx: Int = 0
 
     companion object {
         @Volatile
@@ -92,6 +93,7 @@ class MainActivity : ReactActivity() {
             if (Build.VERSION.SDK_INT >= 35) {
                 window.navigationBarColor = Color.TRANSPARENT
                 if (navBarHeightDp > 35 && !inPip) {
+                    lastNavBarBottomPx = navBars.bottom
                     v.setPadding(0, 0, 0, navBars.bottom)
                     val controller = WindowInsetsControllerCompat(window, v)
                     controller.isAppearanceLightNavigationBars = true
@@ -288,11 +290,19 @@ class MainActivity : ReactActivity() {
         newConfig: Configuration
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        // Re-evaluate window insets so nav-bar padding is removed in PIP / restored on exit
-        ViewCompat.requestApplyInsets(window.decorView)
+        val root = window.decorView
         if (isInPictureInPictureMode) {
+            // Clear nav-bar padding directly — requestApplyInsets does not
+            // reliably re-trigger the inset listener in PIP transitions.
+            root.setPadding(0, 0, 0, 0)
             enterNativePipUi()
         } else {
+            // Defer padding restore to the next frame — the window is still
+            // transitioning from PIP size, so applying padding now would layout
+            // against the small PIP dimensions.
+            if (Build.VERSION.SDK_INT >= 35 && lastNavBarBottomPx > 0) {
+                root.post { root.setPadding(0, 0, 0, lastNavBarBottomPx) }
+            }
             exitNativePipUi()
             // JS event NOT emitted here — can't distinguish expand vs dismiss yet.
             // onResume handles expand; onStop handles dismiss.
