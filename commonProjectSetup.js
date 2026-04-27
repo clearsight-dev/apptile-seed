@@ -435,6 +435,13 @@ function getExtraModules(apptileConfig) {
         returnType: 'sourceFile',
       },
       {
+        name: 'asset_thumb',
+        path: path.resolve(__dirname, 'stubs/asset_thumb/index.ts'),
+        watchPath: path.resolve(__dirname, 'stubs'),
+        returnKey: 'filePath',
+        returnType: 'sourceFile',
+      },
+      {
         name: 'asset_placeholder-image',
         path: [path.resolve(__dirname, 'assets/image-placeholder.png')],
         watchPath: path.resolve(__dirname),
