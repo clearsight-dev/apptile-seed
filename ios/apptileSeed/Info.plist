@@ -84,7 +84,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>We use your camera to record video for live streaming.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We use your location to provide location-based services and enhance your app experience.</string>
+	<string>Your location is required to confirm that cannabis products are legally available in your state. We do not store your location.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We use your microphone to record audio for live streaming.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
