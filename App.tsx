@@ -46,16 +46,14 @@ import {init as initAnalytics} from './analytics';
 
 const Stack = createNativeStackNavigator<ScreenParams>();
 
-// OneSignal (inside initAnalytics) requests its own location permission on
-// Android, which races with our geo gate and causes a double dialog.
-// Block analytics init until our permission dialog has already been shown and
-// dismissed — then OneSignal sees the permission is already decided and stays quiet.
-let resolveGeoPermissionDone: (() => void) | null = null;
-const geoPermissionDonePromise = new Promise<void>(resolve => {
-  resolveGeoPermissionDone = resolve;
+// Only initialise analytics (and OneSignal's notification prompt) after the
+// user has passed geo verification. Blocked users never see the prompt.
+let resolveGeoAllowed: (() => void) | null = null;
+const geoAllowedPromise = new Promise<void>(resolve => {
+  resolveGeoAllowed = resolve;
 });
 const deferredAnalytics = async () => {
-  await geoPermissionDonePromise;
+  await geoAllowedPromise;
   return initAnalytics();
 };
 
@@ -169,8 +167,6 @@ let _geoDetectedState: string | null = null;
 let _geoSetStatus: ((s: GeoCheckStatus) => void) | null = null;
 let _geoSetDetected: ((s: string | null) => void) | null = null;
 let _geoLastCheckTime: number = 0;
-let _geoVerifiedAt: string = '';
-let _geoSetVerifiedAt: ((s: string) => void) | null = null;
 
 const GEO_RESUME_RECHECK_MS = 2 * 60 * 1000; // re-check on resume after 15 min
 
@@ -184,13 +180,7 @@ function commitGeoResult(
   _geoSetStatus?.(status);
   _geoSetDetected?.(detected);
   if (status === 'allowed') {
-    const t = new Date();
-    const label =
-      `${t.getHours().toString().padStart(2, '0')}:` +
-      `${t.getMinutes().toString().padStart(2, '0')}:` +
-      `${t.getSeconds().toString().padStart(2, '0')}`;
-    _geoVerifiedAt = label;
-    _geoSetVerifiedAt?.(label);
+    resolveGeoAllowed?.();
   }
 }
 
@@ -213,8 +203,6 @@ async function checkLocationAndState() {
       statuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] === RESULTS.GRANTED ||
       statuses[PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION] === RESULTS.GRANTED;
   }
-
-  resolveGeoPermissionDone?.();
 
   if (!granted) {
     console.log(`[GeoCheck] permission denied +${Date.now() - t0}ms`);
@@ -278,9 +266,7 @@ function App(): React.JSX.Element {
   const [detectedStateName, setDetectedStateName] = useState<string | null>(
     _geoDetectedState,
   );
-const [verifiedAt, setVerifiedAt] = useState(_geoVerifiedAt);
-
-  const gifSplashDuration =
+const gifSplashDuration =
     apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
   const splashDuration =
     typeof gifSplashDuration === 'number' && gifSplashDuration > 0
@@ -302,7 +288,6 @@ const [verifiedAt, setVerifiedAt] = useState(_geoVerifiedAt);
     // Register this instance's setters — async check will call these when done.
     _geoSetStatus = setGeoCheckStatus;
     _geoSetDetected = setDetectedStateName;
-    _geoSetVerifiedAt = setVerifiedAt;
 
     // If check already finished while we were unmounted, apply result now.
     if (_geoStatus !== null && _geoStatus !== 'pending') {
@@ -482,11 +467,6 @@ const [verifiedAt, setVerifiedAt] = useState(_geoVerifiedAt);
         });
       }}>
       {body}
-      {verifiedAt ? (
-        <View style={styles.verifiedBadge} pointerEvents="none">
-          <Text style={styles.verifiedBadgeText}>✓ verified {verifiedAt}</Text>
-        </View>
-      ) : null}
       {showSplash && splashSource && (
         <View style={styles.splashContainer}>
           <Image
@@ -544,20 +524,6 @@ blockedContainer: {
     color: '#fff',
     fontSize: 15,
     fontWeight: '600',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 12,
-    alignSelf: 'center',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    zIndex: 9998,
-  },
-  verifiedBadgeText: {
-    color: '#fff',
-    fontSize: 11,
   },
   splashContainer: {
     position: 'absolute',
