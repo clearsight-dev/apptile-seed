@@ -1201,6 +1201,14 @@ async function main() {
     String(gifSplashDuration),
   );
 
+  // Add Google Maps API key
+  const googleMapsApiKey = apptileConfig.integrations?.googleMaps?.apiKey;
+  if (googleMapsApiKey) {
+    upsertInStringsXML(stringsObj, 'GOOGLE_MAPS_API_KEY', googleMapsApiKey);
+  } else {
+    removeFromStringsXML(stringsObj, 'GOOGLE_MAPS_API_KEY');
+  }
+
   // Handle HTTP deep links for app_host and app_host_2
   if (apptileConfig.app_host || apptileConfig.app_host_2) {
     const hosts = [];

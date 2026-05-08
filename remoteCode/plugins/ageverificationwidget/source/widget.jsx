@@ -12,21 +12,99 @@ const pluginListing = {
     height: 30,
   },
   section: 'SDK',
-  icon: 'widget',
+  icon: 'display',
   manifest: {
     directoryName: 'ageVerificationWidget',
-  }
+  },
 };
 
-export default connectWidget('ageVerificationWidget', 
-  ReactComponent, 
-  WidgetConfig, 
-  null, 
-  WidgetEditors, 
+export default connectWidget(
+  'ageVerificationWidget',
+  ReactComponent,
+  WidgetConfig,
+  null,
+  WidgetEditors,
   {
     propertySettings: PropertySettings,
-    widgetStyleConfig: [],
+    widgetStyleConfig: [
+      {
+        type: 'typographyInput',
+        name: 'titleTypography',
+        props: {label: 'Title Typography', placeholder: 'typography.heading1'},
+      },
+      {
+        type: 'typographyInput',
+        name: 'bodyTypography',
+        props: {label: 'Body Typography', placeholder: 'typography.body'},
+      },
+      {
+        type: 'typographyInput',
+        name: 'buttonTypography',
+        props: {label: 'Button Typography', placeholder: 'typography.button'},
+      },
+      {
+        type: 'numericInput',
+        name: 'iconSize',
+        props: {label: 'Icon Size', noUnit: true},
+      },
+      {
+        type: 'colorInput',
+        name: 'idleIconColor',
+        props: {label: 'Verify Icon Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'idleIconBgColor',
+        props: {label: 'Verify Icon Background Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'failedIconColor',
+        props: {label: 'Failed Icon Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'failedIconBgColor',
+        props: {label: 'Failed Icon Background Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'backgroundColor',
+        props: {label: 'Background Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'accentColor',
+        props: {label: 'Accent Color (icons & primary button)'},
+      },
+      {type: 'colorInput', name: 'titleColor', props: {label: 'Title Color'}},
+      {
+        type: 'colorInput',
+        name: 'failedTitleColor',
+        props: {label: 'Error Title Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'bodyTextColor',
+        props: {label: 'Body Text Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'retryButtonBackgroundColor',
+        props: {label: 'Retry Button Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'primaryButtonTextColor',
+        props: {label: 'Verify Button Text Color'},
+      },
+      {
+        type: 'colorInput',
+        name: 'retryButtonTextColor',
+        props: {label: 'Retry Button Text Color'},
+      },
+    ],
     pluginListing,
     docs: {},
-  }
+  },
 );

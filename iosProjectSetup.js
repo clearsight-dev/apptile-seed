@@ -883,6 +883,14 @@ async function main() {
       apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
     infoPlist.GIF_SPLASH_DURATION = String(gifSplashDuration);
 
+    // Add Google Maps API key
+    const googleMapsApiKey = apptileConfig.integrations?.googleMaps?.apiKey;
+    if (googleMapsApiKey) {
+      infoPlist.GOOGLE_MAPS_API_KEY = googleMapsApiKey;
+    } else {
+      delete infoPlist.GOOGLE_MAPS_API_KEY;
+    }
+
     const bundle_id =
       apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
 

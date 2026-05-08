@@ -26,6 +26,7 @@ import {
   ApptileAppRoot,
   useStartApptile,
   SentryHelper,
+  Icon,
 } from 'apptile-core';
 import LogRocket from '@logrocket/react-native';
 
@@ -64,9 +65,7 @@ Geolocation.setRNConfiguration({
   authorizationLevel: 'whenInUse',
 });
 
-// Hardcoded in native layer — cannot be bypassed via OTA JS updates
-const GOOGLE_MAPS_API_KEY =
-  apptileConfig?.integrations?.googleMaps?.apiKey || '';
+const GOOGLE_MAPS_API_KEY = RNApptile?.GOOGLE_MAPS_API_KEY || '';
 
 const GEOCODING_API_BASE = 'https://maps.googleapis.com/maps/api/geocode/json';
 
@@ -132,7 +131,14 @@ async function fetchStateFromCoords(
 ): Promise<string | null> {
   const url = `${GEOCODING_API_BASE}?latlng=${latitude},${longitude}&result_type=administrative_area_level_1&key=${apiKey}`;
   console.log('[GeoCheck] Geocoding API URL:', url);
-  const response = await fetch(url);
+  const controller = new AbortController();
+  const fetchTimeout = setTimeout(() => controller.abort(), 8000);
+  let response: Response;
+  try {
+    response = await fetch(url, {signal: controller.signal});
+  } finally {
+    clearTimeout(fetchTimeout);
+  }
   const data = await response.json();
   console.log(
     '[GeoCheck] Geocoding API status:',
@@ -161,7 +167,6 @@ type GeoCheckStatus =
 // synchronously at the top of checkLocationAndState so any remount that happens
 // while the async check is in-flight sees a non-null value and skips restarting.
 let _geoStatus: GeoCheckStatus | null = null;     // null = not started yet
-let _geoDetectedState: string | null = null;
 // Points to the currently-mounted component's setters so the async check can
 // update whichever instance is alive when it finishes.
 let _geoSetStatus: ((s: GeoCheckStatus) => void) | null = null;
@@ -169,6 +174,7 @@ let _geoSetDetected: ((s: string | null) => void) | null = null;
 let _geoLastCheckTime: number = 0;
 
 const GEO_RESUME_RECHECK_MS = 2 * 60 * 1000; // re-check on resume after 15 min
+const GEO_ACCENT = '#4ECDC4';
 
 
 function commitGeoResult(
@@ -176,7 +182,6 @@ function commitGeoResult(
   detected: string | null = null,
 ) {
   _geoStatus = status;
-  _geoDetectedState = detected;
   _geoSetStatus?.(status);
   _geoSetDetected?.(detected);
   if (status === 'allowed') {
@@ -187,31 +192,32 @@ function commitGeoResult(
 async function checkLocationAndState() {
   const t0 = Date.now();
   console.log('[GeoCheck] ⏱ START');
-
-  let granted = false;
-  if (Platform.OS === 'ios') {
-    const result = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-    console.log(`[GeoCheck] permission +${Date.now() - t0}ms —`, result);
-    granted = result === RESULTS.GRANTED;
-  } else {
-    const statuses = await requestMultiple([
-      PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION,
-    ]);
-    console.log(`[GeoCheck] permission +${Date.now() - t0}ms —`, statuses);
-    granted =
-      statuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] === RESULTS.GRANTED ||
-      statuses[PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION] === RESULTS.GRANTED;
-  }
-
-  if (!granted) {
-    console.log(`[GeoCheck] permission denied +${Date.now() - t0}ms`);
-    commitGeoResult('blocked-permission');
-    return;
-  }
-
-  console.log(`[GeoCheck] permission granted — GPS +${Date.now() - t0}ms`);
   try {
+    let granted = false;
+    if (Platform.OS === 'ios') {
+      const result = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+      console.log(`[GeoCheck] permission +${Date.now() - t0}ms —`, result);
+      granted = result === RESULTS.GRANTED;
+    } else {
+      const statuses = await requestMultiple([
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+        PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION,
+      ]);
+      console.log(`[GeoCheck] permission +${Date.now() - t0}ms —`, statuses);
+      granted =
+        statuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] ===
+          RESULTS.GRANTED ||
+        statuses[PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION] ===
+          RESULTS.GRANTED;
+    }
+
+    if (!granted) {
+      console.log(`[GeoCheck] permission denied +${Date.now() - t0}ms`);
+      commitGeoResult('blocked-permission');
+      return;
+    }
+
+    console.log(`[GeoCheck] permission granted — GPS +${Date.now() - t0}ms`);
     const position = await getCurrentPosition(6000);
     const {latitude, longitude} = position.coords;
     console.log(
@@ -240,10 +246,7 @@ async function checkLocationAndState() {
       commitGeoResult('blocked-state', state);
     }
   } catch (error: any) {
-    console.warn(
-      `[GeoCheck] GPS/geocoding failed +${Date.now() - t0}ms`,
-      error,
-    );
+    console.warn(`[GeoCheck] check failed +${Date.now() - t0}ms`, error);
     commitGeoResult('blocked-state');
   }
   _geoLastCheckTime = Date.now();
@@ -258,15 +261,15 @@ function App(): React.JSX.Element {
     Platform.OS === 'ios' && splashPath?.toLowerCase().endsWith('.gif');
 
   const [showSplash, setShowSplash] = useState(isGifSplash);
-  // Initialise from module cache so a remount mid-check shows loader,
-  // and a remount after completion shows the correct result immediately.
-  const [geoCheckStatus, setGeoCheckStatus] = useState<GeoCheckStatus>(
-    _geoStatus ?? 'pending',
-  );
+  // Always start as pending — we re-run the check on every mount.
+  // Module cache (_geoStatus) is only used to prevent a second check when
+  // a React remount happens while a check is already in-flight.
+  const [geoCheckStatus, setGeoCheckStatus] =
+    useState<GeoCheckStatus>('pending');
   const [detectedStateName, setDetectedStateName] = useState<string | null>(
-    _geoDetectedState,
+    null,
   );
-const gifSplashDuration =
+  const gifSplashDuration =
     apptileConfig?.feature_flags?.GIF_SPLASH_DURATION ?? 1;
   const splashDuration =
     typeof gifSplashDuration === 'number' && gifSplashDuration > 0
@@ -289,15 +292,10 @@ const gifSplashDuration =
     _geoSetStatus = setGeoCheckStatus;
     _geoSetDetected = setDetectedStateName;
 
-    // If check already finished while we were unmounted, apply result now.
-    if (_geoStatus !== null && _geoStatus !== 'pending') {
-      setGeoCheckStatus(_geoStatus);
-      setDetectedStateName(_geoDetectedState);
-    }
-
-    // Start the check only if it hasn't been kicked off yet.
-    if (_geoStatus === null) {
-      _geoStatus = 'pending'; // mark immediately — prevents re-entry on remount
+    // Always re-run the check on mount so every app launch fetches fresh location.
+    // Only skip if a check is already in-flight (React remount during async check).
+    if (_geoStatus !== 'pending') {
+      _geoStatus = 'pending';
       checkLocationAndState();
     }
 
@@ -373,7 +371,8 @@ const gifSplashDuration =
   if (geoCheckStatus === 'pending') {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#111" />
+        <ActivityIndicator size="large" color={GEO_ACCENT} />
+        <Text style={styles.fetchingLabel}>FETCHING YOUR LOCATION..</Text>
       </View>
     );
   }
@@ -381,7 +380,10 @@ const gifSplashDuration =
   if (geoCheckStatus === 'blocked-permission') {
     return (
       <View style={styles.blockedContainer}>
-        <Text style={styles.blockedTitle}>Location Access Required</Text>
+        <View style={[styles.iconBubble, styles.iconBubbleAccent]}>
+          <Icon iconType="Octicons" name="location" style={styles.iconAccent} />
+        </View>
+        <Text style={styles.blockedTitle}>LOCATION ACCESS REQUIRED</Text>
         <Text style={styles.blockedMessage}>
           Your location is required to confirm that cannabis products are
           legally available in your state. We do not store your location.
@@ -389,26 +391,28 @@ const gifSplashDuration =
         <TouchableOpacity
           style={styles.blockedButton}
           onPress={() => Linking.openSettings()}>
-          <Text style={styles.blockedButtonText}>
-            Enable Location in Settings
-          </Text>
+          <Text style={styles.blockedButtonText}>ENABLE LOCATION</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   if (geoCheckStatus === 'blocked-state') {
-    const stateMessage = detectedStateName
+    const stateMsg = detectedStateName
       ? `cannabis products cannot be sold in ${detectedStateName} under current law`
       : `we were unable to verify your location`;
     return (
       <View style={styles.blockedContainer}>
-        <Text style={styles.blockedTitle}>Not Available in Your Region</Text>
+        <View style={[styles.iconBubble, styles.iconBubbleGray]}>
+          <Icon
+            iconType="MaterialIcons"
+            name="location-disabled"
+            style={styles.iconGray}
+          />
+        </View>
+        <Text style={styles.blockedTitle}>NOT AVAILABLE IN YOUR REGION</Text>
         <Text style={styles.blockedMessage}>
-          {`We're sorry — ${stateMessage}. This app is only available in states where adult-use cannabis is legal.`}
-        </Text>
-        <Text style={styles.blockedSubMessage}>
-          If you believe this is an error, please contact support.
+          {`We are sorry — ${stateMsg}. This app is only available in states where adult-use cannabis is legal.`}
         </Text>
       </View>
     );
@@ -487,7 +491,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-blockedContainer: {
+  fetchingLabel: {
+    marginTop: 20,
+    fontFamily: 'Oswald',
+    fontWeight: 700,
+    fontSize: 16,
+    lineHeight: 35.73,
+    textTransform: 'uppercase',
+    color: '#282828',
+  },
+  iconBubble: {
+    width: 84,
+    height: 84,
+    borderRadius: 100,
+    padding: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  iconBubbleAccent: {
+    backgroundColor: 'rgba(160, 232, 241, 0.20)',
+  },
+  iconBubbleGray: {
+    backgroundColor: 'rgba(40, 40, 40, 0.04)',
+  },
+  iconAccent: {
+    fontSize: 36,
+    color: '#A0E8F1',
+  },
+  iconGray: {
+    fontSize: 36,
+    color: '#282828',
+  },
+  blockedContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -495,35 +531,44 @@ blockedContainer: {
     backgroundColor: '#fff',
   },
   blockedTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 16,
+    fontFamily: 'Oswald',
+    fontWeight: 700,
+    fontSize: 18,
+    lineHeight: 24,
+    textTransform: 'uppercase',
     textAlign: 'center',
+    color: '#282828',
+    marginBottom: 12,
+    letterSpacing: 0,
   },
   blockedMessage: {
-    fontSize: 15,
-    color: '#555',
+    fontFamily: 'Questrial',
+    fontWeight: 500,
+    fontSize: 13,
+    lineHeight: 18,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 16,
+    color: '#282828',
+    marginBottom: 28,
   },
   blockedSubMessage: {
     fontSize: 13,
-    color: '#999',
+    color: '#282828',
     textAlign: 'center',
   },
   blockedButton: {
-    backgroundColor: '#111',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    marginTop: 16,
+    backgroundColor: '#A0E8F1',
+    borderRadius: 100,
+    paddingVertical: 17,
+    paddingHorizontal: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   blockedButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Oswald',
+    fontWeight: 700,
+    fontSize: 14,
+    textTransform: 'uppercase',
+    color: '#282828',
   },
   splashContainer: {
     position: 'absolute',

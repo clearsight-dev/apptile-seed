@@ -1,19 +1,25 @@
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Linking,
 } from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
 import {useSelector, shallowEqual} from 'react-redux';
-import {LocalStorage, EventTriggerIdentifier} from 'apptile-core';
+import {
+  LocalStorage,
+  EventTriggerIdentifier,
+  Icon,
+  getPlatformStyles,
+} from 'apptile-core';
 
 const CALLBACK_PATH = '/callback';
 
 async function apiPost(url, appId, customerAccessToken, body = {}) {
-  // console.log('[AgeVerification] apiPost →', url, 'body:', JSON.stringify(body));
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -24,18 +30,134 @@ async function apiPost(url, appId, customerAccessToken, body = {}) {
     body: JSON.stringify(body),
   });
   const text = await res.text().catch(() => '');
-  // console.log('[AgeVerification] apiPost ←', res.status, text);
   if (!res.ok) {
     throw new Error(`Request failed (${res.status}): ${text}`);
   }
   return JSON.parse(text);
 }
 
-export function ReactComponent({model, triggerEvent}) {
-  const proxyBaseUrl = model.get('ageVerificationProxyBaseUrl') ||
-    'http://192.168.1.2:3054';
+function IconBubble({bg, iconType, iconName, iconSize, iconColor}) {
+  return (
+    <View style={[styles.iconBubble, {backgroundColor: bg}]}>
+      <Icon
+        iconType={iconType}
+        name={iconName}
+        style={{fontSize: iconSize, color: iconColor}}
+      />
+    </View>
+  );
+}
+
+function PrimaryButton({
+  label,
+  onPress,
+  disabled,
+  accentColor,
+  buttonTypography,
+  buttonTextColor,
+}) {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.pill,
+        {backgroundColor: accentColor},
+        disabled && styles.pillDisabled,
+      ]}
+      onPress={onPress}
+      disabled={disabled}>
+      <Text
+        style={[styles.pillText, buttonTypography, {color: buttonTextColor}]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function RetryButton({
+  label,
+  onPress,
+  retryButtonBg,
+  buttonTypography,
+  buttonTextColor,
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.pill, {backgroundColor: retryButtonBg}]}
+      onPress={onPress}>
+      <Text
+        style={[styles.pillText, buttonTypography, {color: buttonTextColor}]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function SupportLink({contactSupportUrl, contactSupportText}) {
+  if (!contactSupportUrl) {
+    return null;
+  }
+  return (
+    <TouchableOpacity
+      style={styles.supportLinkWrap}
+      onPress={() => Linking.openURL(contactSupportUrl)}>
+      <Text style={styles.supportLink}>{contactSupportText}</Text>
+    </TouchableOpacity>
+  );
+}
+
+export function ReactComponent({model, modelStyles}) {
+  const navigation = useNavigation();
+  const onVerifiedScreen = model.get('onVerifiedScreen') || '';
+  const onVerifiedParentNav = model.get('onVerifiedParentNav') || '';
+
+  const proxyBaseUrl =
+    model.get('ageVerificationProxyBaseUrl') || 'http://192.168.1.2:3054';
   const allowedDocumentTypes = model.get('allowedDocumentTypes') || ['P', 'DL'];
-  // console.log('proxyBaseUrl', proxyBaseUrl);
+
+  // ── Text (from model) ────────────────────────────────────────────────────────
+  const idleTitle = model.get('idleTitle') || 'AGE VERIFICATION REQUIRED';
+  const idleBody =
+    model.get('idleBody') ||
+    'You must be 21 or older to purchase cannabis products. Please verify your age with a government-issued ID.';
+  const idleButtonText = model.get('idleButtonText') || 'VERIFY MY AGE';
+  const checkingLabel =
+    model.get('checkingLabel') || 'CHECKING VERIFICATION STATUS..';
+  const loadingLabel = model.get('loadingLabel') || 'KEEP YOUR ID HANDY..';
+  const verifyingLabel = model.get('verifyingLabel') || 'VERIFYING YOUR AGE..';
+  const failedTitle = model.get('failedTitle') || 'VERIFICATION UNSUCCESSFUL';
+  const failedBody =
+    model.get('failedBody') ||
+    'We could not verify that you meet the age requirement (21+). Please try again with a valid government-issued ID.';
+  const retryButtonText = model.get('retryButtonText') || 'TRY AGAIN';
+  const contactSupportText =
+    model.get('contactSupportText') || 'Contact Support';
+  const contactSupportUrl = model.get('contactSupportUrl') || '';
+
+  // ── Icons (names/type from model, colors/size from modelStyles) ──────────────
+  const iconType = model.get('iconType') || 'Material Icons';
+  const idleIconName = model.get('idleIconName') || 'badge';
+  const failedIconName = model.get('failedIconName') || 'cancel';
+
+  // ── Styles (from modelStyles via widgetStyleConfig) ──────────────────────────
+  const {
+    titleTypography,
+    bodyTypography,
+    buttonTypography,
+    backgroundColor = '#fff',
+    accentColor = '#4ECDC4',
+    titleColor = '#111',
+    failedTitleColor = '#CD1212',
+    bodyTextColor = '#555',
+    retryButtonBackgroundColor: retryButtonBg = '#111',
+    primaryButtonTextColor = '#111',
+    retryButtonTextColor = '#fff',
+    iconSize = 32,
+    idleIconColor = '#A0E8F1',
+    idleIconBgColor = 'rgba(160,232,241,0.2)',
+    failedIconColor = '#CD1212',
+    failedIconBgColor = 'rgba(205,18,18,0.4)',
+  } = modelStyles ? getPlatformStyles(modelStyles) : {};
+  // ── Redux ────────────────────────────────────────────────────────────────────
   const appId = useSelector(
     state => state?.appModel?.values.getIn(['Apptile', 'appUUID']),
     shallowEqual,
@@ -50,33 +172,47 @@ export function ReactComponent({model, triggerEvent}) {
     shallowEqual,
   );
 
-  const [screen, setScreen] = useState('checking'); // checking | idle | loading | webview | verifying | success | failed | error
+  const [screen, setScreen] = useState('checking');
   const [webviewUrl, setWebviewUrl] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const callbackTriggered = useRef(false);
 
-  const onVerified = useCallback(() => {
-    triggerEvent('onVerified');
-  }, [triggerEvent]);
+  const navigateOnVerified = useCallback(() => {
+    if (onVerifiedScreen && onVerifiedParentNav) {
+      navigation.navigate(onVerifiedParentNav, {screen: onVerifiedScreen});
+    } else if (onVerifiedScreen) {
+      navigation.navigate(onVerifiedScreen);
+    }
+  }, [navigation, onVerifiedScreen, onVerifiedParentNav]);
 
-  useEffect(() => {
-    const checkVerified = async () => {
-      try {
-        const user = await LocalStorage.getValue('loggedInUser');
-        // console.log('[AgeVerification] loggedInUser:', JSON.stringify(user));
-        if (user?.tags?.includes('age-verified')) {
-          setScreen('success');
-          setTimeout(() => onVerified(), 100);
-        } else {
-          setScreen('idle');
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      const checkVerified = async () => {
+        try {
+          const user = await LocalStorage.getValue('loggedInUser');
+          if (cancelled) {
+            return;
+          }
+          if (user?.tags?.includes('age-verified')) {
+            navigateOnVerified();
+          } else {
+            setScreen('idle');
+          }
+        } catch (e) {
+          console.log('[AgeVerification] checkVerified error:', e?.message);
+          if (!cancelled) {
+            setScreen('idle');
+          }
         }
-      } catch {
-        setScreen('idle');
-      }
-    };
-    checkVerified();
-  }, [onVerified]);
+      };
+      checkVerified();
+      return () => {
+        cancelled = true;
+      };
+    }, [navigateOnVerified]),
+  );
 
   const callbackUrl = `${proxyBaseUrl}${CALLBACK_PATH}`;
 
@@ -84,26 +220,25 @@ export function ReactComponent({model, triggerEvent}) {
     callbackTriggered.current = false;
     setScreen('loading');
     try {
-      // console.log('[AgeVerification] starting — proxyBaseUrl:', proxyBaseUrl, 'appId:', appId, 'callbackUrl:', callbackUrl);
       const data = await apiPost(
         `${proxyBaseUrl}/start`,
         appId,
         customerAccessToken,
         {callback: callbackUrl, allowedDocumentTypes},
       );
-      // console.log('[AgeVerification] session created:', data?.session_id, 'url:', data?.url);
       setSessionId(data.session_id);
       setWebviewUrl(data.url);
       setScreen('webview');
     } catch (e) {
-      // console.log('[AgeVerification] startVerification error:', e?.message, e?.response?.status, e?.response?.data);
       setErrorMsg('Failed to start verification. Please try again.');
       setScreen('error');
     }
   };
 
   const doVerify = async sid => {
-    if (callbackTriggered.current) return;
+    if (callbackTriggered.current) {
+      return;
+    }
     callbackTriggered.current = true;
     setScreen('verifying');
     try {
@@ -118,14 +253,19 @@ export function ReactComponent({model, triggerEvent}) {
           if (user) {
             const tags = Array.isArray(user.tags) ? user.tags : [];
             if (!tags.includes('age-verified')) {
-              await LocalStorage.setValue('loggedInUser', {...user, tags: [...tags, 'age-verified']});
+              await LocalStorage.setValue('loggedInUser', {
+                ...user,
+                tags: [...tags, 'age-verified'],
+              });
             }
           }
         } catch (e) {
-          console.log('[AgeVerification] failed to update loggedInUser tags:', e?.message);
+          console.log(
+            '[AgeVerification] failed to update loggedInUser tags:',
+            e?.message,
+          );
         }
-        setScreen('success');
-        onVerified();
+        navigateOnVerified();
       } else {
         setScreen('failed');
       }
@@ -149,7 +289,23 @@ export function ReactComponent({model, triggerEvent}) {
     return true;
   };
 
-  // ── Screens ────────────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  const containerStyle = [styles.centered, {backgroundColor}];
+  const bodyStyle = [styles.bodyText, bodyTypography, {color: bodyTextColor}];
+
+  // ── Screens ──────────────────────────────────────────────────────────────────
+
+  if (screen === 'checking') {
+    return (
+      <View style={[styles.centered, {backgroundColor}]}>
+        <ActivityIndicator size="large" color={accentColor} />
+        <Text
+          style={[styles.spinnerLabel, titleTypography, {color: titleColor}]}>
+          {checkingLabel}
+        </Text>
+      </View>
+    );
+  }
 
   if (screen === 'webview' && webviewUrl) {
     return (
@@ -168,33 +324,13 @@ export function ReactComponent({model, triggerEvent}) {
     );
   }
 
-  if (screen === 'checking') {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#111" />
-      </View>
-    );
-  }
-
   if (screen === 'loading' || screen === 'verifying') {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#111" />
-        <Text style={styles.loadingText}>
-          {screen === 'loading'
-            ? 'Starting verification…'
-            : 'Verifying your identity…'}
-        </Text>
-      </View>
-    );
-  }
-
-  if (screen === 'success') {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.successTitle}>Age Verified</Text>
-        <Text style={styles.bodyText}>
-          You're all set! You can now browse and purchase cannabis products.
+      <View style={[styles.centered, {backgroundColor}]}>
+        <ActivityIndicator size="large" color={accentColor} />
+        <Text
+          style={[styles.spinnerLabel, titleTypography, {color: titleColor}]}>
+          {screen === 'loading' ? loadingLabel : verifyingLabel}
         </Text>
       </View>
     );
@@ -202,45 +338,86 @@ export function ReactComponent({model, triggerEvent}) {
 
   if (screen === 'failed') {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.failedTitle}>Verification Unsuccessful</Text>
-        <Text style={styles.bodyText}>
-          We could not verify that you meet the age requirement (21+). Please
-          try again with a valid government-issued ID.
+      <View style={containerStyle}>
+        <IconBubble
+          bg={failedIconBgColor}
+          iconType={iconType}
+          iconName={failedIconName}
+          iconSize={iconSize}
+          iconColor={failedIconColor}
+        />
+        <Text
+          style={[styles.title, titleTypography, {color: failedTitleColor}]}>
+          {failedTitle}
         </Text>
-        <TouchableOpacity style={styles.button} onPress={() => setScreen('idle')}>
-          <Text style={styles.buttonText}>Try Again</Text>
-        </TouchableOpacity>
+        <Text style={bodyStyle}>{failedBody}</Text>
+        <RetryButton
+          label={retryButtonText}
+          onPress={() => setScreen('idle')}
+          retryButtonBg={retryButtonBg}
+          buttonTypography={buttonTypography}
+          buttonTextColor={retryButtonTextColor}
+        />
+        <SupportLink
+          contactSupportUrl={contactSupportUrl}
+          contactSupportText={contactSupportText}
+        />
       </View>
     );
   }
 
   if (screen === 'error') {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.failedTitle}>Something Went Wrong</Text>
-        <Text style={styles.bodyText}>{errorMsg}</Text>
-        <TouchableOpacity style={styles.button} onPress={() => setScreen('idle')}>
-          <Text style={styles.buttonText}>Try Again</Text>
-        </TouchableOpacity>
+      <View style={containerStyle}>
+        <IconBubble
+          bg={failedIconBgColor}
+          iconType={iconType}
+          iconName={failedIconName}
+          iconSize={iconSize}
+          iconColor={failedIconColor}
+        />
+        <Text
+          style={[styles.title, titleTypography, {color: failedTitleColor}]}>
+          Something Went Wrong
+        </Text>
+        <Text style={bodyStyle}>{errorMsg}</Text>
+        <RetryButton
+          label={retryButtonText}
+          onPress={() => setScreen('idle')}
+          retryButtonBg={retryButtonBg}
+          buttonTypography={buttonTypography}
+          buttonTextColor={retryButtonTextColor}
+        />
+        <SupportLink
+          contactSupportUrl={contactSupportUrl}
+          contactSupportText={contactSupportText}
+        />
       </View>
     );
   }
 
   // idle
   return (
-    <View style={styles.centered}>
-      <Text style={styles.title}>Age Verification Required</Text>
-      <Text style={styles.bodyText}>
-        You must be 21 or older to purchase cannabis products. Please verify
-        your age with a government-issued ID.
+    <View style={containerStyle}>
+      <IconBubble
+        bg={idleIconBgColor}
+        iconType={iconType}
+        iconName={idleIconName}
+        iconSize={iconSize}
+        iconColor={idleIconColor}
+      />
+      <Text style={[styles.title, titleTypography, {color: titleColor}]}>
+        {idleTitle}
       </Text>
-      <TouchableOpacity
-        style={[styles.button, (!appId || !customerAccessToken) && styles.buttonDisabled]}
+      <Text style={bodyStyle}>{idleBody}</Text>
+      <PrimaryButton
+        label={idleButtonText}
         onPress={startVerification}
-        disabled={!appId || !customerAccessToken}>
-        <Text style={styles.buttonText}>Verify My Age</Text>
-      </TouchableOpacity>
+        disabled={!appId || !customerAccessToken}
+        accentColor={accentColor}
+        buttonTypography={buttonTypography}
+        buttonTextColor={primaryButtonTextColor}
+      />
     </View>
   );
 }
@@ -252,61 +429,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
-    backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  successTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#065F46',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  failedTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#991B1B',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  bodyText: {
-    fontSize: 15,
-    color: '#555',
-    textAlign: 'center',
-    lineHeight: 22,
+  iconBubble: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 24,
   },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 15,
-    color: '#555',
+  title: {
+    // fontSize: 17,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    letterSpacing: 0.8,
   },
-  button: {
-    backgroundColor: '#111',
+  bodyText: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  spinnerLabel: {
+    marginTop: 20,
+    fontSize: 13,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  pill: {
     paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 8,
+    paddingHorizontal: 30,
+    borderRadius: 50,
+    alignItems: 'center',
   },
-  buttonDisabled: {
-    backgroundColor: '#999',
+  pillDisabled: {
+    backgroundColor: '#ccc',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
+  pillText: {
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  supportLinkWrap: {
+    marginTop: 24,
+  },
+  supportLink: {
+    fontSize: 13,
+    color: '#999',
+    textDecorationLine: 'underline',
   },
 });
 
 export const WidgetConfig = {
   ageVerificationProxyBaseUrl: 'http://192.168.1.2:3054',
   allowedDocumentTypes: '{{["P", "DL"]}}',
-  onVerified: ''
+  onVerifiedScreen: '',
+  onVerifiedParentNav: 'Main',
+  iconType: 'Material Icons',
+  idleIconName: 'badge',
+  idleIconColor: '#4ECDC4',
+  idleIconBgColor: 'rgba(78,205,196,0.15)',
+  failedIconName: 'cancel',
+  failedIconColor: '#CC0000',
+  failedIconBgColor: 'rgba(204,0,0,0.10)',
+  idleTitle: 'AGE VERIFICATION REQUIRED',
+  idleBody:
+    'You must be 21 or older to purchase cannabis products. Please verify your age with a government-issued ID.',
+  idleButtonText: 'VERIFY MY AGE',
+  checkingLabel: 'CHECKING VERIFICATION STATUS..',
+  loadingLabel: 'KEEP YOUR ID HANDY..',
+  verifyingLabel: 'VERIFYING YOUR AGE..',
+  failedTitle: 'VERIFICATION UNSUCCESSFUL',
+  failedBody:
+    'We could not verify that you meet the age requirement (21+). Please try again with a valid government-issued ID.',
+  retryButtonText: 'TRY AGAIN',
+  contactSupportText: 'Contact Support',
+  contactSupportUrl: '',
 };
 
 export const WidgetEditors = {
@@ -317,13 +516,66 @@ export const WidgetEditors = {
       props: {label: 'Proxy Base Url'},
     },
     {
+      type: 'textInput',
+      name: 'onVerifiedParentNav',
+      props: {label: 'Parent Navigator Name (e.g. Main)'},
+    },
+    {
+      type: 'textInput',
+      name: 'onVerifiedScreen',
+      props: {label: 'Navigate To Screen (on verified, e.g. Home)'},
+    },
+    {
       type: 'codeInput',
       name: 'allowedDocumentTypes',
       props: {label: 'Allowed Document Types ["P", "DL", "ID", "RP", "HIC"]'},
     },
+    {
+      type: 'iconChooserInput',
+      name: 'idleIconName',
+      props: {label: 'Verify Age Screen Icon'},
+    },
+    {
+      type: 'iconChooserInput',
+      name: 'failedIconName',
+      props: {label: 'Unsuccessful Screen Icon'},
+    },
+    {type: 'textInput', name: 'idleTitle', props: {label: 'Title'}},
+    {type: 'textInput', name: 'idleBody', props: {label: 'Body Text'}},
+    {
+      type: 'textInput',
+      name: 'idleButtonText',
+      props: {label: 'Verify Button Label'},
+    },
+    {
+      type: 'textInput',
+      name: 'checkingLabel',
+      props: {label: 'Checking Status Label'},
+    },
+    {type: 'textInput', name: 'loadingLabel', props: {label: 'Loading Label'}},
+    {
+      type: 'textInput',
+      name: 'verifyingLabel',
+      props: {label: 'Verifying Label'},
+    },
+    {type: 'textInput', name: 'failedTitle', props: {label: 'Failed Title'}},
+    {type: 'textInput', name: 'failedBody', props: {label: 'Failed Body'}},
+    {
+      type: 'textInput',
+      name: 'retryButtonText',
+      props: {label: 'Retry Button Label'},
+    },
+    {
+      type: 'textInput',
+      name: 'contactSupportText',
+      props: {label: 'Contact Support Label'},
+    },
+    {
+      type: 'textInput',
+      name: 'contactSupportUrl',
+      props: {label: 'Contact Support URL'},
+    },
   ],
 };
 
-export const PropertySettings = {
-  onVerified: {type: EventTriggerIdentifier},
-};
+export const PropertySettings = {};

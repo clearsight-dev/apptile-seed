@@ -26,7 +26,12 @@ RCT_EXPORT_MODULE(RNApptile)
 //}
 - (NSDictionary *)constantsToExport
 {
-  return @{ @"VERSION_CODE": [[NSBundle mainBundle] objectForInfoDictionaryKey: (NSString *)kCFBundleVersionKey] };
+  NSString *versionCode = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey] ?: @"";
+  NSString *googleMapsApiKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"GOOGLE_MAPS_API_KEY"] ?: @"";
+  return @{
+    @"VERSION_CODE": versionCode,
+    @"GOOGLE_MAPS_API_KEY": googleMapsApiKey,
+  };
 }
 
 RCT_EXPORT_METHOD(notifyJSReady)

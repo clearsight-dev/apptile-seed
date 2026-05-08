@@ -24,6 +24,7 @@ public class RNApptileModule extends ReactContextBaseJavaModule {
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("VERSION_CODE", BuildConfig.VERSION_CODE);
+        constants.put("GOOGLE_MAPS_API_KEY", reactContext.getString(R.string.GOOGLE_MAPS_API_KEY));
         return constants;
     }
 
