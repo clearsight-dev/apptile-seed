@@ -2,6 +2,7 @@ import React, {useRef, useEffect, useCallback, useState} from 'react';
 import {
   View,
   NativeModules,
+  DeviceEventEmitter,
   findNodeHandle,
   Dimensions,
   ActivityIndicator,
@@ -69,10 +70,10 @@ export default function PIPActivity() {
     }
     return () => {
       if (streamId && zgViewRef.current) {
-        const zegoInstance = ZegoExpressEngine.instance();
-        zegoInstance.stopPlayingStream(streamId);
-        if (!global.activitySharedMem.isInPip && PIPModule)
+        ZegoExpressEngine.instance().stopPlayingStream(streamId);
+        if (!global.activitySharedMem.isInPip && PIPModule) {
           PIPModule?.endPIPActivity();
+        }
       }
     };
   }, [streamId, zgViewRef.current]);
@@ -94,6 +95,23 @@ export default function PIPActivity() {
         },
       };
     }
+  }, []);
+
+  // Mid-PIP stream swap channel from MainActivity-side JS (e.g. mixer
+  // toggle when a co-host is admitted). Updating streamId triggers the
+  // useEffect above which stops the old + starts the new on the same view.
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(
+      'onPipStreamIdChanged',
+      (nextId: string) => {
+        if (typeof nextId !== 'string' || !nextId) return;
+        if (global.activitySharedMem?.args) {
+          global.activitySharedMem.args.stream_id = nextId;
+        }
+        setStreamId(prev => (prev === nextId ? prev : nextId));
+      },
+    );
+    return () => sub.remove();
   }, []);
 
   const handleLayout = useCallback(

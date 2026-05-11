@@ -356,6 +356,33 @@ class MainActivity : ReactActivity() {
         }
     }
 
+    /**
+     * Swaps the live PIP feed in place — invoked by PIPModule.setStreamId
+     * when the id changes mid-PIP (e.g. co-host admitted). Reuses the
+     * existing pipVideoView so the OS doesn't tear the PIP window down.
+     */
+    fun rebindPipStream() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (!isInPictureInPictureMode) return
+        val newId = PIPModule.activeStreamId ?: return
+        if (newId.isBlank()) return
+        val view = pipVideoView ?: return
+        val prevId = pipBoundStreamId
+        if (prevId == newId) return
+        try {
+            val engine = ZegoExpressEngine.getEngine() ?: return
+            if (!prevId.isNullOrBlank()) engine.stopPlayingStream(prevId)
+            val canvas = ZegoCanvas(view)
+            canvas.viewMode = ZegoViewMode.getZegoViewMode(1) // AspectFill
+            val cfg = ZegoPlayerConfig()
+            cfg.resourceMode = ZegoStreamResourceMode.getZegoStreamResourceMode(0)
+            engine.startPlayingStream(newId, canvas, cfg)
+            pipBoundStreamId = newId
+        } catch (e: Throwable) {
+            Log.e("PIP", "Failed to rebind PIP stream", e)
+        }
+    }
+
     /** Keep pipVideoView visible during OS exit animation for seamless handoff. */
     private fun exitNativePipUi() {
         // Visual swap is deferred to scheduleHidePipUi (called from onResume)
