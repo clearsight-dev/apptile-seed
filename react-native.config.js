@@ -18,19 +18,7 @@ module.exports = {
         "ios": null
       }
     },
-    "react-native-moengage": {
-      "platforms": {
-        "android": null,
-        "ios": null
-      }
-    },
     "clevertap-react-native": {
-      "platforms": {
-        "android": null,
-        "ios": null
-      }
-    },
-    "react-native-onesignal": {
       "platforms": {
         "android": null,
         "ios": null
@@ -67,6 +55,12 @@ module.exports = {
       }
     },
     "@logrocket/react-native": {
+      "platforms": {
+        "android": null,
+        "ios": null
+      }
+    },
+    "react-native-onesignal": {
       "platforms": {
         "android": null,
         "ios": null

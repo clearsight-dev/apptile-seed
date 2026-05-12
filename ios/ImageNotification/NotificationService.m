@@ -149,7 +149,7 @@
 #if ENABLE_MOENGAGE
   @try {
     // TODO(gaurav) get this from info.plist of notification service
-    [MoEngageSDKRichNotification setAppGroupID: @"group.com.discoverpilgrimindia.notification"];
+    [MoEngageSDKRichNotification setAppGroupID: @"group.com.Cascades.app.notification"];
     [MoEngageSDKRichNotification handleWithRichNotificationRequest:request withContentHandler:contentHandler];
   } @catch (NSException *exception) {
     NSLog(@"MoEngage : exception : %@",exception);

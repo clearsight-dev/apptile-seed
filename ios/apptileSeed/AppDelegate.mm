@@ -92,8 +92,10 @@
       [[MoEngageSDKConfig alloc] initWithAppId:moEngageAppId
                                     dataCenter:moEngageDataCenter];
   sdkConfig.consoleLogConfig = [[MoEngageConsoleLogConfig alloc]
-      initWithIsLoggingEnabled:false
+      initWithIsLoggingEnabled:true
                       loglevel:MoEngageLoggerTypeVerbose];
+  [sdkConfig updateConfigForTestEnvironment];
+  sdkConfig.appGroupID = @"group.com.Cascades.app.notification";
   [[MoEngageInitializer sharedInstance]
       initializeDefaultSDKConfig:sdkConfig
                 andLaunchOptions:launchOptions];

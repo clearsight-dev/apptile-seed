@@ -2,18 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>1038290614593-1vc0ki6o3kdvrcof7gfk95pe5c4rc5cl.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1038290614593-1vc0ki6o3kdvrcof7gfk95pe5c4rc5cl</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>1038290614593-7uloo4r11maf3l0hs8tcu5htt425e3v5.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAa0wUiJcwG_C-cC1NXkuv3_zSmxifzT4w</string>
+	<string>AIzaSyBT2e3ROg6HDIId99TRrupJUf_6KIBS5vI</string>
 	<key>GCM_SENDER_ID</key>
-	<string>593393856836</string>
+	<string>1038290614593</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.discoverpilgrimstaging</string>
+	<string>com.Cascades.app</string>
 	<key>PROJECT_ID</key>
-	<string>pilgrim-staging</string>
+	<string>cascades-app</string>
 	<key>STORAGE_BUCKET</key>
-	<string>pilgrim-staging.appspot.com</string>
+	<string>cascades-app.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:593393856836:ios:64f16185cffcbeea866711</string>
+	<string>1:1038290614593:ios:cff683e309a9ddbc1089c0</string>
 </dict>
 </plist>

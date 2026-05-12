@@ -1,152 +1,155 @@
 {
-    "apptile_api_endpoint": "https://api.apptile.io",
-    "analytics_api_endpoint": "https://analytics.apptile.io",
-    "apptile_update_endpoint": "https://appconfigs.apptile.io",
-    "app_id": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-    "app_name": "CASCADES",
-    "url_scheme": "cascades",
-    "app_host": "cascadeskw.com",
-    "app_host_2": "*.cascadeskw.com",
-    "next_update_check": null,
-    "build_ios": true,
-    "build_android": true,
-    "fork_name": "main",
-    "ios": {
-        "icon_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/icon/65e64be9-ee73-46e1-ad1f-6c59fc6a8fe9/icon.png",
-        "splash_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/splash/366286cb-785c-4acf-adc9-8f560fe1c3a2/splash.png",
-        "bundle_id": "com.Cascades.app",
-        "service_file_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/iosFirebaseServiceFile/21aa8b7e-c12e-4e8c-9506-2553fcf60da5/iosFirebaseServiceFile.plist",
-        "team_id": "3UX569692B",
-        "version": "2.0.0",
-        "build_number": "56"
+  "apptile_api_endpoint": "https://api.apptile.io",
+  "analytics_api_endpoint": "https://analytics.apptile.io",
+  "apptile_update_endpoint": "https://appconfigs.apptile.io",
+  "app_id": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+  "app_name": "CASCADES",
+  "url_scheme": "cascades",
+  "app_host": "cascadeskw.com",
+  "app_host_2": "*.cascadeskw.com",
+  "next_update_check": null,
+  "build_ios": true,
+  "build_android": true,
+  "fork_name": "main",
+  "ios": {
+    "icon_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/icon/65e64be9-ee73-46e1-ad1f-6c59fc6a8fe9/icon.png",
+    "splash_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/splash/366286cb-785c-4acf-adc9-8f560fe1c3a2/splash.png",
+    "bundle_id": "com.Cascades.app",
+    "service_file_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/iosFirebaseServiceFile/21aa8b7e-c12e-4e8c-9506-2553fcf60da5/iosFirebaseServiceFile.plist",
+    "team_id": "3UX569692B",
+    "version": "3.0.0",
+    "build_number": "61"
+  },
+  "android": {
+    "icon_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/icon/65e64be9-ee73-46e1-ad1f-6c59fc6a8fe9/icon.png",
+    "splash_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/splash/366286cb-785c-4acf-adc9-8f560fe1c3a2/splash.png",
+    "bundle_id": "com.rentechdigital.swipecart.cascadeskw",
+    "service_file_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/androidFirebaseServiceFile/b315521b-23a0-4921-917b-3eead1b7f392/google-services.json",
+    "expected_output": "apk&aab",
+    "version_number": "61",
+    "version_semver": "3.0.0"
+  },
+  "both": {
+    "buildSourceGitHeadName": "origin/main",
+    "buildSourceGitHeadType": "branch",
+    "enableOneSignal": true,
+    "enableApptileAnalytics": false,
+    "enableFBSDK": false,
+    "enableSourceMap": false,
+    "enableCleverTap": false,
+    "enableKlaviyo": false,
+    "enableMoEngage": false,
+    "enableLively": false
+  },
+  "onesignal_appId": "5e252b12-311e-4b30-8bd7-b720b5f820fd",
+  "integrations": {
+    "oneSignal": {
+      "onesignal_app_id": "5e252b12-311e-4b30-8bd7-b720b5f820fd"
     },
-    "android": {
-        "icon_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/icon/65e64be9-ee73-46e1-ad1f-6c59fc6a8fe9/icon.png",
-        "splash_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/splash/366286cb-785c-4acf-adc9-8f560fe1c3a2/splash.png",
-        "bundle_id": "com.rentechdigital.swipecart.cascadeskw",
-        "service_file_path": "f93551d1-9ca5-460d-97d9-7e2548efcc25/androidFirebaseServiceFile/b315521b-23a0-4921-917b-3eead1b7f392/google-services.json",
-        "expected_output": "apk&aab",
-        "version": "3.0.0",
-        "build_number": "61"
+    "shopify": {},
+    "moengage":{
+        "appId": "MOENGAGE_APP_ID",
+        "datacenter": "MOENGAGE_DATA_CENTER"
+    }
+  },
+  "assets": [
+    {
+      "fileName": "androidStoreFile.jks",
+      "assetClass": "androidStoreFile",
+      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/androidStoreFile/29ccba83-68ec-46b3-9295-6d75b2a70b88/androidStoreFile.jks?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260512T113209Z&X-Amz-Expires=3600&X-Amz-Signature=e0df8a8a437b61be993b60aa7a7848b249902a7502779c75c92d76171f6beffd&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
     },
-    "both": {
-        "buildSourceGitHeadName": "origin/main",
-        "buildSourceGitHeadType": "branch",
-        "enableOneSignal": false,
-        "enableApptileAnalytics": false,
-        "enableFBSDK": false,
-        "enableSourceMap": false,
-        "enableCleverTap": false,
-        "enableKlaviyo": false,
-        "enableMoEngage": false,
-        "enableLively": false
+    {
+      "fileName": "google-services.json",
+      "assetClass": "androidFirebaseServiceFile",
+      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/androidFirebaseServiceFile/b315521b-23a0-4921-917b-3eead1b7f392/google-services.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260512T113209Z&X-Amz-Expires=3600&X-Amz-Signature=15c0e31466849d9b1d41e051c18d96bcff5f84c2a037093c8e7a88053273b296&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
     },
-    "integrations": {
-        "moengage":{
-            "appId":"XUO5YVKB3VBC5XIAHBJDK3ZA",
-            "datacenter":"data_center_2"
-        },
-        "shopify": {}
+    {
+      "fileName": "iosFirebaseServiceFile.plist",
+      "assetClass": "iosFirebaseServiceFile",
+      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/iosFirebaseServiceFile/21aa8b7e-c12e-4e8c-9506-2553fcf60da5/iosFirebaseServiceFile.plist?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260512T113209Z&X-Amz-Expires=3600&X-Amz-Signature=aa77ac4aa0195ca6f90d758bcf9ffc6a4462640ba47e6a8f95bfd4f48afc029e&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
     },
-    "assets": [
-        {
-            "fileName": "androidStoreFile.jks",
-            "assetClass": "androidStoreFile",
-            "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/androidStoreFile/29ccba83-68ec-46b3-9295-6d75b2a70b88/androidStoreFile.jks?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260114%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260114T094659Z&X-Amz-Expires=3600&X-Amz-Signature=6fd098b865109cd405c83c7f953284fb0ffbabfc277bd29800c5324e53494b08&X-Amz-SignedHeaders=host&x-id=GetObject"
-        },
-        {
-            "fileName": "google-services.json",
-            "assetClass": "androidFirebaseServiceFile",
-            "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/androidFirebaseServiceFile/b315521b-23a0-4921-917b-3eead1b7f392/google-services.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260114%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260114T094659Z&X-Amz-Expires=3600&X-Amz-Signature=a406f379e59e0e440ef65dfc115f3b6be51c8d5bf6d5f6ff2c67707d9523b1f7&X-Amz-SignedHeaders=host&x-id=GetObject"
-        },
-        {
-            "fileName": "iosFirebaseServiceFile.plist",
-            "assetClass": "iosFirebaseServiceFile",
-            "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/iosFirebaseServiceFile/21aa8b7e-c12e-4e8c-9506-2553fcf60da5/iosFirebaseServiceFile.plist?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260114%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260114T094659Z&X-Amz-Expires=3600&X-Amz-Signature=faf4c072d993e215f895573608e2c9fee7896a520d7ec1260857012a106deef1&X-Amz-SignedHeaders=host&x-id=GetObject"
-        },
-        {
-            "fileName": "icon.png",
-            "assetClass": "icon",
-            "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/icon/65e64be9-ee73-46e1-ad1f-6c59fc6a8fe9/icon.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260114%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260114T094659Z&X-Amz-Expires=3600&X-Amz-Signature=b2ae983538584d4570ac0e5ea7a7d2ff900a5fcf1976ffcf5a5f72661939a436&X-Amz-SignedHeaders=host&x-id=GetObject"
-        },
-        {
-            "fileName": "splash.png",
-            "assetClass": "splash",
-            "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/splash/366286cb-785c-4acf-adc9-8f560fe1c3a2/splash.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260114%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260114T094659Z&X-Amz-Expires=3600&X-Amz-Signature=43ad40d32681d595c777e5139fec0f5ac2da4bce6322ec6a166880205aa6855b&X-Amz-SignedHeaders=host&x-id=GetObject"
-        }
-    ],
-    "secrets": [
-        {
-            "id": "edab9f8d-ab9d-475f-89a9-7529afe988ba",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "keyAlias",
-            "deletedAt": null,
-            "createdAt": "2025-02-14T08:01:00.452Z",
-            "secret": "comcascadesapptileapp"
-        },
-        {
-            "id": "da04bf8d-32e9-4c02-8dc3-86ea0b71b0bc",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "storePassword",
-            "deletedAt": null,
-            "createdAt": "2025-02-14T08:01:00.510Z",
-            "secret": "zd3la3jU86"
-        },
-        {
-            "id": "884e2c76-de82-4f4e-b30f-441cc8d460a0",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "keyPassword",
-            "deletedAt": null,
-            "createdAt": "2025-02-14T08:01:00.515Z",
-            "secret": "zd3la3jU86"
-        },
-        {
-            "id": "2f482b1c-6815-4baa-ac0a-57b8c426eff5",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "teamId",
-            "deletedAt": null,
-            "createdAt": "2025-12-11T10:23:38.641Z",
-            "secret": "3UX569692B"
-        },
-        {
-            "id": "495745a7-91e8-4f9c-a855-8285407a2dc4",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "appStoreApiKey",
-            "deletedAt": null,
-            "createdAt": "2025-12-11T10:23:38.646Z",
-            "secret": "PYD5T55439"
-        },
-        {
-            "id": "712012f7-789e-482a-9417-9796363bf717",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "apnsKeyId",
-            "deletedAt": null,
-            "createdAt": "2025-12-11T10:23:38.650Z",
-            "secret": "43SC3QGADH"
-        },
-        {
-            "id": "63209156-1cb2-4ec5-9623-213ae90ecd91",
-            "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
-            "secretClass": "appStoreIssuerId",
-            "deletedAt": null,
-            "createdAt": "2025-12-11T10:23:38.651Z",
-            "secret": "2f9d19ea-45bc-4103-a0ed-00d76fd02bd5"
-        }
-    ],
-    "feature_flags": {
-        "ENABLE_ONESIGNAL": false,
-        "ENABLE_SEGMENT_ANALYTICS": true,
-        "ENABLE_FBSDK": false,
-        "ENABLE_CLEVERTAP": false,
-        "ENABLE_KALVIYO": false,
-        "ENABLE_MOENGAGE": true,
-        "ENABLE_APPSFLYER": false,
-        "ENABLE_FIREBASE_ANALYTICS": false,
-        "ENABLE_LIVELY": false
+    {
+      "fileName": "icon.png",
+      "assetClass": "icon",
+      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/icon/65e64be9-ee73-46e1-ad1f-6c59fc6a8fe9/icon.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260512T113209Z&X-Amz-Expires=3600&X-Amz-Signature=0ba7bed05b71fd0fa035adeef9b09526c9ebc83ab1f338df8d15d96a1be42656&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
     },
-    "apptile_analytics_segment_key": "v5uEehAOew986nnspYj3RCHdtE2QDS95",
-    "APPTILE_BACKEND_URL": "https://api.apptile.io",
-    "APPCONFIG_SERVER_URL": "https://appconfigs.apptile.io",
-    "APPTILE_BUILD_MANAGER_URL": "https://api.apptile.io/build-system/api",
-    "APP_ID": "f93551d1-9ca5-460d-97d9-7e2548efcc25"
+    {
+      "fileName": "splash.png",
+      "assetClass": "splash",
+      "url": "https://prod-apptile-build-assets.s3.us-east-1.amazonaws.com/f93551d1-9ca5-460d-97d9-7e2548efcc25/splash/366286cb-785c-4acf-adc9-8f560fe1c3a2/splash.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA2Q4O3KBMDCQNW4UR%2F20260512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260512T113209Z&X-Amz-Expires=3600&X-Amz-Signature=df49756ab4b4f749dce16da2a073596ab2bcb4c32edbf6582b313a76817e5d87&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject"
+    }
+  ],
+  "secrets": [
+    {
+      "id": "edab9f8d-ab9d-475f-89a9-7529afe988ba",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "keyAlias",
+      "deletedAt": null,
+      "createdAt": "2025-02-14T08:01:00.452Z",
+      "secret": "comcascadesapptileapp"
+    },
+    {
+      "id": "da04bf8d-32e9-4c02-8dc3-86ea0b71b0bc",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "storePassword",
+      "deletedAt": null,
+      "createdAt": "2025-02-14T08:01:00.510Z",
+      "secret": "zd3la3jU86"
+    },
+    {
+      "id": "884e2c76-de82-4f4e-b30f-441cc8d460a0",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "keyPassword",
+      "deletedAt": null,
+      "createdAt": "2025-02-14T08:01:00.515Z",
+      "secret": "zd3la3jU86"
+    },
+    {
+      "id": "2f482b1c-6815-4baa-ac0a-57b8c426eff5",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "teamId",
+      "deletedAt": null,
+      "createdAt": "2025-12-11T10:23:38.641Z",
+      "secret": "3UX569692B"
+    },
+    {
+      "id": "495745a7-91e8-4f9c-a855-8285407a2dc4",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "appStoreApiKey",
+      "deletedAt": null,
+      "createdAt": "2025-12-11T10:23:38.646Z",
+      "secret": "PYD5T55439"
+    },
+    {
+      "id": "712012f7-789e-482a-9417-9796363bf717",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "apnsKeyId",
+      "deletedAt": null,
+      "createdAt": "2025-12-11T10:23:38.650Z",
+      "secret": "43SC3QGADH"
+    },
+    {
+      "id": "63209156-1cb2-4ec5-9623-213ae90ecd91",
+      "appId": "f93551d1-9ca5-460d-97d9-7e2548efcc25",
+      "secretClass": "appStoreIssuerId",
+      "deletedAt": null,
+      "createdAt": "2025-12-11T10:23:38.651Z",
+      "secret": "2f9d19ea-45bc-4103-a0ed-00d76fd02bd5"
+    }
+  ],
+  "feature_flags": {
+    "ENABLE_ONESIGNAL": false,
+    "ENABLE_SEGMENT_ANALYTICS": false,
+    "ENABLE_FBSDK": false,
+    "ENABLE_CLEVERTAP": false,
+    "ENABLE_KLAVIYO": false,
+    "ENABLE_MOENGAGE": true,
+    "ENABLE_APPSFLYER": false,
+    "ENABLE_FIREBASE_ANALYTICS": false,
+    "ENABLE_LIVELY": false
+  },
+  "APPTILE_BACKEND_URL": "https://api.apptile.io",
+  "APPCONFIG_SERVER_URL": "https://appconfigs.apptile.io",
+  "APPTILE_BUILD_MANAGER_URL": "https://api.apptile.io/build-system/api",
+  "APP_ID": "f93551d1-9ca5-460d-97d9-7e2548efcc25"
 }

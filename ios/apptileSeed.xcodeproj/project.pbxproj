@@ -14,11 +14,6 @@
 		0574CFC32E4352F700B6D888 /* SplashScreenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFC22E4352F700B6D888 /* SplashScreenViewController.m */; };
 		0574CFCC2E4353A800B6D888 /* ActionsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCB2E4353A700B6D888 /* ActionsHandler.swift */; };
 		0574CFCE2E4353D600B6D888 /* RestartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCD2E4353D600B6D888 /* RestartHandler.swift */; };
-		AA0001012F00000100000001 /* OTAActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001002F00000100000001 /* OTAActions.swift */; };
-		AA0001032F00000100000002 /* OTAErrorCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001022F00000100000002 /* OTAErrorCodes.swift */; };
-		AA0001052F00000100000003 /* OTAManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001042F00000100000003 /* OTAManager.swift */; };
-		AA0001072F00000100000004 /* OTAManagerBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001062F00000100000004 /* OTAManagerBridge.m */; };
-		AA0001092F00000100000005 /* OTAToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001082F00000100000005 /* OTAToast.swift */; };
 		0574CFD02E4353FF00B6D888 /* ApiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFCF2E4353FF00B6D888 /* ApiManager.swift */; };
 		0574CFD52E43545800B6D888 /* CrashHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD42E43545800B6D888 /* CrashHandler.m */; };
 		0574CFD72E43547A00B6D888 /* StartupHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 0574CFD62E43547A00B6D888 /* StartupHandler.m */; };
@@ -61,6 +56,11 @@
 		5BD1C19FAF3CFFCA35961D35 /* Pods_NotificationContentExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A3D494646D0FF74D669B9DF9 /* Pods_NotificationContentExtension.framework */; };
 		6132EF182BDFF13200BBE14D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 6132EF172BDFF13200BBE14D /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		AA0001012F00000100000001 /* OTAActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001002F00000100000001 /* OTAActions.swift */; };
+		AA0001032F00000100000002 /* OTAErrorCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001022F00000100000002 /* OTAErrorCodes.swift */; };
+		AA0001052F00000100000003 /* OTAManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001042F00000100000003 /* OTAManager.swift */; };
+		AA0001072F00000100000004 /* OTAManagerBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001062F00000100000004 /* OTAManagerBridge.m */; };
+		AA0001092F00000100000005 /* OTAToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001082F00000100000005 /* OTAToast.swift */; };
 		F4202F490741B13229C4DF26 /* Pods_apptileSeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAFA1B64434038197289E837 /* Pods_apptileSeed.framework */; };
 /* End PBXBuildFile section */
 
@@ -113,11 +113,6 @@
 		0574CFD92E43550900B6D888 /* AppUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUtils.swift; sourceTree = "<group>"; };
 		0574CFDB2E43552400B6D888 /* BundleTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleTracker.swift; sourceTree = "<group>"; };
 		0574CFDD2E43553700B6D888 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		AA0001002F00000100000001 /* OTAActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAActions.swift; sourceTree = "<group>"; };
-		AA0001022F00000100000002 /* OTAErrorCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAErrorCodes.swift; sourceTree = "<group>"; };
-		AA0001042F00000100000003 /* OTAManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAManager.swift; sourceTree = "<group>"; };
-		AA0001062F00000100000004 /* OTAManagerBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OTAManagerBridge.m; sourceTree = "<group>"; };
-		AA0001082F00000100000005 /* OTAToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAToast.swift; sourceTree = "<group>"; };
 		057DB15E2D5B3B1F0058398E /* NotificationContentExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationContentExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		057DB1602D5B3B1F0058398E /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 		057DB67B2D60965900CD76F4 /* RNApptile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RNApptile.m; path = apptileSeed/RNApptile.m; sourceTree = "<group>"; };
@@ -165,6 +160,11 @@
 		77719AA7C2062FDD93823211 /* Pods-apptileSeed.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-apptileSeed.release.xcconfig"; path = "Target Support Files/Pods-apptileSeed/Pods-apptileSeed.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = apptileSeed/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A3D494646D0FF74D669B9DF9 /* Pods_NotificationContentExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationContentExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0001002F00000100000001 /* OTAActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAActions.swift; sourceTree = "<group>"; };
+		AA0001022F00000100000002 /* OTAErrorCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAErrorCodes.swift; sourceTree = "<group>"; };
+		AA0001042F00000100000003 /* OTAManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAManager.swift; sourceTree = "<group>"; };
+		AA0001062F00000100000004 /* OTAManagerBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OTAManagerBridge.m; sourceTree = "<group>"; };
+		AA0001082F00000100000005 /* OTAToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTAToast.swift; sourceTree = "<group>"; };
 		BAFA1B64434038197289E837 /* Pods_apptileSeed.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_apptileSeed.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -257,18 +257,6 @@
 				0574CFCD2E4353D600B6D888 /* RestartHandler.swift */,
 			);
 			path = actions;
-			sourceTree = "<group>";
-		};
-		AA00010A2F00000100000006 /* ota */ = {
-			isa = PBXGroup;
-			children = (
-				AA0001002F00000100000001 /* OTAActions.swift */,
-				AA0001022F00000100000002 /* OTAErrorCodes.swift */,
-				AA0001042F00000100000003 /* OTAManager.swift */,
-				AA0001062F00000100000004 /* OTAManagerBridge.m */,
-				AA0001082F00000100000005 /* OTAToast.swift */,
-			);
-			path = ota;
 			sourceTree = "<group>";
 		};
 		0574CFC62E43534F00B6D888 /* apis */ = {
@@ -417,6 +405,18 @@
 				057DB15E2D5B3B1F0058398E /* NotificationContentExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AA00010A2F00000100000006 /* ota */ = {
+			isa = PBXGroup;
+			children = (
+				AA0001002F00000100000001 /* OTAActions.swift */,
+				AA0001022F00000100000002 /* OTAErrorCodes.swift */,
+				AA0001042F00000100000003 /* OTAManager.swift */,
+				AA0001062F00000100000004 /* OTAManagerBridge.m */,
+				AA0001082F00000100000005 /* OTAToast.swift */,
+			);
+			path = ota;
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -825,14 +825,14 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = NotificationContentExtension/NotificationContentExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 61;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
+					"ENABLE_MOENGAGE=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationContentExtension/Info.plist;
@@ -845,17 +845,17 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 3.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.NotificationContentExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Cascades.app.NotificationContentExtensionNew;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -873,14 +873,14 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationContentExtension/NotificationContentExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 61;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
+					"ENABLE_MOENGAGE=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationContentExtension/Info.plist;
@@ -893,15 +893,15 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 3.0.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.NotificationContentExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Cascades.app.NotificationContentExtensionNew;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -918,14 +918,14 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ImageNotification/ImageNotification.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 61;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
+					"ENABLE_MOENGAGE=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ImageNotification/Info.plist;
@@ -938,14 +938,14 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 3.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.ImageNotification;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Cascades.app.ImageNotificationNew;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -963,14 +963,14 @@
 				CODE_SIGN_ENTITLEMENTS = ImageNotification/ImageNotification.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 61;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					"ENABLE_FIREBASE_ANALYTICS=1",
+					"ENABLE_MOENGAGE=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ImageNotification/Info.plist;
@@ -983,13 +983,13 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 3.0.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app.ImageNotification;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Cascades.app.ImageNotificationNew;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -1002,8 +1002,8 @@
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				CURRENT_PROJECT_VERSION = 61;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -1013,7 +1013,7 @@
 					"PB_FIELD_32BIT=1",
 					"PB_NO_PACKED_STRUCTS=1",
 					"PB_ENABLE_MALLOC=1",
-					"ENABLE_FIREBASE_ANALYTICS=1",
+					"ENABLE_MOENGAGE=1",
 				);
 				INFOPLIST_FILE = apptileSeed/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -1021,13 +1021,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 3.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Cascades.app;
 				PRODUCT_NAME = apptileSeed;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1037,7 +1037,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "src/actions/apptileSeed-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -1051,8 +1051,8 @@
 				CODE_SIGN_ENTITLEMENTS = apptileSeed/apptileSeed.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				CURRENT_PROJECT_VERSION = 61;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"COCOAPODS=1",
@@ -1060,7 +1060,7 @@
 					"PB_FIELD_32BIT=1",
 					"PB_NO_PACKED_STRUCTS=1",
 					"PB_ENABLE_MALLOC=1",
-					"ENABLE_FIREBASE_ANALYTICS=1",
+					"ENABLE_MOENGAGE=1",
 				);
 				INFOPLIST_FILE = apptileSeed/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -1068,13 +1068,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 3.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.moderna.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Cascades.app;
 				PRODUCT_NAME = apptileSeed;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1083,7 +1083,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "src/actions/apptileSeed-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -1119,7 +1119,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
@@ -1208,7 +1208,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
-				DEVELOPMENT_TEAM = 8SQ493N52G;
+				DEVELOPMENT_TEAM = 3UX569692B;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";

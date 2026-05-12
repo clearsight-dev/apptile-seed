@@ -18,7 +18,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     // TODO(gaurav) get this from info.plist
 #if ENABLE_MOENGAGE
-    MoEngageSDKRichNotification.setAppGroupID("group.com.discoverpilgrimindia.notification")
+    MoEngageSDKRichNotification.setAppGroupID("group.com.Cascades.app.notification")
 #endif
   }
   
