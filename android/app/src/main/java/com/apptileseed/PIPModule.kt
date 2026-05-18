@@ -129,10 +129,14 @@ class PIPModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     /**
      * Single PIP entry point from JS. Sets the active stream and refreshes
      * PIP eligibility on MainActivity. Pass null to clear on stream end.
+     * Mid-PIP id change rebinds the live pipVideoView via
+     * MainActivity.rebindPipStream so the PIP window swaps content in place.
      */
     @ReactMethod
     fun setStreamId(streamId: String?, promise: Promise) {
-        activeStreamId = if (streamId.isNullOrBlank()) null else streamId
+        val newId = if (streamId.isNullOrBlank()) null else streamId
+        val prevId = activeStreamId
+        activeStreamId = newId
         val main = MainActivity.getInstance() ?: (currentActivity as? MainActivity)
         if (main == null) {
             promise.resolve(false)
@@ -140,6 +144,13 @@ class PIPModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
         }
         main.runOnUiThread {
             main.refreshPipParams()
+            if (newId != null &&
+                newId != prevId &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                main.isInPictureInPictureMode
+            ) {
+                main.rebindPipStream()
+            }
             promise.resolve(true)
         }
     }
