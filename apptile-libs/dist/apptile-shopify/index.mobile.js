@@ -1339,6 +1339,7 @@
     $first: Int!
     $after: String
     $countryCode: CountryCode
+    $collectionMetafields: [HasMetafieldsIdentifier!] = []
   ) @inContext(country: $countryCode) {
     products(query: $query, first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
       edges {
@@ -1370,7 +1371,7 @@
     $filters: [ProductFilter!]
     $productMetafields: [HasMetafieldsIdentifier!]!
     $variantMetafields: [HasMetafieldsIdentifier!]!
-    $collectionMetafields: [HasMetafieldsIdentifier!]!
+    $collectionMetafields: [HasMetafieldsIdentifier!] = []
     $languageCode: LanguageCode
   ) @inContext(country: $countryCode, language: $languageCode) {
     collectionByHandle(handle: $collectionHandle) {
