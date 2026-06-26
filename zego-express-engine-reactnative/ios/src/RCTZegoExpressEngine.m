@@ -3387,15 +3387,16 @@ restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void (^)(BOOL)
             [self.previewView.layer insertSublayer:self.previewLayer above:0];
         }
     } else {
-        // Dismiss - always stop the stream (JS will restart if widget is focused)
-        NSLog(@"[PIP] didStop: dismiss - stopping stream");
+        // Dismiss - stop the stream but KEEP pipViewController and previewLayer
+        // alive. iOS' canStartPictureInPictureAutomaticallyFromInline path needs
+        // a controller that has been bound while UIScene was ForegroundActive;
+        // recreating it mid-background fails with AVKitErrorDomain -1001
+        // (UIScene not ForegroundActive). currentStreamID is also retained so
+        // the next startPlayingStream re-feeds the same layer.
+        NSLog(@"[PIP] didStop: dismiss - stopping stream (controller retained)");
         if (self.currentStreamID) {
             [[ZegoExpressEngine sharedEngine] stopPlayingStream:self.currentStreamID];
         }
-        // Keep previewLayer - it will be reused when stream restarts
-        // Clear the PiP controller so a new one can be created when stream restarts
-        self.pipViewController = nil;
-        self.currentStreamID = nil;
     }
 
     [self sendEventWithName:RN_EVENT(@"onPipModeExit")
