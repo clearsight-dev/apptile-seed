@@ -493,12 +493,13 @@ const styles = StyleSheet.create({
   },
   fetchingLabel: {
     marginTop: 20,
-    fontFamily: 'Oswald',
+    fontFamily: 'Oswald-SemiBold',
     fontWeight: 700,
     fontSize: 16,
-    lineHeight: 35.73,
+    lineHeight: 24,
     textTransform: 'uppercase',
     color: '#282828',
+    letterSpacing: 0,
   },
   iconBubble: {
     width: 84,
@@ -531,7 +532,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   blockedTitle: {
-    fontFamily: 'Oswald',
+    fontFamily: 'Oswald-SemiBold',
     fontWeight: 700,
     fontSize: 18,
     lineHeight: 24,
@@ -542,13 +543,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   blockedMessage: {
-    fontFamily: 'Questrial',
+    fontFamily: 'Oswald-SemiBold',
     fontWeight: 500,
     fontSize: 13,
     lineHeight: 18,
     textAlign: 'center',
     color: '#282828',
     marginBottom: 28,
+    letterSpacing: 0,
   },
   blockedSubMessage: {
     fontSize: 13,
@@ -564,11 +566,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   blockedButtonText: {
-    fontFamily: 'Oswald',
+    fontFamily: 'Oswald-SemiBold',
     fontWeight: 700,
     fontSize: 14,
     textTransform: 'uppercase',
     color: '#282828',
+    letterSpacing: 0,
   },
   splashContainer: {
     position: 'absolute',
