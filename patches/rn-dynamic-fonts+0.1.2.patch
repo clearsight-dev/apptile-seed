@@ -1,0 +1,39 @@
+diff --git a/node_modules/rn-dynamic-fonts/DynamicFonts.m b/node_modules/rn-dynamic-fonts/DynamicFonts.m
+index 9bc7afc..b63dd06 100644
+--- a/node_modules/rn-dynamic-fonts/DynamicFonts.m
++++ b/node_modules/rn-dynamic-fonts/DynamicFonts.m
+@@ -16,6 +16,13 @@ RCT_EXPORT_MODULE();
+ - (void) loadFontWithData:(CGDataProviderRef) fontDataProvider callback:(RCTResponseSenderBlock)callback
+ {
+   CGFontRef newFont = CGFontCreateWithDataProvider(fontDataProvider);
++  if (!newFont) {
++    // Invalid/corrupt font data (e.g. an HTTP error body saved as a font file).
++    CGDataProviderRelease(fontDataProvider);
++    callback(@[@"Failed to create font from data"]);
++    return;
++  }
++
+   NSString *newFontName = (__bridge_transfer NSString *)CGFontCopyPostScriptName(newFont);
+ 
+   if (newFontName && [UIFont fontWithName:newFontName size:16]) {
+@@ -25,13 +32,15 @@ RCT_EXPORT_MODULE();
+     return;
+   }
+ 
+-  CFErrorRef error;
++  CFErrorRef error = NULL;
+   if (!CTFontManagerRegisterGraphicsFont(newFont, &error)) {
+-    CFStringRef errorDescription = CFErrorCopyDescription(error);
++    // `error` may be left unset on failure, and CFErrorCopyDescription returns a
++    // +1 reference already consumed by __bridge_transfer, so it must not be
++    // CFRelease'd again (doing so is a double-free that traps in CFRelease).
++    NSString *errorDescription = error ? (__bridge_transfer NSString *)CFErrorCopyDescription(error) : @"unknown error";
+     NSLog(@"Failed to register font: %@", errorDescription);
+-    callback(@[[NSString stringWithFormat:@"Failed to register font: %@", (__bridge_transfer NSString *)errorDescription]]);
+-    CFRelease(errorDescription);
+-    CFRelease(error);
++    callback(@[[NSString stringWithFormat:@"Failed to register font: %@", errorDescription]]);
++    if (error) CFRelease(error);
+     CGFontRelease(newFont);
+     CGDataProviderRelease(fontDataProvider);
+     return;
