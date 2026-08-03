@@ -5,6 +5,7 @@ const fs = require('fs');
 const xcode = require('xcode');
 const plist = require('plist');
 const {createWriteStream} = require('fs');
+const {fileURLToPath} = require('node:url');
 const {
   readFile,
   writeFile,
@@ -14,8 +15,27 @@ const {
   cp,
 } = require('node:fs/promises');
 
+// `url` may be an http(s) url, a file:// url, an absolute path, or a path
+// relative to the seed root. Local sources are copied instead of downloaded.
 async function downloadFile(url, destination) {
   const outputPath = destination;
+  const isRemote = /^https?:\/\//i.test(url);
+  if (!isRemote) {
+    const src = url.startsWith('file://')
+      ? fileURLToPath(url)
+      : path.resolve(__dirname, url);
+    try {
+      if (!fs.existsSync(src)) {
+        throw new Error(`Local asset not found at ${src}`);
+      }
+      await mkdir(path.dirname(outputPath), {recursive: true});
+      await cp(src, outputPath);
+      return;
+    } catch (err) {
+      console.error('Failed to copy local asset to: ', destination);
+      throw err;
+    }
+  }
   try {
     const response = await axios({
       url,
