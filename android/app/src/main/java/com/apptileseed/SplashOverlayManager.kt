@@ -31,10 +31,19 @@ class SplashOverlayManager {
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             }
 
-            // Create ImageView dynamically
+            // Create ImageView dynamically.
+            // The placeholder is the same resource loaded synchronously, so the
+            // splash is painted on the very first frame instead of leaving the
+            // white windowBackground exposed while Glide decodes off-thread.
+            // For an animated splash Glide then swaps the static first frame
+            // for the GIF once decoded.
             val splashView = ImageView(context).apply {
                 scaleType = ImageView.ScaleType.CENTER_CROP
-                Glide.with(context).load(R.drawable.splash).into(this)
+                Glide.with(context)
+                    .load(R.drawable.splash)
+                    .placeholder(R.drawable.splash)
+                    .centerCrop()
+                    .into(this)
             }
 
             splashOverlay = splashView
@@ -51,6 +60,17 @@ class SplashOverlayManager {
         fun removeOverlay(context: Context) {
             val rootView = (context as? Activity)?.findViewById<ViewGroup>(android.R.id.content) ?: return
             splashOverlay?.let { rootView.removeView(it) }
+            splashOverlay = null
+        }
+
+        /**
+         * Drops the static reference without touching the view hierarchy.
+         *
+         * Used when the hosting activity is going away anyway: the overlay must
+         * stay on screen through the handoff to the next activity, but the
+         * static field must not outlive the activity it points at.
+         */
+        fun detachOverlay() {
             splashOverlay = null
         }
     }

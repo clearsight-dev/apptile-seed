@@ -75,7 +75,17 @@ class LauncherActivity : AppCompatActivity() {
         val options = ActivityOptions.makeCustomAnimation(this, 0, 0).toBundle()
 
         startActivity(mainIntent, options)
-        SplashOverlayManager.removeOverlay(this)
+        // Deliberately NOT removing the overlay here. startActivity is async and
+        // this activity stays visible until MainActivity has drawn its own
+        // Fixing issue of tearing the overlay down now exposes the white
+        // windowBackground for those frames, which is the splash "blink".
+        // The overlay dies with this activity's window on finish().
         finish()
+    }
+
+    override fun onDestroy() {
+        // Window is gone by now, so just drop the static reference.
+        SplashOverlayManager.detachOverlay()
+        super.onDestroy()
     }
 }

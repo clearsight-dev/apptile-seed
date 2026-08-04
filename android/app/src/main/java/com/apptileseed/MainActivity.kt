@@ -37,6 +37,7 @@ class MainActivity : ReactActivity() {
     private val minSplashDuration = BuildConfig.MIN_SPLASH_DURATION
     private val maxSplashDuration = 20.0f
     private var nativeSplashView: ImageView? = null
+    private var nativeSplashContainer: FrameLayout? = null
 
     // PIP — eligibility derived from PIPModule.activeStreamId (non-null = eligible).
     // Fixed 9:16 portrait aspect for live-selling streams.
@@ -133,15 +134,23 @@ class MainActivity : ReactActivity() {
         }
 
         val image: ImageView = ImageView(this.applicationContext)
+        image.scaleType = ImageView.ScaleType.CENTER_CROP
 
         this.nativeSplashView = image
 
+        // Same resource as the placeholder so it is painted synchronously on the
+        // first frame. Without this, Glide decodes off-thread and the white
+        // windowBackground shows through during the LauncherActivity handoff.
+        // Scaling must match SplashOverlayManager exactly or the image visibly
+        // jumps as one splash replaces the other.
         Glide.with(this)
             .load(R.drawable.splash)
+            .placeholder(R.drawable.splash)
             .centerCrop()
             .into(image)
 
         val frameLayout = FrameLayout(this)
+        this.nativeSplashContainer = frameLayout
 
         frameLayout.addView(image)
         val rootFrlayout = this.window.decorView.findViewById<FrameLayout>(android.R.id.content)
@@ -174,11 +183,12 @@ class MainActivity : ReactActivity() {
     // to remove it and the minimum play duration has passed
     private fun deleteSplashImage() {
         if (this.nativeSplashView != null && this.isMinSplashDurationPlayed && this.isJSLoaded) {
-            val view: ImageView = this.nativeSplashView!!
-            if (view.parent != null) {
-                val viewGroup: ViewGroup = view.parent as ViewGroup
-                viewGroup.removeView(view)
-            }
+            // Remove the wrapper, not just the ImageView — otherwise an empty
+            // full-screen FrameLayout is left sitting on top of the React root.
+            val container: View = this.nativeSplashContainer ?: this.nativeSplashView!!
+            (container.parent as? ViewGroup)?.removeView(container)
+            this.nativeSplashView = null
+            this.nativeSplashContainer = null
         }
     }
 
