@@ -41,6 +41,11 @@
 #import <KlaviyoSwift/KlaviyoSwift-Swift.h>
 #endif
 
+@interface AppDelegate ()
+- (BOOL)deliverDeepLinkURL:(NSURL *)url;
+- (void)deepLinkListenerDidBecomeReady:(NSNotification *)note;
+@end
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
@@ -62,6 +67,14 @@
   NSLog(@"CleverTap: Initial Profile ID: %@", cleverTapID);
 #endif
   self.jsLoaded = NO;
+  self.deepLinkListenerReady = NO;
+  // Registered before anything can start React Native, so a deeplink arriving during
+  // startup is never missed. See deliverDeepLinkURL:.
+  [[NSNotificationCenter defaultCenter]
+      addObserver:self
+         selector:@selector(deepLinkListenerDidBecomeReady:)
+             name:@"ApptileDeepLinkListenerReadyNotification"
+           object:nil];
   self.minDurationPassed = NO;
   self.moduleName = @"apptileSeed";
   self.initialProps = @{};
@@ -210,13 +223,54 @@
 }
 
 - (void)jsDidLoad:(NSNotification *)note {
-#ifdef ENABLE_NATIVE_SPLASH
   self.jsLoaded = YES;
+#ifdef ENABLE_NATIVE_SPLASH
   if (self.splash != NULL) {
     [self.splash removeFromSuperview];
     self.splash = NULL;
   }
 #endif
+
+}
+
+// Javascript has subscribed to Linking's 'url' event, so anything we held back can
+// now actually be delivered. Posted by RNApptile.markDeepLinkListenerReady.
+- (void)deepLinkListenerDidBecomeReady:(NSNotification *)note {
+  self.deepLinkListenerReady = YES;
+
+  if (self.pendingDeepLinkURL == nil) {
+    return;
+  }
+
+  NSURL *url = self.pendingDeepLinkURL;
+  self.pendingDeepLinkURL = nil;
+  NSLog(@"[Deeplink] JS is listening now, delivering held url: %@", url);
+  [RCTLinkingManager application:[UIApplication sharedApplication]
+                        openURL:url
+                        options:@{}];
+}
+
+// Single funnel for every incoming deeplink (custom scheme, universal link, push
+// notification). React Native is started asynchronously by StartupHandler, and even
+// once the bridge exists RCTLinkingManager doesn't forward 'url' events until
+// javascript has subscribed to them - urls delivered before that are posted as a
+// notification that nobody observes and are gone for good, which is how cold-start
+// deeplinks end up dumping the user on the home screen. So hold the url until
+// javascript tells us it is listening.
+- (BOOL)deliverDeepLinkURL:(NSURL *)url {
+  if (url == nil) {
+    return NO;
+  }
+
+  if (!self.deepLinkListenerReady) {
+    NSLog(@"[Deeplink] JS is not listening yet, holding url: %@", url);
+    self.pendingDeepLinkURL = url;
+    return YES;
+  }
+
+  return [RCTLinkingManager application:[UIApplication sharedApplication]
+                                openURL:url
+                                options:@{}];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
@@ -283,7 +337,7 @@
 #if ENABLE_APPSFLYER
   [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];
 #endif
-  return [RCTLinkingManager application:app openURL:url options:options];
+  return [self deliverDeepLinkURL:url];
 }
 
 - (BOOL)application:(UIApplication *)application
@@ -323,7 +377,7 @@
       if ([path isEqualToString:@"/"] ||
           [path hasPrefix:@"/products"] ||
           [path hasPrefix:@"/collections"]) {
-        return [RCTLinkingManager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+        return [self deliverDeepLinkURL:url];
       } else {
         // Open other URLs in browser
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
@@ -332,6 +386,11 @@
 #endif
     }
   }
+  if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb] &&
+      userActivity.webpageURL != nil) {
+    return [self deliverDeepLinkURL:userActivity.webpageURL];
+  }
+
   return [RCTLinkingManager application:application
                    continueUserActivity:userActivity
                      restorationHandler:restorationHandler];
@@ -486,9 +545,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
                                          }
                                            deepLinkHandler:^(NSURL * _Nonnull url) {
                                              // Forward deep link to React Native
-                                             [RCTLinkingManager application:UIApplication.sharedApplication
-                                                                  openURL:url
-                                                                  options:@{}];
+                                             [self deliverDeepLinkURL:url];
                                            }];
 
   // Fallback to ensure completion is called if helper doesn't invoke it
