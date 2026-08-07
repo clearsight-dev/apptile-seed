@@ -35,6 +35,17 @@ RCT_EXPORT_METHOD(notifyJSReady)
   [[NSNotificationCenter defaultCenter] postNotificationName:JSReadyNotification object:nil];
 }
 
+// Called by javascript the moment it has subscribed to Linking's 'url' event.
+// notifyJSReady is not a substitute: it fires when the root component mounts, which
+// can be seconds before apptile-core's modules are evaluated. React Native drops
+// 'url' events that have no subscriber, so the app delegate holds any deeplink that
+// arrives before this point and flushes it here.
+RCT_EXPORT_METHOD(markDeepLinkListenerReady)
+{
+  NSString *notification = @"ApptileDeepLinkListenerReadyNotification";
+  [[NSNotificationCenter defaultCenter] postNotificationName:notification object:nil];
+}
+
 + (BOOL)requiresMainQueueSetup
 {
   return YES;

@@ -11,6 +11,10 @@
 
 @property (nonatomic, strong) RCTImageView *splash;
 @property (nonatomic, strong) NSDictionary *storedLaunchOptions;
+// A deeplink that arrived before javascript had subscribed to Linking's 'url'
+// event, and whether it has subscribed yet. See deliverDeepLinkURL:.
+@property (nonatomic, strong) NSURL *pendingDeepLinkURL;
+@property BOOL deepLinkListenerReady;
 @property BOOL minDurationPassed;
 @property BOOL jsLoaded;
 
