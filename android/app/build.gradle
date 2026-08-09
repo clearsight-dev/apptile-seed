@@ -19,13 +19,21 @@ configurations.all {
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
-// Apply Sentry Gradle integration for automatic source map upload (only in PRODUCTION)
+// Read ENABLE_SOURCE_MAP from apptile.config.json for Sentry source map upload
+def sentryConfigFile = file("../../apptile.config.json")
+def enableSourceMap = false
+if (sentryConfigFile.exists()) {
+    def sentryConfig = new JsonSlurper().parseText(sentryConfigFile.text)
+    enableSourceMap = sentryConfig.feature_flags?.ENABLE_SOURCE_MAP ?: false
+}
+
+// Apply Sentry Gradle integration for automatic source map upload (only in PRODUCTION and if ENABLE_SOURCE_MAP is true)
 def buildEnvironment = System.getenv("BUILD_ENVIRONMENT") ?: "DEVELOPMENT"
-if (buildEnvironment == "PRODUCTION") {
-    logger.lifecycle("BUILD_ENVIRONMENT is PRODUCTION - Enabling Sentry source map upload")
+if (buildEnvironment == "PRODUCTION" && enableSourceMap) {
+    logger.lifecycle("BUILD_ENVIRONMENT is PRODUCTION and ENABLE_SOURCE_MAP is true - Enabling Sentry source map upload")
     apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 } else {
-    logger.lifecycle("BUILD_ENVIRONMENT is ${buildEnvironment} - Skipping Sentry source map upload")
+    logger.lifecycle("BUILD_ENVIRONMENT is ${buildEnvironment} and ENABLE_SOURCE_MAP is ${enableSourceMap} - Skipping Sentry source map upload")
 }
 
 react {
