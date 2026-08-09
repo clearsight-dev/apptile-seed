@@ -1356,36 +1356,43 @@ async function main() {
       JSON.stringify(extraModules.current, null, 2),
     );
 
-    // Download GoogleService-Info.plist
-    const googleServiceInfoPath = path.resolve(
-      __dirname,
-      'ios',
-      'GoogleService-Info.plist',
-    );
-    let downloadedGoogleServiceInfo = false;
-    for (let i = 0; i < apptileConfig.assets.length; ++i) {
-      try {
-        const asset = apptileConfig.assets[i];
-        if (asset.assetClass === 'iosFirebaseServiceFile') {
-          await downloadFile(asset.url, googleServiceInfoPath);
-          downloadedGoogleServiceInfo = true;
-          console.log('GoogleService-Info.plist downloaded successfully');
-          break;
+    // Download GoogleService-Info.plist only if ENABLE_FIREBASE_ANALYTICS is true
+    const enableFirebaseAnalytics =
+      apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+    logFeature('Firebase Analytics', enableFirebaseAnalytics);
+    if (enableFirebaseAnalytics) {
+      const googleServiceInfoPath = path.resolve(
+        __dirname,
+        'ios',
+        'GoogleService-Info.plist',
+      );
+      let downloadedGoogleServiceInfo = false;
+      for (let i = 0; i < apptileConfig.assets.length; ++i) {
+        try {
+          const asset = apptileConfig.assets[i];
+          if (asset.assetClass === 'iosFirebaseServiceFile') {
+            await downloadFile(asset.url, googleServiceInfoPath);
+            downloadedGoogleServiceInfo = true;
+            console.log(
+              chalk.green('GoogleService-Info.plist downloaded successfully'),
+            );
+            break;
+          }
+        } catch (err) {
+          console.error(
+            'Failed to download GoogleService-Info.plist:',
+            err.message,
+          );
         }
-      } catch (err) {
+      }
+
+      if (!downloadedGoogleServiceInfo) {
         console.error(
-          'Failed to download GoogleService-Info.plist:',
-          err.message,
+          chalk.red(
+            '❌ Failed to download GoogleService-Info.plist. ENABLE_FIREBASE_ANALYTICS is true but no Firebase config file found in assets.',
+          ),
         );
       }
-    }
-
-    if (!downloadedGoogleServiceInfo) {
-      console.log(
-        chalk.yellow(
-          '⚠️ GoogleService-Info.plist not found in assets. Using existing file if available.',
-        ),
-      );
     }
   } catch (err) {
     console.error('Uncaught exception in iosProjectSetup: ', err);

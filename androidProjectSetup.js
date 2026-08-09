@@ -1487,38 +1487,41 @@ async function main() {
     JSON.stringify(parsedReactNativeConfig),
     'thiis is the react-native.config.js',
   );
-  // Update google-services.json
-  const googleServicesPath = path.resolve(
-    __dirname,
-    'android',
-    'app',
-    'google-services.json',
-  );
-  let downloadedGoogleServices = false;
-  for (let i = 0; i < apptileConfig.assets.length; ++i) {
-    try {
-      const asset = apptileConfig.assets[i];
-      if (asset.assetClass === 'androidFirebaseServiceFile') {
-        await downloadFile(asset.url, googleServicesPath);
-        downloadedGoogleServices = true;
-        break;
-      }
-    } catch (err) {
-      console.error('failed to download google-services.json');
-    }
-  }
-
-  if (!downloadedGoogleServices) {
-    console.log(
-      chalk.red(
-        'Failed to download google-services.json. Will try to use the template',
-      ),
+  // Update google-services.json only if ENABLE_FIREBASE_ANALYTICS is true
+  const enableFirebaseAnalytics =
+    apptileConfig.feature_flags?.ENABLE_FIREBASE_ANALYTICS;
+  logFeature('Firebase Analytics', enableFirebaseAnalytics);
+  if (enableFirebaseAnalytics) {
+    const googleServicesPath = path.resolve(
+      __dirname,
+      'android',
+      'app',
+      'google-services.json',
     );
-    const gsRaw = await readFile(googleServicesPath, {encoding: 'utf8'});
-    const gsParsed = JSON.parse(gsRaw);
-    gsParsed.client[0].client_info.android_client_info.package_name =
-      apptileConfig.android?.bundle_id;
-    await writeFile(googleServicesPath, JSON.stringify(gsParsed, null, 2));
+    let downloadedGoogleServices = false;
+    for (let i = 0; i < apptileConfig.assets.length; ++i) {
+      try {
+        const asset = apptileConfig.assets[i];
+        if (asset.assetClass === 'androidFirebaseServiceFile') {
+          await downloadFile(asset.url, googleServicesPath);
+          downloadedGoogleServices = true;
+          console.log(
+            chalk.green('google-services.json downloaded successfully'),
+          );
+          break;
+        }
+      } catch (err) {
+        console.error('failed to download google-services.json');
+      }
+    }
+
+    if (!downloadedGoogleServices) {
+      console.error(
+        chalk.red(
+          '❌ Failed to download google-services.json. ENABLE_FIREBASE_ANALYTICS is true but no Firebase config file found in assets.',
+        ),
+      );
+    }
   }
 
   // Download Android signing keystore
