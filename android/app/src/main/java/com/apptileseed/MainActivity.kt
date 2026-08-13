@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide
 import android.graphics.Color
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import im.zego.zegoexpress.ZegoExpressEngine
 import im.zego.zegoexpress.entity.ZegoCanvas
@@ -70,6 +71,18 @@ class MainActivity : ReactActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(null)
+
+        // Draw behind the system bars (so the splash fills the screen) while keeping
+        // the status bar itself visible. AppTheme used to set android:windowFullscreen,
+        // which hid the status bar from window creation onwards. JS never asked for it
+        // back — RN's <StatusBar> only calls setHidden when the merged value *changes*,
+        // and no page passes `hidden` — so the bar stayed hidden for the whole session
+        // unless something imperative (VideoPlayer's StatusBar.setHidden) happened to
+        // run. Asserting visibility here makes the launch state deterministic.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView)
+            .show(WindowInsetsCompat.Type.statusBars())
+
         showNativeSplash()
 
         val TAG = "EDGE_TO_EDGE"
@@ -122,14 +135,14 @@ class MainActivity : ReactActivity() {
             return
         }
 
-        // This makes sure the splash image is drawn in the cutout area
+        // This makes sure the splash image is drawn in the cutout area.
+        // The edge-to-edge layout itself is set up in onCreate via
+        // WindowCompat.setDecorFitsSystemWindows — systemUiVisibility is a no-op
+        // on Android 15+ and would also clobber the status bar icon appearance.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val layoutParams = window.attributes
             layoutParams.layoutInDisplayCutoutMode = LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             window.attributes = layoutParams
-
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         }
 
         val image: ImageView = ImageView(this.applicationContext)
