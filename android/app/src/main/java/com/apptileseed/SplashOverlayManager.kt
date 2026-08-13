@@ -10,6 +10,9 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import android.view.WindowManager
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class SplashOverlayManager {
     companion object {
@@ -21,14 +24,17 @@ class SplashOverlayManager {
             val activity = context as? Activity ?: return
             val rootView = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
 
-            // Ensure splash image is drawn in cutout area
+            // Draw the splash edge to edge (cutout area included) without hiding the
+            // status bar. systemUiVisibility is a no-op on Android 15+, so go through
+            // WindowCompat instead.
+            WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+            WindowInsetsControllerCompat(activity.window, activity.window.decorView)
+                .show(WindowInsetsCompat.Type.statusBars())
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val layoutParams = activity.window.attributes
                 layoutParams.layoutInDisplayCutoutMode =
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
                 activity.window.attributes = layoutParams
-                activity.window.decorView.systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             }
 
             // Create ImageView dynamically

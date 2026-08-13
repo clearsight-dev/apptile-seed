@@ -5,8 +5,10 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
         <item name="android:windowBackground">@drawable/splashbitmap</item>
-        <item name="android:windowFullscreen">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- The splash window background is white, so keep dark status bar icons
+             until JS mounts and <StatusBar> applies the per-page style. -->
+        <item name="android:windowLightStatusBar">true</item>
     </style>
     <style name="Theme.Transparent" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
