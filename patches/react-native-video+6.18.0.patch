@@ -1,0 +1,107 @@
+diff --git a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/PictureInPictureUtil.kt b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/PictureInPictureUtil.kt
+index 5e36ef2..9859d95 100644
+--- a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/PictureInPictureUtil.kt
++++ b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/PictureInPictureUtil.kt
+@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon
+ import android.os.Build
+ import android.os.Process
+ import android.util.Rational
++import android.view.View
+ import androidx.activity.ComponentActivity
+ import androidx.annotation.ChecksSdkIntAtLeast
+ import androidx.annotation.RequiresApi
+@@ -116,6 +117,42 @@ object PictureInPictureUtil {
+         updatePictureInPictureActions(context, pipParamsBuilder.build())
+     }
+ 
++    // Auto-enter PiP (API 31+, Home/gesture) never goes through enterPictureInPictureMode(), so the
++    // aspect ratio has to be on the params before the user leaves, or Android opens its default
++    // landscape window. Same approach as v7's PictureInPictureUtils.createPictureInPictureParams.
++    @JvmStatic
++    fun applyAspectRatio(context: ThemedReactContext, pipParamsBuilder: PictureInPictureParams.Builder?, player: ExoPlayer?, playerView: View?) {
++        if (pipParamsBuilder == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
++        val aspectRatio = calcAutoEnterAspectRatio(player, playerView) ?: return
++        pipParamsBuilder.setAspectRatio(aspectRatio)
++        updatePictureInPictureActions(context, pipParamsBuilder.build())
++    }
++
++    // Video format first (rotation-aware); the player view's own shape until the video has loaded.
++    private fun calcAutoEnterAspectRatio(player: ExoPlayer?, playerView: View?): Rational? {
++        val videoFormat = player?.videoFormat
++        val width: Int
++        val height: Int
++        if (videoFormat != null && videoFormat.width > 0 && videoFormat.height > 0) {
++            val isRotated = videoFormat.rotationDegrees == 90 || videoFormat.rotationDegrees == 270
++            width = if (isRotated) videoFormat.height else videoFormat.width
++            height = if (isRotated) videoFormat.width else videoFormat.height
++        } else if (playerView != null && playerView.width > 0 && playerView.height > 0) {
++            width = playerView.width
++            height = playerView.height
++        } else {
++            return null
++        }
++        val aspectRatio = Rational(width, height)
++        val maximumRatio = Rational(239, 100)
++        val minimumRatio = Rational(100, 239)
++        return when {
++            aspectRatio.toFloat() > maximumRatio.toFloat() -> maximumRatio
++            aspectRatio.toFloat() < minimumRatio.toFloat() -> minimumRatio
++            else -> aspectRatio
++        }
++    }
++
+     private fun updatePictureInPictureActions(context: ThemedReactContext, pipParams: PictureInPictureParams) {
+         if (!isSupportPictureInPictureAction()) return
+         if (!isSupportPictureInPicture(context)) return
+diff --git a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
+index 539ecfd..fa3f79d 100644
+--- a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
++++ b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
+@@ -46,6 +46,7 @@ import androidx.media3.common.Metadata;
+ import androidx.media3.common.PlaybackException;
+ import androidx.media3.common.PlaybackParameters;
+ import androidx.media3.common.Player;
++import androidx.media3.common.VideoSize;
+ import androidx.media3.common.StreamKey;
+ import androidx.media3.common.Timeline;
+ import androidx.media3.common.TrackGroup;
+@@ -349,9 +350,12 @@ public class ReactExoplayerView extends FrameLayout implements
+                 LayoutParams.MATCH_PARENT,
+                 LayoutParams.MATCH_PARENT);
+         exoPlayerView = new ExoPlayerView(getContext());
+-        exoPlayerView.addOnLayoutChangeListener( (View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) ->
+-                PictureInPictureUtil.applySourceRectHint(themedReactContext, pictureInPictureParamsBuilder, exoPlayerView)
+-        );
++        exoPlayerView.addOnLayoutChangeListener( (View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) -> {
++                PictureInPictureUtil.applySourceRectHint(themedReactContext, pictureInPictureParamsBuilder, exoPlayerView);
++                if (enterPictureInPictureOnLeave) {
++                    PictureInPictureUtil.applyAspectRatio(themedReactContext, pictureInPictureParamsBuilder, player, exoPlayerView);
++                }
++        });
+         exoPlayerView.setLayoutParams(layoutParams);
+         addView(exoPlayerView, 0, layoutParams);
+ 
+@@ -1914,6 +1918,13 @@ public class ReactExoplayerView extends FrameLayout implements
+         eventEmitter.onVolumeChange.invoke(volume);
+     }
+ 
++    @Override
++    public void onVideoSizeChanged(@NonNull VideoSize videoSize) {
++        if (enterPictureInPictureOnLeave) {
++            PictureInPictureUtil.applyAspectRatio(themedReactContext, pictureInPictureParamsBuilder, player, exoPlayerView);
++        }
++    }
++
+     @Override
+     public void onIsPlayingChanged(boolean isPlaying) {
+         if (isPlaying && isSeeking) {
+@@ -2444,6 +2455,9 @@ public class ReactExoplayerView extends FrameLayout implements
+         if (player != null) {
+             PictureInPictureUtil.applyAutoEnterEnabled(themedReactContext, pictureInPictureParamsBuilder, this.enterPictureInPictureOnLeave);
+         }
++        if (this.enterPictureInPictureOnLeave) {
++            PictureInPictureUtil.applyAspectRatio(themedReactContext, pictureInPictureParamsBuilder, player, exoPlayerView);
++        }
+     }
+ 
+     protected void setIsInPictureInPicture(boolean isInPictureInPicture) {
