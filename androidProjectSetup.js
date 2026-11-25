@@ -1029,6 +1029,13 @@ async function addZego(
   addPermission(androidManifest, 'READ_PHONE_STATE');
   addPermission(androidManifest, 'WAKE_LOCK');
 
+  // ACCESS_WIFI_STATE makes Play imply android.hardware.wifi as required,
+  // hiding the app from devices without Wi-Fi. Mark it optional.
+  addFeature(androidManifest, {
+    'android:name': 'android.hardware.wifi',
+    'android:required': 'false',
+  });
+
   // Add OpenGL ES 2.0 feature for video rendering (example usage)
   addFeature(androidManifest, {
     'android:glEsVersion': '0x00020000',
@@ -1070,6 +1077,12 @@ async function removeZego(
   deletePermission(androidManifest, 'WRITE_EXTERNAL_STORAGE');
   deletePermission(androidManifest, 'READ_PHONE_STATE');
   deletePermission(androidManifest, 'WAKE_LOCK');
+
+  // Remove optional Wi-Fi feature declaration
+  deleteFeature(androidManifest, {
+    'android:name': 'android.hardware.wifi',
+    'android:required': 'false',
+  });
 
   // Remove OpenGL ES 2.0 feature
   deleteFeature(androidManifest, {
