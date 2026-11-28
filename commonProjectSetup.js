@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const axios = require('axios');
 const path = require('path');
+const os = require('os');
 const fs = require('fs');
 const xcode = require('xcode');
 const plist = require('plist');
@@ -651,6 +652,36 @@ async function downloadIconAndSplash(apptileConfig) {
           path.resolve(__dirname, 'assets', asset.fileName),
           path.resolve(androidDrawablePath, asset.fileName),
         );
+
+        // iOS only ever draws `splash.png` before JS is up (LaunchScreen.storyboard,
+        // SplashScreenViewController and the native splash in AppDelegate). For a GIF
+        // splash that file was left as the committed white placeholder, so iOS showed a
+        // white screen until the JS splash appeared. Use the GIF's first frame instead.
+        if (isGif) {
+          const gifPath = path.resolve(__dirname, 'assets', asset.fileName);
+          const pngPath = path.resolve(__dirname, 'ios', 'splash.png');
+          try {
+            if (os.platform() !== 'darwin') {
+              throw new Error('sips is only available on macOS');
+            }
+            // sips decodes the first frame of an animated GIF.
+            require('child_process').execFileSync(
+              'sips',
+              ['-s', 'format', 'png', gifPath, '--out', pngPath],
+              {stdio: 'ignore'},
+            );
+            console.log(
+              'Generated ios/splash.png from the first frame of splash.gif',
+            );
+          } catch (err) {
+            console.error(
+              chalk.yellow(
+                'Could not generate ios/splash.png from splash.gif; iOS will show the existing splash.png before JS loads: ' +
+                  err.message,
+              ),
+            );
+          }
+        }
       } else if (asset.assetClass === 'icon') {
         console.log('Downloading icon');
         await downloadFileToAssets(asset.url, asset.fileName);

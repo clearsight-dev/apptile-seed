@@ -1,5 +1,14 @@
 #import "AppDelegate.h"
 
+#import <ImageIO/ImageIO.h>
+
+#define ENABLE_NATIVE_SPLASH 1
+// Fallback minimum when GIF_SPLASH_DURATION is missing from Info.plist.
+#define MIN_SPLASH_DURATION 1
+// Matches MainActivity.maxSplashDuration on Android. Purely a safety net for a
+// JS boot that never signals ready — must stay well clear of a slow cold start.
+#define MAX_SPLASH_DURATION 20
+
 #import "CrashHandler.h"
 #import "SplashScreenViewController.h"
 #import "StartupHandler.h"
@@ -44,6 +53,8 @@
 @interface AppDelegate ()
 - (BOOL)deliverDeepLinkURL:(NSURL *)url;
 - (void)deepLinkListenerDidBecomeReady:(NSNotification *)note;
+- (void)removeNativeSplashIfReady;
+- (void)attachNativeSplash;
 @end
 
 @implementation AppDelegate
@@ -138,6 +149,7 @@
       [[SplashScreenViewController alloc] init];
   self.window.rootViewController = splashScreenVC;
   [self.window makeKeyAndVisible];
+  [self attachNativeSplash];
 
   return YES;
 }
@@ -163,10 +175,93 @@
   }
 }
 
-#define ENABLE_NATIVE_SPLASH 1
-#define MIN_SPLASH_DURATION 1
-#define MAX_SPLASH_DURATION 7
+// One splash for the whole cold start, like the single Glide overlay on Android:
+// created on the startup window the moment it is shown, kept above the window that
+// RCTAppDelegate later creates for React Native, and removed only when JS is ready.
+// A GIF splash is played natively from its first frame, so there is no static-PNG ->
+// GIF restart, and no hand-off between separate splash views to flash through.
+- (void)attachNativeSplash {
+#ifdef ENABLE_NATIVE_SPLASH
+  if (self.splash != nil) {
+    return;
+  }
+  UIWindow *window = self.window;
 
+  UIImageView *splashView = [[UIImageView alloc] initWithFrame:window.bounds];
+  splashView.contentMode = UIViewContentModeScaleAspectFill;
+  splashView.clipsToBounds = YES;
+  splashView.autoresizingMask =
+      UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+  // Painted synchronously. For a GIF splash, splash.png is the GIF's first frame
+  // (generated at setup), so this matches the launch screen exactly.
+  NSURL *pngURL = [[NSBundle mainBundle] URLForResource:@"splash"
+                                          withExtension:@"png"];
+  if (pngURL != nil) {
+    splashView.image = [UIImage imageWithContentsOfFile:[pngURL path]];
+  }
+  [window addSubview:splashView];
+  self.splash = splashView;
+
+  // RCTAppDelegate replaces self.window with a new window; hold this one and keep
+  // it on top. Alerts presented from this window (mandatory update) are added
+  // above this subview, so they still show.
+  self.splashWindow = window;
+  window.windowLevel = UIWindowLevelNormal + 1;
+
+  // Play the GIF natively. ImageIO decodes frame by frame with the GIF's own
+  // timing (holding every frame of a full-screen GIF in memory is not an option).
+  // Only for apps whose configured splash is a GIF (APPTILE_SPLASH_IS_GIF, written at
+  // setup): splash.gif is always in the bundle, as a placeholder for PNG-splash apps.
+  BOOL splashIsGif = [[[NSBundle mainBundle]
+      objectForInfoDictionaryKey:@"APPTILE_SPLASH_IS_GIF"] boolValue];
+  NSURL *gifURL = splashIsGif ? [[NSBundle mainBundle] URLForResource:@"splash"
+                                                        withExtension:@"gif"]
+                              : nil;
+  if (gifURL != nil) {
+    self.stopSplashAnimation = NO;
+    __weak UIImageView *weakSplashView = splashView;
+    __weak AppDelegate *weakSelf = self;
+    CGAnimateImageAtURLWithBlock(
+        (__bridge CFURLRef)gifURL, nil,
+        ^(size_t index, CGImageRef image, bool *stop) {
+          AppDelegate *strongSelf = weakSelf;
+          UIImageView *view = weakSplashView;
+          if (strongSelf == nil || view == nil || strongSelf.stopSplashAnimation) {
+            *stop = true;
+            return;
+          }
+          view.image = [UIImage imageWithCGImage:image];
+        });
+  }
+
+  // Same minimum as Android (GIF_SPLASH_DURATION, written to Info.plist at setup),
+  // counted from launch; the maximum is a safety net for a JS boot that never
+  // signals ready.
+  double minDuration =
+      [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"GIF_SPLASH_DURATION"]
+          doubleValue];
+  if (minDuration <= 0) {
+    minDuration = MIN_SPLASH_DURATION;
+  }
+  self.minDurationPassed = NO;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                               (int64_t)(minDuration * NSEC_PER_SEC)),
+                 dispatch_get_main_queue(), ^{
+                   self.minDurationPassed = YES;
+                   [self removeNativeSplashIfReady];
+                 });
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                               (int64_t)(MAX_SPLASH_DURATION * NSEC_PER_SEC)),
+                 dispatch_get_main_queue(), ^{
+                   self.minDurationPassed = YES;
+                   self.jsLoaded = YES;
+                   [self removeNativeSplashIfReady];
+                 });
+#endif
+}
+
+// Called once React Native has started. The splash is already on screen (see
+// attachNativeSplash); just listen for JS to say it is ready.
 - (void)showNativeSplash {
 #ifdef ENABLE_NATIVE_SPLASH
   // Register for a notification sent from RNApptile that is
@@ -176,61 +271,43 @@
                                            selector:@selector(jsDidLoad:)
                                                name:JSReadyNotification
                                              object:nil];
-  RCTBridge *bridge = self.bridge;
-
-  // Load the splash image or first frame of gif from bundle
-  NSURL *pngURL = [[NSBundle mainBundle] URLForResource:@"splash"
-                                          withExtension:@"png"];
-  NSURLRequest *requestPng = [NSURLRequest requestWithURL:pngURL];
-  RCTImageSource *pngImageSource =
-      [[RCTImageSource alloc] initWithURLRequest:requestPng
-                                            size:CGSizeZero
-                                           scale:1.0];
-  RCTImageView *rctImageView = [[RCTImageView alloc] initWithBridge:bridge];
-  rctImageView.imageSources = @[ pngImageSource ];
-#endif
-#ifdef ENABLE_NATIVE_SPLASH_WITH_GIF
-  // Load the gif from the bundle
-  NSURL *gifURL = [[NSBundle mainBundle] URLForResource:@"splash"
-                                          withExtension:@"gif"];
-  NSURLRequest *request = [NSURLRequest requestWithURL:gifURL];
-  RCTImageSource *imageSource =
-      [[RCTImageSource alloc] initWithURLRequest:request
-                                            size:CGSizeZero
-                                           scale:1.0];
-
-  // Replace first frame with gif after 500ms (required for
-  // LaunchScreen.storyboard fadeout animation)
-  NSTimeInterval delayInSeconds = 0.5;
-  dispatch_time_t popTime = dispatch_time(
-      DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-  dispatch_after(popTime, dispatch_get_main_queue(), ^(void) {
-    if (self.splash != NULL) {
-      [self.splash removeFromSuperview];
-      [self.splash setImageSources:@[ imageSource ]];
-      [self.window.rootViewController.view addSubview:self.splash];
-    }
-  });
-#endif
-#ifdef ENABLE_NATIVE_SPLASH
-  // append the splash image or gif to the window
-  rctImageView.frame = self.window.frame;
-  rctImageView.resizeMode = RCTResizeModeCover;
-  self.splash = rctImageView;
-  UIView *root = self.window.rootViewController.view;
-  [root addSubview:rctImageView];
 #endif
 }
 
 - (void)jsDidLoad:(NSNotification *)note {
   self.jsLoaded = YES;
 #ifdef ENABLE_NATIVE_SPLASH
-  if (self.splash != NULL) {
-    [self.splash removeFromSuperview];
-    self.splash = NULL;
-  }
+  [self removeNativeSplashIfReady];
 #endif
+}
 
+// Mirrors MainActivity.deleteSplashImage on Android: the splash comes down only
+// once JS has signalled ready AND the minimum play duration has elapsed.
+- (void)removeNativeSplashIfReady {
+#ifdef ENABLE_NATIVE_SPLASH
+  if (self.splash == nil || !self.jsLoaded || !self.minDurationPassed) {
+    return;
+  }
+  UIView *splashView = self.splash;
+  UIWindow *splashWindow = self.splashWindow;
+  self.splash = nil;
+  self.splashWindow = nil;
+
+  [UIView animateWithDuration:0.2
+      animations:^{
+        splashView.alpha = 0;
+      }
+      completion:^(BOOL finished) {
+        self.stopSplashAnimation = YES;
+        [splashView removeFromSuperview];
+        // Hide the startup window only once React Native has its own window;
+        // otherwise it still hosts SplashScreenViewController (e.g. behind the
+        // mandatory-update alert).
+        if (splashWindow != nil && splashWindow != self.window) {
+          splashWindow.hidden = YES;
+        }
+      }];
+#endif
 }
 
 // Javascript has subscribed to Linking's 'url' event, so anything we held back can

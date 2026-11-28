@@ -883,6 +883,20 @@ async function main() {
       apptileConfig.feature_flags?.GIF_SPLASH_DURATION || 4;
     infoPlist.GIF_SPLASH_DURATION = String(gifSplashDuration);
 
+    // Whether the native splash should animate splash.gif. Both splash.png and splash.gif
+    // are always bundled (the Xcode project references both), so the native side cannot
+    // tell from the files alone which one this app actually uses.
+    // The splash asset that setup actually downloads decides it; splash_path is only a
+    // fallback (it can still say .gif after the app switched to a PNG splash).
+    const splashAsset = (apptileConfig.assets || []).find(
+      asset => asset?.assetClass === 'splash',
+    );
+    const splashFileName =
+      splashAsset?.fileName || apptileConfig.ios?.splash_path || '';
+    infoPlist.APPTILE_SPLASH_IS_GIF = splashFileName
+      .toLowerCase()
+      .endsWith('.gif');
+
     const bundle_id =
       apptileConfig.ios?.bundle_id || 'com.apptile.apptilepreviewdemo';
 

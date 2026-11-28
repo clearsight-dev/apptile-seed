@@ -32,8 +32,15 @@ function App(): React.JSX.Element {
   const status = useStartApptile(initAnalytics, true);
 
   const splashPath = apptileConfig?.ios?.splash_path;
+  // The GIF splash is now played natively on iOS (AppDelegate attachNativeSplash), from
+  // launch until JS is ready, like Android. This JS overlay used to show it a second time
+  // on a white background after the native splash came down, which caused the white flash
+  // and the PNG -> GIF restart. Kept behind a constant in case it is ever needed again.
+  const USE_JS_GIF_SPLASH_OVERLAY = false;
   const isGifSplash =
-    Platform.OS === 'ios' && splashPath?.toLowerCase().endsWith('.gif');
+    USE_JS_GIF_SPLASH_OVERLAY &&
+    Platform.OS === 'ios' &&
+    splashPath?.toLowerCase().endsWith('.gif');
 
   const [showSplash, setShowSplash] = useState(isGifSplash);
 
